@@ -1,1 +1,1 @@
-# EntityBuilder.TS
+# DipScope.EntityBuilder

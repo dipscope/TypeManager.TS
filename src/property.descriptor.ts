@@ -61,6 +61,6 @@ export class PropertyDescriptor
      */
     public get serializationConfigured(): boolean
     {
-        return this.serializable || this.deserializable;
+        return !!this.serializable || !!this.deserializable;
     }
 }

@@ -1,0 +1,39 @@
+{
+  "author": "DipScope authors and contributors",
+  "dependencies": {},
+  "description": "A package which will help you to transform your JSON strings or plain objects into JS object instances.",
+  "devDependencies": { 
+    "@types/jasmine": "^3.6.2",
+    "jasmine": "^3.6.3",
+    "jasmine-spec-reporter": "^6.0.0",
+    "jasmine-ts": "^0.3.0",
+    "ts-loader": "^8.0.11",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.1.2",
+    "webpack": "^5.6.0",
+    "webpack-cli": "^4.2.0",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "keywords": [
+    "json",
+    "object",
+    "entity",
+    "class",
+    "converter",
+    "transformer",
+    "builder"
+  ],
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "name": "@dipscope/entity-builder",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dipscope/EntityBuilder.TS.git"
+  },
+  "scripts": {
+    "build": "npx webpack --config=webpack.config.js",
+    "test": "jasmine-ts --config=jasmine.json"
+  },
+  "types": "dist/index.d.ts",
+  "version": "1.0.0"
+}

@@ -116,12 +116,12 @@ export class EntityBuilder
      * Builds entity for provided entity constructor. 
      * 
      * @param {Function} entityCtor Entity constructor.
-     * @param {string|object|object[]} input JSON string, object or array of objects.
-     * @param {Map<object, any>} relationEntityMap Map used to resolve circular references.
+     * @param {string|any|any[]} input JSON string, object or array of objects.
+     * @param {Map<any, any>} relationEntityMap Map used to resolve circular references.
      *
-     * @returns {any} Null, entity or array of entities depending from the input.
+     * @returns {any|null} Null, entity or array of entities depending from the input.
      */
-    public static buildEntity(entityCtor: new () => any, input: string | object | object[], relationEntityMap: Map<object, any> = new Map<object, any>()): any
+    public static buildEntity(entityCtor: new () => any, input: string | any | any[], relationEntityMap: Map<any, any> = new Map<any, any>()): any | null
     {
         const entityDescriptor = this.entityDescriptorCtorMap.get(entityCtor);
         
@@ -141,7 +141,7 @@ export class EntityBuilder
         }
 
         const entities = [];
-        const objects  = Array.isArray(input) ? input : [input as object];
+        const objects  = Array.isArray(input) ? input : [input];
         const multiple = Array.isArray(input);
         
         for (let object of objects) {
@@ -166,13 +166,13 @@ export class EntityBuilder
 
                     const objectEntityPropertyValue = typeof entityPropertyValue === typeof {};
 
-                    if (!objectEntityPropertyValue || (!relationDescriptor.entityCtor && !relationDescriptor.relationEntityName)) {
+                    if (!objectEntityPropertyValue || (!relationDescriptor.relationEntityCtor && !relationDescriptor.relationEntityName)) {
                         continue;
                     }
 
-                    const relationEntityDescriptor = relationDescriptor.entityCtor
-                        ? this.entityDescriptorCtorMap.get(relationDescriptor.entityCtor)
-                        : this.entityDescriptorNameMap.get(relationDescriptor.relationEntityName);
+                    const relationEntityDescriptor = relationDescriptor.relationEntityCtor
+                        ? this.entityDescriptorCtorMap.get(relationDescriptor.relationEntityCtor!)
+                        : this.entityDescriptorNameMap.get(relationDescriptor.relationEntityName!);
 
                     if (!relationEntityDescriptor) {
                         continue;
@@ -208,12 +208,12 @@ export class EntityBuilder
      * Builds object for provided entity constructor. 
      * 
      * @param {Function} entityCtor Entity constructor.
-     * @param {string|object|object[]} input JSON string, entity object or array of entity objects.
-     * @param {Map<object, any>} relationObjectMap Map used to resolve circular references.
+     * @param {string|any|any[]} input JSON string, entity object or array of entity objects.
+     * @param {Map<any, any>} relationObjectMap Map used to resolve circular references.
      *
-     * @returns {any} Null, object or array of objects depending from the input.
+     * @returns {any|null} Null, object or array of objects depending from the input.
      */
-    public static buildObject(entityCtor: new () => any, input: string | object | object[], relationObjectMap: Map<object, any> = new Map<object, any>()): object
+    public static buildObject(entityCtor: new () => any, input: string | any | any[], relationObjectMap: Map<any, any> = new Map<any, any>()): any | null
     {
         const entityDescriptor = this.entityDescriptorCtorMap.get(entityCtor);
 
@@ -233,11 +233,11 @@ export class EntityBuilder
         }
 
         const objects  = [];
-        const entities = Array.isArray(input) ? input : [input as object];
+        const entities = Array.isArray(input) ? input : [input];
         const multiple = Array.isArray(input);
 
         for (let entity of entities) {
-            const object = {};
+            const object = {} as any;
 
             for (let entityPropertyName in entity) {
                 const propertyDescriptor = entityDescriptor.propertyDescriptorEntityMap.get(entityPropertyName);
@@ -254,13 +254,13 @@ export class EntityBuilder
 
                     const objectObjectPropertyValue = typeof objectPropertyValue === typeof {};
 
-                    if (!objectObjectPropertyValue || (!relationDescriptor.entityCtor && !relationDescriptor.relationEntityName)) {
+                    if (!objectObjectPropertyValue || (!relationDescriptor.relationEntityCtor && !relationDescriptor.relationEntityName)) {
                         continue;
                     }
 
-                    const relationEntityDescriptor = relationDescriptor.entityCtor
-                        ? this.entityDescriptorCtorMap.get(relationDescriptor.entityCtor)
-                        : this.entityDescriptorNameMap.get(relationDescriptor.relationEntityName);
+                    const relationEntityDescriptor = relationDescriptor.relationEntityCtor
+                        ? this.entityDescriptorCtorMap.get(relationDescriptor.relationEntityCtor!)
+                        : this.entityDescriptorNameMap.get(relationDescriptor.relationEntityName!);
 
                     if (!relationEntityDescriptor) {
                         continue;
@@ -296,11 +296,11 @@ export class EntityBuilder
      * Builds JSON string for provided entity constructor. 
      * 
      * @param {Function} entityCtor Entity constructor.
-     * @param {string|object|object[]} input JSON string, entity object or array of entity objects.
+     * @param {string|any|any[]} input JSON string, entity object or array of entity objects.
      *
-     * @returns {any} Null or JSON string.
+     * @returns {string|null} Null or JSON string.
      */
-    public static buildJson(entityCtor: new () => any, input: string | object | object[]): string
+    public static buildJson(entityCtor: new () => any, input: string | any | any[]): string | null
     {
         const object = this.buildObject(entityCtor, input);
 

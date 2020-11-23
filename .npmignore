@@ -1,0 +1,13 @@
+# VS files
+.vs
+.editorconfig
+.gitattributes
+.gitignore
+
+# Project files
+node_modules
+spec
+src
+jasmine.json
+tsconfig.json
+webpack.config.json
