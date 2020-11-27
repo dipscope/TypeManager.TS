@@ -104,23 +104,3 @@ export function Attr(attrAlias?: string): Function
 {
     return Property(attrAlias);
 }
-
-/**
- * Alias for serializable decorator.
- *
- * @returns {Function} Decorator function.
- */
-export function Output(): Function
-{
-    return Serializable();
-}
-
-/**
- * Alias for deserializable decorator.
- *
- * @returns {Function} Decorator function.
- */
-export function Input(): Function
-{
-    return Deserializable();
-}

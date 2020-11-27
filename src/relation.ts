@@ -18,9 +18,12 @@ export function Relation(relationEntity: string | Function, propertyAlias?: stri
     {
         const relationDescriptor = new RelationDescriptor(target.constructor, propertyName);
 
-        if (typeof relationEntity === typeof 'string') {
+        if (typeof relationEntity === typeof 'string') 
+        {
             relationDescriptor.relationEntityName = relationEntity as string;
-        } else {
+        }
+        else 
+        {
             relationDescriptor.relationEntityCtor = relationEntity as new () => any;
         }
 

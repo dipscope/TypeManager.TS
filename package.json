@@ -24,7 +24,7 @@
     "builder"
   ],
   "license": "Apache-2.0",
-  "main": "dist/index.js",
+  "main": "dist/bundle.js",
   "name": "@dipscope/entity-builder",
   "repository": {
     "type": "git",

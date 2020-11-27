@@ -41,12 +41,14 @@ export class EntityBuilder
     {
         let mappedEntityDescriptor = this.entityDescriptorCtorMap.get(entityDescriptor.entityCtor);
 
-        if (!mappedEntityDescriptor) {
+        if (!mappedEntityDescriptor)
+        {
             mappedEntityDescriptor = entityDescriptor;
             this.entityDescriptorCtorMap.set(mappedEntityDescriptor.entityCtor, mappedEntityDescriptor);
         }
 
-        if (entityDescriptor.entityName) {
+        if (entityDescriptor.entityName) 
+        {
             mappedEntityDescriptor.entityName = entityDescriptor.entityName;
             this.entityDescriptorNameMap.set(mappedEntityDescriptor.entityName, mappedEntityDescriptor);
         }
@@ -68,22 +70,26 @@ export class EntityBuilder
 
         let mappedPropertyDescriptor = mappedEntityDescriptor.propertyDescriptorEntityMap.get(propertyDescriptor.propertyName);
 
-        if (!mappedPropertyDescriptor) {
+        if (!mappedPropertyDescriptor) 
+        {
             mappedPropertyDescriptor = propertyDescriptor;
             mappedEntityDescriptor.propertyDescriptorEntityMap.set(mappedPropertyDescriptor.propertyName, mappedPropertyDescriptor);
             mappedEntityDescriptor.propertyDescriptorObjectMap.set(mappedPropertyDescriptor.propertyAlias || mappedPropertyDescriptor.propertyName, mappedPropertyDescriptor);
         }
 
-        if (propertyDescriptor.propertyAlias) {
+        if (propertyDescriptor.propertyAlias)
+        {
             mappedPropertyDescriptor.propertyAlias = propertyDescriptor.propertyAlias;
             mappedEntityDescriptor.propertyDescriptorObjectMap.set(mappedPropertyDescriptor.propertyAlias, mappedPropertyDescriptor);
         }
 
-        if (propertyDescriptor.serializationConfigured && propertyDescriptor.serializable) {
+        if (propertyDescriptor.serializationConfigured && propertyDescriptor.serializable) 
+        {
             mappedPropertyDescriptor.serializable = propertyDescriptor.serializable;
         }
 
-        if (propertyDescriptor.serializationConfigured && propertyDescriptor.deserializable) {
+        if (propertyDescriptor.serializationConfigured && propertyDescriptor.deserializable) 
+        {
             mappedPropertyDescriptor.deserializable = propertyDescriptor.deserializable;
         }
 
@@ -104,7 +110,8 @@ export class EntityBuilder
 
         let mappedTransformDescriptor = mappedEntityDescriptor.transformDescriptorMap.get(transformDescriptor.propertyName);
 
-        if (!mappedTransformDescriptor) {
+        if (!mappedTransformDescriptor) 
+        {
             mappedTransformDescriptor = transformDescriptor;
             mappedEntityDescriptor.transformDescriptorMap.set(mappedTransformDescriptor.propertyName, mappedTransformDescriptor);
         }
@@ -125,18 +132,21 @@ export class EntityBuilder
     {
         const entityDescriptor = this.entityDescriptorCtorMap.get(entityCtor);
         
-        if (!entityDescriptor || !input) {
+        if (!entityDescriptor || !input) 
+        {
             return null;
         }
 
         const stringInput = typeof input === typeof 'string';
         const objectInput = typeof input === typeof {};
 
-        if (!stringInput && !objectInput) {
+        if (!stringInput && !objectInput) 
+        {
             return null;
         }
 
-        if (stringInput) {
+        if (stringInput) 
+        {
             input = JSON.parse(String(input));
         }
 
@@ -144,17 +154,21 @@ export class EntityBuilder
         const objects  = Array.isArray(input) ? input : [input];
         const multiple = Array.isArray(input);
         
-        for (let object of objects) {
+        for (let object of objects) 
+        {
             const entity = new entityCtor();
 
-            if (entityDescriptor.entityName) {
+            if (entityDescriptor.entityName) 
+            {
                 entity.$entityName = entityDescriptor.entityName;
             }
 
-            for (let objectPropertyName in object) {
+            for (let objectPropertyName in object) 
+            {
                 const propertyDescriptor = entityDescriptor.propertyDescriptorObjectMap.get(objectPropertyName);
 
-                if (!propertyDescriptor || (propertyDescriptor.serializationConfigured && !propertyDescriptor.deserializable)) {
+                if (!propertyDescriptor || (propertyDescriptor.serializationConfigured && !propertyDescriptor.deserializable)) 
+                {
                     continue;
                 }
 
@@ -162,11 +176,12 @@ export class EntityBuilder
                 const entityPropertyValue = object[objectPropertyName];
                 const relationDescriptor  = propertyDescriptor instanceof RelationDescriptor ? propertyDescriptor : null;
 
-                if (relationDescriptor && entityPropertyValue) {
-
+                if (relationDescriptor && entityPropertyValue) 
+                {
                     const objectEntityPropertyValue = typeof entityPropertyValue === typeof {};
 
-                    if (!objectEntityPropertyValue || (!relationDescriptor.relationEntityCtor && !relationDescriptor.relationEntityName)) {
+                    if (!objectEntityPropertyValue || (!relationDescriptor.relationEntityCtor && !relationDescriptor.relationEntityName)) 
+                    {
                         continue;
                     }
 
@@ -174,26 +189,30 @@ export class EntityBuilder
                         ? this.entityDescriptorCtorMap.get(relationDescriptor.relationEntityCtor!)
                         : this.entityDescriptorNameMap.get(relationDescriptor.relationEntityName!);
 
-                    if (!relationEntityDescriptor) {
+                    if (!relationEntityDescriptor) 
+                    {
                         continue;
                     }
 
                     let relationEntity = relationEntityMap.get(entityPropertyValue);
 
-                    if (!relationEntity) {
+                    if (!relationEntity) 
+                    {
                         relationEntity = this.buildEntity(relationEntityDescriptor.entityCtor, entityPropertyValue, relationEntityMap);
                         relationEntityMap.set(entityPropertyValue, relationEntity);
                     }
 
                     entity[entityPropertyName] = relationEntity;
-
-                } else {
+                }
+                else 
+                {
                     entity[entityPropertyName] = entityPropertyValue;
                 }
 
                 const transformDescriptor = entityDescriptor.transformDescriptorMap.get(propertyDescriptor.propertyName);
 
-                if (transformDescriptor) {
+                if (transformDescriptor) 
+                {
                     entity[entityPropertyName] = transformDescriptor.deserializeFn(entity[entityPropertyName]);
                 }
             }
@@ -217,18 +236,21 @@ export class EntityBuilder
     {
         const entityDescriptor = this.entityDescriptorCtorMap.get(entityCtor);
 
-        if (!entityDescriptor || !input) {
+        if (!entityDescriptor || !input) 
+        {
             return null;
         }
 
         const stringInput = typeof input === typeof 'string';
         const objectInput = typeof input === typeof {};
 
-        if (!stringInput && !objectInput) {
+        if (!stringInput && !objectInput) 
+        {
             return null;
         }
 
-        if (stringInput) {
+        if (stringInput) 
+        {
             input = JSON.parse(String(input));
         }
 
@@ -236,13 +258,16 @@ export class EntityBuilder
         const entities = Array.isArray(input) ? input : [input];
         const multiple = Array.isArray(input);
 
-        for (let entity of entities) {
+        for (let entity of entities) 
+        {
             const object = {} as any;
 
-            for (let entityPropertyName in entity) {
+            for (let entityPropertyName in entity) 
+            {
                 const propertyDescriptor = entityDescriptor.propertyDescriptorEntityMap.get(entityPropertyName);
 
-                if (!propertyDescriptor || (propertyDescriptor.serializationConfigured && !propertyDescriptor.serializable)) {
+                if (!propertyDescriptor || (propertyDescriptor.serializationConfigured && !propertyDescriptor.serializable)) 
+                {
                     continue;
                 }
 
@@ -250,11 +275,12 @@ export class EntityBuilder
                 const objectPropertyValue = entity[entityPropertyName];
                 const relationDescriptor  = propertyDescriptor instanceof RelationDescriptor ? propertyDescriptor : null;
 
-                if (relationDescriptor && objectPropertyValue) {
-
+                if (relationDescriptor && objectPropertyValue) 
+                {
                     const objectObjectPropertyValue = typeof objectPropertyValue === typeof {};
 
-                    if (!objectObjectPropertyValue || (!relationDescriptor.relationEntityCtor && !relationDescriptor.relationEntityName)) {
+                    if (!objectObjectPropertyValue || (!relationDescriptor.relationEntityCtor && !relationDescriptor.relationEntityName)) 
+                    {
                         continue;
                     }
 
@@ -262,26 +288,30 @@ export class EntityBuilder
                         ? this.entityDescriptorCtorMap.get(relationDescriptor.relationEntityCtor!)
                         : this.entityDescriptorNameMap.get(relationDescriptor.relationEntityName!);
 
-                    if (!relationEntityDescriptor) {
+                    if (!relationEntityDescriptor) 
+                    {
                         continue;
                     }
 
                     let relationObject = relationObjectMap.get(objectPropertyValue);
 
-                    if (!relationObject) {
+                    if (!relationObject) 
+                    {
                         relationObject = this.buildObject(relationEntityDescriptor.entityCtor, objectPropertyValue, relationObjectMap);
                         relationObjectMap.set(objectPropertyValue, relationObject);
                     }
 
                     object[objectPropertyName] = relationObject;
-
-                } else {
+                } 
+                else 
+                {
                     object[objectPropertyName] = objectPropertyValue;
                 }
 
                 const transformDescriptor = entityDescriptor.transformDescriptorMap.get(propertyDescriptor.propertyName);
 
-                if (transformDescriptor) {
+                if (transformDescriptor) 
+                {
                     object[objectPropertyName] = transformDescriptor.serializeFn(object[objectPropertyName]);
                 }
             }
