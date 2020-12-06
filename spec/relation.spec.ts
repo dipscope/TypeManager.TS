@@ -1,4 +1,4 @@
-import { PropertyDescriptor } from './../src/property.descriptor';
+import { PropertyDescriptor } from '../src/property.metadata';
 import { RelationDescriptor } from './../src/relation.descriptor';
 import { Entity, EntityBuilder, Property, Relation } from './../src';
 

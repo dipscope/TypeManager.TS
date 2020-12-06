@@ -1,28 +1,36 @@
-import { EntityBuilder } from './entity.builder';
-import { PropertyDescriptor } from './property.descriptor';
+import { Fn } from './fn';
+import { PropertyDecorator } from './property.decorator';
+import { PropertyOptions } from './property.options';
+import { TypeResolver } from './type.resolver';
 
-/**
- * Property decorator.
- *
- * Used to define the certain entity property.
- * Property alias is an optional name if it differs in the plain object.
- * 
- * @param {string} propertyAlias Alias for a property.
- *
- * @returns {Function} Decorator function.
- */
-export function Property(propertyAlias?: string): Function
+export function Property(x?: TypeResolver | PropertyOptions, y?: PropertyOptions): Function | void
 {
-    return function (target: any, propertyName: string): void
+    const usedDirectly    = !Fn.isNil(y) && Fn.isString(y);
+    const target          = usedDirectly ? x : null;
+    const propertyName    = usedDirectly ? y : null;
+    const propertyOptions = (usedDirectly ? {} : (Fn.isObject(y) ? y : (Fn.isObject(x) ? x : {}))) as PropertyOptions;
+    const typeResolver    = (usedDirectly ? null : (Fn.isFunction(x) ? x : (Fn.isString(x) ? PropertyDecorator.buildTypeResolverForAlias(x) : null))) as TypeResolver;
+
+    if (Fn.isNil(propertyOptions.typeResolver)) 
     {
-        const propertyDescriptor = new PropertyDescriptor(target.constructor, propertyName);
+        propertyOptions.typeResolver = typeResolver;
+    }
+    
+    if (Fn.isNil(propertyOptions.reflectMetadata)) 
+    {
+        propertyOptions.reflectMetadata = true;
+    }
 
-        propertyDescriptor.propertyAlias = propertyAlias;
+    const decorateFn = PropertyDecorator.buildDecorateFn(propertyOptions);
 
-        EntityBuilder.registerPropertyDescriptor(propertyDescriptor);
+    if (usedDirectly) 
+    {
+        decorateFn(target, propertyName);
 
         return;
     }
+
+    return decorateFn;
 }
 
 /**
@@ -35,16 +43,7 @@ export function Property(propertyAlias?: string): Function
  */
 export function Serializable(): Function
 {
-    return function (target: any, propertyName: string): void
-    {
-        const propertyDescriptor = new PropertyDescriptor(target.constructor, propertyName);
-
-        propertyDescriptor.serializable = true;
-
-        EntityBuilder.registerPropertyDescriptor(propertyDescriptor);
-
-        return;
-    }
+    return Property({ serializable: true, reflectMetadata: false }) as Function;
 }
 
 /**
@@ -57,50 +56,5 @@ export function Serializable(): Function
  */
 export function Deserializable(): Function
 {
-    return function (target: any, propertyName: string): void
-    {
-        const propertyDescriptor = new PropertyDescriptor(target.constructor, propertyName);
-
-        propertyDescriptor.deserializable = true;
-
-        EntityBuilder.registerPropertyDescriptor(propertyDescriptor);
-
-        return;
-    }
-}
-
-/**
- * Alias for property decorator.
- *
- * @param {string} propAlias Alias for a property.
- *
- * @returns {Function} Decorator function.
- */
-export function Prop(propAlias?: string): Function
-{
-    return Property(propAlias);
-}
-
-/**
- * Alias for property decorator.
- *
- * @param {string} attributeAlias Alias for an attribute.
- *
- * @returns {Function} Decorator function.
- */
-export function Attribute(attributeAlias?: string): Function
-{
-    return Property(attributeAlias);
-}
-
-/**
- * Alias for property decorator.
- *
- * @param {string} attrAlias Alias for an attribute.
- *
- * @returns {Function} Decorator function.
- */
-export function Attr(attrAlias?: string): Function
-{
-    return Property(attrAlias);
+    return Property({ deserializable: true, reflectMetadata: false }) as Function;
 }
