@@ -1,24 +1,73 @@
-import { Serializer } from './serializer';
+import { Fn } from './utils';
 import { TypeResolver } from './type.resolver';
-import { Fn } from './fn';
+import { TypeSerializer } from './type.serializer';
 import { PropertyOptions } from './property.options';
 
+/**
+ * Main class used to describe certain property.
+ * 
+ * @type {PropertyMetadata}
+ */
 export class PropertyMetadata
 {
+    /**
+     * Property name as declared in type.
+     * 
+     * @type {string}
+     */
     public name: string;
 
+    /**
+     * Type resolver to get a property type.
+     * 
+     * @type {TypeResolver}
+     */
     public typeResolver: TypeResolver;
 
+    /**
+     * Custom property type serializer.
+     * 
+     * Used to override default one.
+     * 
+     * @type {TypeSerializer<any, any>}
+     */
+    public typeSerializer?: TypeSerializer<any, any>;
+
+    /**
+     * Property alias.
+     * 
+     * Used if property name in object differs from declared for type.
+     * 
+     * @type {string}
+     */
     public alias?: string;
 
+    /**
+     * Serializable to object?
+     * 
+     * @type {boolean}
+     */
     public serializable?: boolean;
 
+    /**
+     * Deserializable from object?
+     * 
+     * @type {boolean}
+     */
     public deserializable?: boolean;
 
-    public serializer?: Serializer<any, any>;
-
+    /**
+     * Emit default values for undefined values?
+     * 
+     * @type {boolean}
+     */
     public emitDefaultValue?: boolean;
 
+    /**
+     * Constructor.
+     * 
+     * @param {string} name Property name.
+     */
     public constructor(name: string)
     {
         this.name         = name;
@@ -27,16 +76,33 @@ export class PropertyMetadata
         return;
     }
 
+    /**
+     * Checks if serialization configured.
+     * 
+     * @returns {boolean} True when serialization configured. False otherwise.
+     */
     public get serializationConfigured(): boolean
     {
-        return !!this.serializable || !!this.deserializable;
+        return !Fn.isNil(this.serializable) || !Fn.isNil(this.deserializable);
     }
 
+    /**
+     * Configures property metadata based on provided options.
+     * 
+     * @param {PropertyOptions} propertyOptions Property options.
+     * 
+     * @returns {PropertyMetadata} Instance of property metadata.
+     */
     public configure(propertyOptions: PropertyOptions): PropertyMetadata
     {
         if (!Fn.isNil(propertyOptions.typeResolver)) 
         {
             this.typeResolver = propertyOptions.typeResolver;
+        }
+
+        if (!Fn.isNil(propertyOptions.typeSerializer)) 
+        {
+            this.typeSerializer = propertyOptions.typeSerializer;
         }
 
         if (!Fn.isNil(propertyOptions.alias)) 
@@ -52,11 +118,6 @@ export class PropertyMetadata
         if (!Fn.isNil(propertyOptions.deserializable))
         {
             this.deserializable = propertyOptions.deserializable;
-        }
-
-        if (!Fn.isNil(propertyOptions.serializer)) 
-        {
-            this.serializer = propertyOptions.serializer;
         }
 
         if (!Fn.isNil(propertyOptions.emitDefaultValue)) 

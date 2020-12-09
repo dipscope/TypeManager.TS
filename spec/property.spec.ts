@@ -1,51 +1,53 @@
-import { Entity, EntityBuilder, Property, Attribute, Prop, Attr, Serializable, Deserializable, Model } from './../src';
+import { Alias, Property, Serializable, Deserializable, TypeArtisan } from './../src';
 
-@Entity()
-@Model('X:Property')
 class X
 {
     @Property() public a?: string;
-    @Attribute('e') public b?: string;
-    @Prop() @Serializable() public c?: string;
-    @Attr() @Deserializable() public d?: string;
+    @Property() @Alias('e') public b?: string;
+    @Property() @Serializable() public c?: string;
+    @Property() @Deserializable() public d?: string;
 }
 
 describe('Property decorator', function () 
 {
-    it('should register property descriptor in the entity builder', function ()
+    it('should implicitly register type metadata', function ()
     {
-        const ctorEntityDescriptor = EntityBuilder.entityDescriptorCtorMap.get(X);
-        const nameEntityDescriptor = EntityBuilder.entityDescriptorNameMap.get('X:Property');
+        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
 
-        expect(ctorEntityDescriptor).toBeDefined();
-        expect(nameEntityDescriptor).toBeDefined();
+        expect(typeMetadata.declaredImplicitly).toBeTrue();
+    });
 
-        const aPropertyDescriptor = ctorEntityDescriptor?.propertyDescriptorEntityMap.get('a');
-        const bPropertyDescriptor = nameEntityDescriptor?.propertyDescriptorEntityMap.get('b');
-        const cPropertyDescriptor = ctorEntityDescriptor?.propertyDescriptorEntityMap.get('c');
-        const dPropertyDescriptor = nameEntityDescriptor?.propertyDescriptorEntityMap.get('d');
-        const ePropertyDescriptor = ctorEntityDescriptor?.propertyDescriptorObjectMap.get('e');
+    it('should explicitly register property metadata', function ()
+    {
+        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
 
-        expect(aPropertyDescriptor?.propertyName).toBe('a');
-        expect(aPropertyDescriptor?.propertyAlias).not.toBeDefined();
-        expect(aPropertyDescriptor?.serializable).not.toBeDefined();
-        expect(aPropertyDescriptor?.deserializable).not.toBeDefined();
+        const aPropertyMetadata = typeMetadata.propertyMetadataMap.get('a');
+        const bPropertyMetadata = typeMetadata.propertyMetadataMap.get('b');
+        const cPropertyMetadata = typeMetadata.propertyMetadataMap.get('c');
+        const dPropertyMetadata = typeMetadata.propertyMetadataMap.get('d');
 
-        expect(bPropertyDescriptor?.propertyName).toBe('b');
-        expect(bPropertyDescriptor?.propertyAlias).toBe('e');
-        expect(bPropertyDescriptor?.serializable).not.toBeDefined();
-        expect(bPropertyDescriptor?.deserializable).not.toBeDefined();
+        expect(aPropertyMetadata).toBeDefined();
+        expect(aPropertyMetadata?.name).toBe('a');
+        expect(aPropertyMetadata?.alias).not.toBeDefined();
+        expect(aPropertyMetadata?.serializable).not.toBeDefined();
+        expect(aPropertyMetadata?.deserializable).not.toBeDefined();
 
-        expect(cPropertyDescriptor?.propertyName).toBe('c');
-        expect(cPropertyDescriptor?.propertyAlias).not.toBeDefined();
-        expect(cPropertyDescriptor?.serializable).toBeTrue();
-        expect(cPropertyDescriptor?.deserializable).not.toBeDefined();
+        expect(bPropertyMetadata).toBeDefined();
+        expect(bPropertyMetadata?.name).toBe('b');
+        expect(bPropertyMetadata?.alias).toBe('e');
+        expect(bPropertyMetadata?.serializable).not.toBeDefined();
+        expect(bPropertyMetadata?.deserializable).not.toBeDefined();
 
-        expect(dPropertyDescriptor?.propertyName).toBe('d');
-        expect(dPropertyDescriptor?.propertyAlias).not.toBeDefined();
-        expect(dPropertyDescriptor?.serializable).not.toBeDefined();
-        expect(dPropertyDescriptor?.deserializable).toBeTrue();
+        expect(cPropertyMetadata).toBeDefined();
+        expect(cPropertyMetadata?.name).toBe('c');
+        expect(cPropertyMetadata?.alias).not.toBeDefined();
+        expect(cPropertyMetadata?.serializable).toBeTrue();
+        expect(cPropertyMetadata?.deserializable).not.toBeDefined();
 
-        expect(ePropertyDescriptor).toEqual(bPropertyDescriptor);
+        expect(dPropertyMetadata).toBeDefined();
+        expect(dPropertyMetadata?.name).toBe('d');
+        expect(dPropertyMetadata?.alias).not.toBeDefined();
+        expect(dPropertyMetadata?.serializable).not.toBeDefined();
+        expect(dPropertyMetadata?.deserializable).toBeTrue();
     });
 });

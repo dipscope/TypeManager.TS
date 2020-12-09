@@ -1,17 +1,22 @@
-import { Fn } from './fn';
-import { PropertyDecorator } from './property.decorator';
-import { PropertyOptions } from './property.options';
+import { Fn, Log } from './utils';
 import { TypeResolver } from './type.resolver';
+import { PropertyArtisan } from './property.artisan';
+import { PropertyOptions } from './property.options';
 
-export function Property(x?: TypeResolver | PropertyOptions, y?: PropertyOptions): Function | void
+/**
+ * Property decorator.
+ * 
+ * @param {TypeResolver|PropertyOptions|string} x Type resolver, type options or type alias.
+ * @param {PropertyOptions} y Property options if first argument is a type resolver.
+ * 
+ * @returns {PropertyDecorator} Property decorator.
+ */
+export function Property(x?: TypeResolver | PropertyOptions | string, y?: PropertyOptions): PropertyDecorator
 {
-    const usedDirectly    = !Fn.isNil(y) && Fn.isString(y);
-    const target          = usedDirectly ? x : null;
-    const propertyName    = usedDirectly ? y : null;
-    const propertyOptions = (usedDirectly ? {} : (Fn.isObject(y) ? y : (Fn.isObject(x) ? x : {}))) as PropertyOptions;
-    const typeResolver    = (usedDirectly ? null : (Fn.isFunction(x) ? x : (Fn.isString(x) ? PropertyDecorator.buildTypeResolverForAlias(x) : null))) as TypeResolver;
-
-    if (Fn.isNil(propertyOptions.typeResolver)) 
+    const typeResolver    = Fn.isFunction(x) ? x : (Fn.isString(x) ? PropertyArtisan.buildTypeResolverForAlias(x) : null) as TypeResolver;
+    const propertyOptions = Fn.isObject(y) ? y : (Fn.isObject(x) ? x : {}) as PropertyOptions;
+    
+    if (Fn.isNil(propertyOptions.typeResolver))
     {
         propertyOptions.typeResolver = typeResolver;
     }
@@ -20,41 +25,54 @@ export function Property(x?: TypeResolver | PropertyOptions, y?: PropertyOptions
     {
         propertyOptions.reflectMetadata = true;
     }
-
-    const decorateFn = PropertyDecorator.buildDecorateFn(propertyOptions);
-
-    if (usedDirectly) 
+    
+    return function (target: any, propertyName: string | symbol): void
     {
-        decorateFn(target, propertyName);
+        const declaringTypeCtor = target.constructor;
+        const targetName        = `${Fn.nameOf(declaringTypeCtor)}.${String(propertyName)}`;
+
+        if (Fn.isFunction(target))
+        {
+            if (Log.errorEnabled) 
+            {
+                Log.error(`${targetName}: cannot decorate a static property!`);
+            }
+            
+            return;
+        }
+
+        if (Fn.isSymbol(propertyName))
+        {
+            if (Log.errorEnabled) 
+            {
+                Log.error(`${targetName}: cannot decorate a symbol property!`);
+            }
+
+            return;
+        }
+
+        if (Fn.isFunction(target[propertyName])) 
+        {
+            if (Log.errorEnabled)
+            {
+                Log.error(`${targetName}: cannot decorate a method property!`);
+            }
+            
+            return;
+        }
+
+        if (Fn.isNil(propertyOptions.typeResolver) && propertyOptions.reflectMetadata)
+        {
+            const typeCtor = Fn.extractReflectMetadata('design:type', target, propertyName);
+
+            if (!Fn.isNil(typeCtor))
+            {
+                propertyOptions.typeResolver = () => typeCtor;
+            }
+        }
+
+        PropertyArtisan.injectPropertyMetadata(declaringTypeCtor, propertyName, propertyOptions);
 
         return;
-    }
-
-    return decorateFn;
-}
-
-/**
- * Serializable property decorator.
- * 
- * Used to define if certain property should be serializable. By default if this 
- * decorator is not applied property is serializable and deserializable.
- *
- * @returns {Function} Decorator function.
- */
-export function Serializable(): Function
-{
-    return Property({ serializable: true, reflectMetadata: false }) as Function;
-}
-
-/**
- * Deserializable property decorator.
- * 
- * Used to define if certain property should be deserializable. By default if this 
- * decorator is not applied property is serializable and deserializable.
- *
- * @returns {Function} Decorator function.
- */
-export function Deserializable(): Function
-{
-    return Property({ deserializable: true, reflectMetadata: false }) as Function;
+    };
 }

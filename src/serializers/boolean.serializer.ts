@@ -1,35 +1,74 @@
-import { Serializer } from './../serializer';
+import { Fn, Log } from './../utils';
+import { TypeSerializer } from './../type.serializer';
 
-export class BooleanSerializer implements Serializer<boolean | boolean[] | null, any | any[] | null>
+/**
+ * Boolean serializer.
+ * 
+ * @type {BooleanSerializer}
+ */
+export class BooleanSerializer implements TypeSerializer<any, any>
 {
     /**
-     * Converts boolean value to any value.
+     * Converts data from type to object.
      * 
-     * @param {boolean|boolean[]|null} input Input value.
+     * @param {any} input Input data.
      * 
-     * @returns {any|any[]|null} Ouput value.
+     * @returns {any} Output data.
      */
-    public serialize(input: boolean | boolean[] | null): any | any[] | null
+    public serialize(input: any): any
     {
-        const defined = input !== null && input !== undefined;
+        if (Fn.isNil(input))
+        {
+            return null;
+        }
 
-        if (defined) 
+        if (Fn.isBoolean(input))
         {
             return input;
         }
 
-        return null;
-    }
-
-    public deserialize(output: any | any[] | null): boolean | boolean[] | null
-    {
-        const defined = output !== null && output !== undefined;
-
-        if (defined) 
+        if (Fn.isArray(input))
         {
-            return Array.isArray(output) ? output.map(o => new Boolean(o)) : new Boolean(output);
+            return input.map(i => this.serialize(i));
         }
 
-        return null;
+        if (Log.warnEnabled) 
+        {
+            Log.warn('Serializing non boolean value as boolean!', input);
+        }
+
+        return new Boolean(input);
+    }
+
+    /**
+     * Converts data from object to type.
+     * 
+     * @param {any} output Output data.
+     * 
+     * @returns {any} Input data.
+     */
+    public deserialize(output: any): any
+    {
+        if (Fn.isNil(output))
+        {
+            return null;
+        }
+
+        if (Fn.isBoolean(output))
+        {
+            return output;
+        }
+
+        if (Fn.isArray(output))
+        {
+            return output.map(o => this.deserialize(o));
+        }
+
+        if (Log.warnEnabled) 
+        {
+            Log.warn('Deserializing non boolean value as boolean!', output);
+        }
+
+        return new Boolean(output);
     }
 }

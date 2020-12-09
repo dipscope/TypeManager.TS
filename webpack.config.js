@@ -1,8 +1,18 @@
-const path = require('path');
+const Path = require('path');
+const CircularDependencyPlugin = require('circular-dependency-plugin');
 
 module.exports = {
     entry: './src/index.ts',
     devtool: 'inline-source-map',
+    plugins: [
+        new CircularDependencyPlugin({
+            exclude: /node_modules/,
+            include: /src/,
+            failOnError: true,
+            allowAsyncCycles: false,
+            cwd: process.cwd()
+        })
+    ],
     module: {
         rules: [
             {
@@ -17,7 +27,7 @@ module.exports = {
                 ],
                 exclude: /node_modules/,
                 include: [
-                    path.resolve(__dirname, "src")
+                    Path.resolve(__dirname, "src")
                 ],
             },
         ],
@@ -27,6 +37,6 @@ module.exports = {
     },
     output: {
         filename: 'bundle.js',
-        path: path.resolve(__dirname, 'dist'),
+        path: Path.resolve(__dirname, 'dist')
     }
 };

@@ -1,9 +1,9 @@
 /**
- * Serializer interface.
+ * Type serializer interface.
  * 
- * @type {Serializer<TInput, TOutput>}
+ * @type {TypeSerializer<TInput, TOutput>}
  */
-export interface Serializer<TInput, TOutput>
+export interface TypeSerializer<TInput, TOutput>
 {
     /**
      * Converts input value to output value.

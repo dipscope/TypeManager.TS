@@ -1,28 +1,20 @@
-import { TypeCtor } from './type.ctor';
-import { Fn } from './fn';
-import { TypeDecorator } from './type.decorator';
+import { TypeArtisan } from './type.artisan';
 import { TypeOptions } from './type.options';
+import { TypeDeclaration } from './type.declaration';
 
 /**
  * Type decorator.
  * 
  * @param {TypeOptions} typeOptions Type options.
  *
- * @returns {Function} Decorator function.
+ * @returns {ClassDecorator} Class decorator.
  */
-export function Type(x?: TypeOptions): Function | void
+export function Type(typeOptions?: TypeOptions): ClassDecorator
 {
-    const usedDirectly = Fn.isFunction(x);
-    const typeCtor     = (usedDirectly ? x : null) as TypeCtor;
-    const typeOptions  = (usedDirectly ? {} : x ?? {}) as TypeOptions;
-    const decorateFn   = TypeDecorator.buildDecorateFn(typeOptions);
-
-    if (usedDirectly) 
+    return function (target: any): any
     {
-        decorateFn(typeCtor);
+        TypeArtisan.injectTypeMetadata(target, typeOptions ?? {}, TypeDeclaration.Explicit);
 
-        return;
-    }
-
-    return decorateFn;
+        return target;
+    };
 }
