@@ -55,12 +55,17 @@ export class Log
      */
     public static info(message: string, ...optionalParams: any[]): void
     {
-        const consoleExists    = !Fn.isNil(console) && Fn.isObject(console);
-        const consoleLogExists = consoleExists && Fn.isFunction(console.log);
+        const consoleExists     = !Fn.isNil(console) && Fn.isObject(console);
+        const consoleInfoExists = consoleExists && Fn.isFunction(console.info);
+        const consoleLogExists  = consoleExists && Fn.isFunction(console.log);
 
-        if (consoleLogExists) 
+        if (consoleInfoExists)
         {
-            console.log(message, ...optionalParams);
+            console.info(message, ...optionalParams);
+        }
+        else if (consoleLogExists)
+        {
+            console.log(`INFO: ${message}`, ...optionalParams);
         }
 
         return;
