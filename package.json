@@ -29,7 +29,7 @@
   "name": "@dipscope/type-manager",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dipscope/EntityBuilder.TS.git"
+    "url": "https://github.com/dipscope/TypeManager.TS.git"
   },
   "scripts": {
     "build": "npx webpack --config=webpack.config.js",
