@@ -4,6 +4,10 @@
   "description": "A package which will help you to transform your JSON strings or plain objects into JS object instances.",
   "devDependencies": {
     "@types/jasmine": "^3.6.2",
+    "@typescript-eslint/eslint-plugin": "^4.9.1",
+    "@typescript-eslint/parser": "^4.9.1",
+    "circular-dependency-plugin": "^5.2.2",
+    "eslint": "^7.15.0",
     "jasmine": "^3.6.3",
     "jasmine-spec-reporter": "^6.0.0",
     "jasmine-ts": "^0.3.0",
@@ -12,8 +16,7 @@
     "typescript": "^4.1.2",
     "webpack": "^5.6.0",
     "webpack-cli": "^4.2.0",
-    "webpack-dev-server": "^3.11.0",
-    "circular-dependency-plugin": "^5.2.2"
+    "webpack-dev-server": "^3.11.0"
   },
   "keywords": [
     "json",
@@ -33,7 +36,8 @@
   },
   "scripts": {
     "build": "npx webpack --config=webpack.config.js",
-    "test": "jasmine-ts --config=jasmine.json"
+    "test": "jasmine-ts --config=jasmine.json",
+    "lint": "eslint . --ext .ts"
   },
   "types": "dist/index.d.ts",
   "version": "1.0.0"

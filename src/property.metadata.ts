@@ -29,9 +29,9 @@ export class PropertyMetadata
      * 
      * Used to override default one.
      * 
-     * @type {TypeSerializer<any, any>}
+     * @type {TypeSerializer}
      */
-    public typeSerializer?: TypeSerializer<any, any>;
+    public typeSerializer?: TypeSerializer;
 
     /**
      * Property alias.

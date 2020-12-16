@@ -6,67 +6,67 @@ import { TypeSerializer } from './../type.serializer';
  * 
  * @type {DateSerializer}
  */
-export class DateSerializer implements TypeSerializer<any, any>
+export class DateSerializer implements TypeSerializer
 {
     /**
-     * Converts data from type to object.
+     * Serializes provided value.
      * 
-     * @param {any} input Input data.
+     * @param {any} x Some value.
      * 
-     * @returns {any} Output data.
+     * @returns {any} Serialized value.
      */
-    public serialize(input: any): any
+    public serialize(x: any): any
     {
-        if (Fn.isNil(input))
+        if (Fn.isNil(x))
         {
             return null;
         }
 
-        if (Fn.isDate(input))
+        if (Fn.isDate(x))
         {
-            return input.toISOString();
+            return x.toISOString();
         }
 
-        if (Fn.isArray(input))
+        if (Fn.isArray(x))
         {
-            return input.map(i => this.serialize(i));
+            return x.map(v => this.serialize(v));
         }
 
         if (Log.warnEnabled) 
         {
-            Log.warn('Serializing non date value as date!', input);
+            Log.warn('Serializing non date value as date!', x);
         }
 
         return null;
     }
 
     /**
-     * Converts data from object to type.
+     * Deserializes provided value.
      * 
-     * @param {any} output Output data.
+     * @param {any} x Some value.
      * 
-     * @returns {any} Input data.
+     * @returns {any} Deserialized value.
      */
-    public deserialize(output: any): any
+    public deserialize(x: any): any
     {
-        if (Fn.isNil(output))
+        if (Fn.isNil(x))
         {
             return null;
         }
 
-        if (Fn.isString(output))
+        if (Fn.isString(x))
         {
-            return new Date(output);
+            return new Date(x);
         }
 
-        if (Fn.isArray(output))
+        if (Fn.isArray(x))
         {
-            return output.map(o => this.deserialize(o));
+            return x.map(v => this.deserialize(v));
         }
 
         if (Log.warnEnabled) 
         {
-            Log.warn('Deserializing non string value as date!', output);
+            Log.warn('Deserializing non string value as date!', x);
         }
 
         return null;

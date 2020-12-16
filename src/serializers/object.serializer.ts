@@ -8,7 +8,7 @@ import { TypeMetadataResolver } from './../type.metadata.resolver';
  * 
  * @type {ObjectSerializer}
  */
-export class ObjectSerializer implements TypeSerializer<any, any>
+export class ObjectSerializer implements TypeSerializer
 {
     /**
      * Type constructor function.
@@ -39,25 +39,25 @@ export class ObjectSerializer implements TypeSerializer<any, any>
     }
 
     /**
-     * Converts data from type to object.
+     * Serializes provided value.
      * 
-     * @param {any} input Input data.
+     * @param {any} x Some value.
      * 
-     * @returns {any} Output data.
+     * @returns {any} Serialized value.
      */
-    public serialize(input: any, relationObjectMap: WeakMap<object, any> = new WeakMap<object, any>()): any
+    public serialize(x: any, relationObjectMap: WeakMap<any, any> = new WeakMap<any, any>()): any
     {
-        if (Fn.isNil(input))
+        if (Fn.isNil(x))
         {
             return null;
         }
 
-        if (Fn.isArray(input))
+        if (Fn.isArray(x))
         {
-            return input.map(i => this.serialize(i, relationObjectMap));
+            return x.map(v => this.serialize(v, relationObjectMap));
         }
 
-        if (Fn.isObject(input))
+        if (Fn.isObject(x))
         {
             const typeMetadata = this.typeMetadataResolver(this.typeCtor);
 
@@ -65,16 +65,16 @@ export class ObjectSerializer implements TypeSerializer<any, any>
             {
                 if (Log.errorEnabled)
                 {
-                    Log.error(`${typeMetadata.name}: cannot serialize implicitly declared type! Declare a type using decorator or configure function!`, input);
+                    Log.error(`${typeMetadata.name}: cannot serialize implicitly declared type! Declare a type using decorator or configure function!`, x);
                 }
 
                 return null;
             }
 
-            const type   = input;
+            const type   = x;
             const object = {} as any;
 
-            for (let propertyMetadata of typeMetadata.propertyMetadataMap.values()) 
+            for (const propertyMetadata of typeMetadata.propertyMetadataMap.values()) 
             {
                 if (propertyMetadata.serializationConfigured && !propertyMetadata.serializable)
                 {
@@ -137,32 +137,32 @@ export class ObjectSerializer implements TypeSerializer<any, any>
 
         if (Log.warnEnabled)
         {
-            Log.warn('Serializing non type value as object!', input);
+            Log.warn('Serializing non type value as object!', x);
         }
 
         return null;
     }
 
     /**
-     * Converts data from object to type.
+     * Deserializes provided value.
      * 
-     * @param {any} output Output data.
+     * @param {any} x Some value.
      * 
-     * @returns {any} Input data.
+     * @returns {any} Deserialized value.
      */
-    public deserialize(output: any, relationTypeMap: WeakMap<object, any> = new WeakMap<object, any>()): any
+    public deserialize(x: any, relationTypeMap: WeakMap<any, any> = new WeakMap<any, any>()): any
     {
-        if (Fn.isNil(output))
+        if (Fn.isNil(x))
         {
             return null;
         }
 
-        if (Fn.isArray(output))
+        if (Fn.isArray(x))
         {
-            return output.map(o => this.deserialize(o, relationTypeMap));
+            return x.map(v => this.deserialize(v, relationTypeMap));
         }
 
-        if (Fn.isObject(output))
+        if (Fn.isObject(x))
         {
             const typeMetadata = this.typeMetadataResolver(this.typeCtor);
 
@@ -170,16 +170,16 @@ export class ObjectSerializer implements TypeSerializer<any, any>
             {
                 if (Log.errorEnabled)
                 {
-                    Log.error(`${typeMetadata.name}: cannot deserialize implicitly declared type! Declare a type using decorator or configure function!`, output);
+                    Log.error(`${typeMetadata.name}: cannot deserialize implicitly declared type! Declare a type using decorator or configure function!`, x);
                 }
 
                 return null;
             }
 
-            const object = output;
+            const object = x;
             const type   = new typeMetadata.typeCtor();
 
-            for (let propertyMetadata of typeMetadata.propertyMetadataMap.values()) 
+            for (const propertyMetadata of typeMetadata.propertyMetadataMap.values()) 
             {
                 if (propertyMetadata.serializationConfigured && !propertyMetadata.serializable)
                 {
@@ -242,7 +242,7 @@ export class ObjectSerializer implements TypeSerializer<any, any>
         
         if (Log.warnEnabled)
         {
-            Log.warn('Deserializing non object value as type!', output);
+            Log.warn('Deserializing non object value as type!', x);
         }
 
         return null;

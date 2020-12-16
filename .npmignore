@@ -3,6 +3,8 @@
 .editorconfig
 .gitattributes
 .gitignore
+.eslintignore
+.eslintrc
 
 # Project files
 node_modules
@@ -10,4 +12,5 @@ spec
 src
 jasmine.json
 tsconfig.json
-webpack.config.json
+tsconfig.webpack.json
+webpack.config.js

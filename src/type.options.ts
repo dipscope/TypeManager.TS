@@ -1,3 +1,4 @@
+import { PropertyOptions } from './property.options';
 import { TypeSerializer } from './type.serializer';
 
 /**
@@ -8,11 +9,18 @@ import { TypeSerializer } from './type.serializer';
 export interface TypeOptions
 {
     /**
+     * Property options related to this type.
+     * 
+     * @type {Map<string, PropertyOptions>}
+     */
+    propertyOptionsMap?: Map<string, PropertyOptions>;
+
+    /**
      * Serializer used to serialize and deserialize a type.
      * 
-     * @type {TypeSerializer<any, any>}
+     * @type {TypeSerializer}
      */
-    typeSerializer?: TypeSerializer<any, any>;
+    typeSerializer?: TypeSerializer;
 
     /**
      * Type alias. 

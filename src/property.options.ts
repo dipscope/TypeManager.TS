@@ -16,13 +16,20 @@ export interface PropertyOptions
     typeResolver?: TypeResolver;
 
     /**
+     * Use reflect metadata when type resolver is not defined.
+     * 
+     * @type {boolean}
+     */
+    reflectMetadata?: boolean;
+
+    /**
      * Custom property type serializer.
      * 
      * Used to override default one.
      * 
-     * @type {TypeSerializer<any, any>}
+     * @type {TypeSerializer}
      */
-    typeSerializer?: TypeSerializer<any, any>;
+    typeSerializer?: TypeSerializer;
 
     /**
      * Property alias.
@@ -53,11 +60,4 @@ export interface PropertyOptions
      * @type {boolean}
      */
     emitDefaultValue?: boolean;
-
-    /**
-     * Use reflect metadata when type resolver is not defined.
-     * 
-     * @type {boolean}
-     */
-    reflectMetadata?: boolean;
 }

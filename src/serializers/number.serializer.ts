@@ -6,69 +6,69 @@ import { TypeSerializer } from './../type.serializer';
  * 
  * @type {NumberSerializer}
  */
-export class NumberSerializer implements TypeSerializer<any, any>
+export class NumberSerializer implements TypeSerializer
 {
     /**
-     * Converts data from type to object.
+     * Serializes provided value.
      * 
-     * @param {any} input Input data.
+     * @param {any} x Some value.
      * 
-     * @returns {any} Output data.
+     * @returns {any} Serialized value.
      */
-    public serialize(input: any): any
+    public serialize(x: any): any
     {
-        if (Fn.isNil(input))
+        if (Fn.isNil(x))
         {
             return null;
         }
 
-        if (Fn.isNumber(input))
+        if (Fn.isNumber(x))
         {
-            return input;
+            return x;
         }
 
-        if (Fn.isArray(input))
+        if (Fn.isArray(x))
         {
-            return input.map(i => this.serialize(i));
+            return x.map(v => this.serialize(v));
         }
 
         if (Log.warnEnabled) 
         {
-            Log.warn('Serializing non number value as number!', input);
+            Log.warn('Serializing non number value as number!', x);
         }
 
-        return new Number(input);
+        return new Number(x);
     }
 
     /**
-     * Converts data from object to type.
+     * Deserializes provided value.
      * 
-     * @param {any} output Output data.
+     * @param {any} x Some value.
      * 
-     * @returns {any} Input data.
+     * @returns {any} Deserialized value.
      */
-    public deserialize(output: any): any
+    public deserialize(x: any): any
     {
-        if (Fn.isNil(output))
+        if (Fn.isNil(x))
         {
             return null;
         }
 
-        if (Fn.isNumber(output))
+        if (Fn.isNumber(x))
         {
-            return output;
+            return x;
         }
 
-        if (Fn.isArray(output))
+        if (Fn.isArray(x))
         {
-            return output.map(o => this.deserialize(o));
+            return x.map(v => this.deserialize(v));
         }
 
         if (Log.warnEnabled) 
         {
-            Log.warn('Deserializing non number value as number!', output);
+            Log.warn('Deserializing non number value as number!', x);
         }
 
-        return new Number(output);
+        return new Number(x);
     }
 }

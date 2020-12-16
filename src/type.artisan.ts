@@ -4,7 +4,6 @@ import { TypeCtor } from './type.ctor';
 import { TypeDeclaration } from './type.declaration';
 import { TypeMetadata } from './type.metadata';
 import { TypeOptions } from './type.options';
-import { TypeSerializer } from './type.serializer';
 
 /**
  * Type artisan class to encapsulate type manipulating functions.
@@ -40,22 +39,20 @@ export class TypeArtisan
     public static readonly typeCtorMap: Map<string, TypeCtor> = new Map<string, TypeCtor>();
     
     /**
-     * Creates type serializer for provided type constructor.
+     * Declares type metadata for provided type constructor based on general configuration.
      * 
      * @param {TypeCtor} typeCtor Type constructor function.
      * 
-     * @returns {TypeSerializer<any, any>} Type serializer.
+     * @returns {TypeMetadata} Type metadata.
      */
-    public static createTypeSerializer(typeCtor: TypeCtor): TypeSerializer<any, any>
+    public static declareTypeMetadata(typeCtor: TypeCtor): TypeMetadata
     {
-        const typeOptions = this.typeOptionsMap.get(typeCtor);
+        const typeOptions     = this.typeOptionsMap.get(typeCtor);
+        const typeDeclaration = typeOptions ? TypeDeclaration.Explicit : TypeDeclaration.Implicit;
+        const typeSerializer  = new ObjectSerializer(typeCtor, this.extractTypeMetadata.bind(this));
+        const typeMetadata    = new TypeMetadata(typeCtor, typeDeclaration, typeSerializer);
 
-        if (!Fn.isNil(typeOptions) && !Fn.isNil(typeOptions.typeSerializer))
-        {
-            return typeOptions.typeSerializer;
-        }
-
-        return new ObjectSerializer(typeCtor, this.extractTypeMetadata.bind(this));
+        return typeMetadata.configure(typeOptions ?? {});
     }
 
     /**
@@ -72,7 +69,7 @@ export class TypeArtisan
         const prototype        = typeCtor.prototype;
         const metadataKey      = this.typeMetadataKey;
         const metadataInjected = prototype.hasOwnProperty(metadataKey);
-        const typeMetadata     = metadataInjected ? prototype[metadataKey] as TypeMetadata : new TypeMetadata(typeCtor, typeDeclaration, this.createTypeSerializer(typeCtor));
+        const typeMetadata     = metadataInjected ? prototype[metadataKey] as TypeMetadata : this.declareTypeMetadata(typeCtor);
 
         if (!metadataInjected)
         {
@@ -108,22 +105,6 @@ export class TypeArtisan
     }
 
     /**
-     * Injects type metadata implicitly based on current configuration.
-     * 
-     * @param {TypeCtor} typeCtor Type constructor function. 
-     * 
-     * @returns {TypeMetadata} Type metadata for provided type constructor.
-     */
-    public static declareTypeMetadata(typeCtor: TypeCtor): TypeMetadata
-    {
-        const typeOptions     = this.typeOptionsMap.get(typeCtor);
-        const typeDeclaration = typeOptions ? TypeDeclaration.Explicit : TypeDeclaration.Implicit;
-        const typeMetadata    = this.injectTypeMetadata(typeCtor, typeOptions ?? {}, typeDeclaration);
-
-        return typeMetadata;
-    }
-
-    /**
      * Extracts type metadata from provided type constructor.
      * 
      * @param {TypeCtor} typeCtor Type constructor function.
@@ -135,7 +116,7 @@ export class TypeArtisan
         const prototype        = typeCtor.prototype;
         const metadataKey      = this.typeMetadataKey;
         const metadataInjected = prototype.hasOwnProperty(metadataKey);
-        const typeMetadata     = metadataInjected ? prototype[metadataKey] as TypeMetadata : this.declareTypeMetadata(typeCtor);
+        const typeMetadata     = metadataInjected ? prototype[metadataKey] as TypeMetadata : this.injectTypeMetadata(typeCtor, {}, TypeDeclaration.Implicit);
 
         return typeMetadata;
     }

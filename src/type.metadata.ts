@@ -4,7 +4,7 @@ import { TypeOptions } from './type.options';
 import { TypeDeclaration } from './type.declaration';
 import { TypeCtor } from './type.ctor';
 import { PropertyMetadata } from './property.metadata';
-import { ObjectSerializer } from './serializers';
+import { PropertyOptions } from './property.options';
 
 /**
  * Main class used to describe a certain type.
@@ -41,9 +41,9 @@ export class TypeMetadata
     /**
      * Serializer used to serialize and deserialize a type.
      * 
-     * @type {TypeSerializer<any, any>}
+     * @type {TypeSerializer}
      */
-    public typeSerializer: TypeSerializer<any, any>;
+    public typeSerializer: TypeSerializer;
 
     /**
      * Type alias. 
@@ -73,9 +73,9 @@ export class TypeMetadata
      * 
      * @param {TypeCtor} typeCtor Type constructor function.
      * @param {TypeDeclaration} typeDeclaration Type declaration.
-     * @param {TypeSerializer<any, any>} typeSerializer Type serializer.
+     * @param {TypeSerializer} typeSerializer Type serializer.
      */
-    public constructor(typeCtor: TypeCtor, typeDeclaration: TypeDeclaration, typeSerializer: TypeSerializer<any, any>)
+    public constructor(typeCtor: TypeCtor, typeDeclaration: TypeDeclaration, typeSerializer: TypeSerializer)
     {
         this.name            = Fn.nameOf(typeCtor);
         this.typeCtor        = typeCtor;
@@ -106,6 +106,25 @@ export class TypeMetadata
     }
 
     /**
+     * Configures property metadata map.
+     * 
+     * @param {Map<string, PropertyOptions>} propertyOptionsMap Property options map.
+     * 
+     * @returns {void}
+     */
+    public configurePropertyMetadataMap(propertyOptionsMap: Map<string, PropertyOptions>): void
+    {
+        propertyOptionsMap.forEach((propertyOptions, propertyName) =>
+        {
+            const propertyMetadata = new PropertyMetadata(propertyName);
+
+            this.propertyMetadataMap.set(propertyName, propertyMetadata.configure(propertyOptions));
+        });
+
+        return;
+    }
+
+    /**
      * Configures type metadata based on provided options.
      * 
      * @param {TypeOptions} typeOptions Type options.
@@ -114,6 +133,11 @@ export class TypeMetadata
      */
     public configure(typeOptions: TypeOptions): TypeMetadata
     {
+        if (!Fn.isNil(typeOptions.propertyOptionsMap))
+        {
+            this.configurePropertyMetadataMap(typeOptions.propertyOptionsMap);
+        }
+
         if (!Fn.isNil(typeOptions.typeSerializer)) 
         {
             this.typeSerializer = typeOptions.typeSerializer;

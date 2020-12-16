@@ -3,6 +3,7 @@ import { PropertyOptions } from './property.options';
 import { TypeArtisan } from './type.artisan';
 import { PropertyMetadata } from './property.metadata';
 import { TypeResolver } from './type.resolver';
+import { TypeDeclaration } from './type.declaration';
 
 /**
  * Property artisan class to encapsulate property manipulating functions.
@@ -22,7 +23,7 @@ export class PropertyArtisan
      */
     public static injectPropertyMetadata(typeCtor: TypeCtor, propertyName: string, propertyOptions: PropertyOptions): PropertyMetadata
     {
-        const typeMetadata     = TypeArtisan.declareTypeMetadata(typeCtor);
+        const typeMetadata     = TypeArtisan.injectTypeMetadata(typeCtor, {}, TypeDeclaration.Implicit);
         const metadataInjected = typeMetadata.propertyMetadataMap.has(propertyName);
         const propertyMetadata = metadataInjected ? typeMetadata.propertyMetadataMap.get(propertyName)! : new PropertyMetadata(propertyName);
 

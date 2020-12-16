@@ -1,25 +1,25 @@
 /**
  * Type serializer interface.
  * 
- * @type {TypeSerializer<TInput, TOutput>}
+ * @type {TypeSerializer}
  */
-export interface TypeSerializer<TInput, TOutput>
+export interface TypeSerializer
 {
     /**
-     * Converts input value to output value.
+     * Serializes provided value.
      * 
-     * @param {TInput} input Input value.
+     * @param {any} x Some value.
      * 
-     * @returns {TOutput} Ouput value.
+     * @returns {any} Serialized value.
      */
-    serialize(input: TInput): TOutput;
+    serialize(x: any): any;
 
     /**
-     * Converts output value to input value.
+     * Deserializes provided value.
      * 
-     * @param {TOutput} output Output value.
+     * @param {any} x Some value.
      * 
-     * @returns {TInput} Input value.
+     * @returns {any} Deserialized value.
      */
-    deserialize(output: TOutput): TInput;
+    deserialize(x: any): any;
 }

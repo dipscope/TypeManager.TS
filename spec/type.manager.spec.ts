@@ -1,6 +1,6 @@
 import { Type, Property, Alias, TypeSerializer, Serializer, TypeManager } from './../src';
 
-class CustomSerializer implements TypeSerializer<string, string>
+class CustomSerializer implements TypeSerializer
 {
     public serialize(x: string): string
     {

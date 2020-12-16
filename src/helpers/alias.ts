@@ -11,9 +11,9 @@ import { Property } from './../property';
  * 
  * @returns {Function} Class or property decorator.
  */
-export function Alias(alias: string): Function
+export function Alias(alias: string): ClassDecorator & PropertyDecorator
 {
-    return function (target: any, propertyName: string | symbol): any
+    return function (target: any, propertyName?: string | symbol): any
     {
         const usedOnClass = Fn.isNil(propertyName);
 

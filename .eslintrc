@@ -1,0 +1,26 @@
+{
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "rules": {
+        "no-prototype-builtins": "off",
+        "brace-style": "off",
+        "comma-dangle": "off",
+        "quotes": "off",
+        "default-param-last": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/brace-style": ["error", "allman"],
+        "@typescript-eslint/comma-dangle": ["error", "never"],
+        "@typescript-eslint/quotes": ["error", "single"],
+        "@typescript-eslint/default-param-last": ["error"]
+    }
+}
