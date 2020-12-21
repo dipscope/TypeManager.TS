@@ -6,7 +6,7 @@ import { TypeSerializer } from './../type.serializer';
  * 
  * @type {StringSerializer}
  */
-export class StringSerializer implements TypeSerializer
+export class StringSerializer extends TypeSerializer
 {
     /**
      * Serializes provided value.
@@ -70,5 +70,19 @@ export class StringSerializer implements TypeSerializer
         }
 
         return new String(x);
+    }
+
+    /**
+     * TODO: Implement implicit conversion.
+     * 
+     * Converts provided value to the target type value.
+     * 
+     * @param {any} x Some value.
+     * 
+     * @returns {any} Converted value or original value.
+     */
+    public convert(x: any): any
+    {
+        return x;
     }
 }

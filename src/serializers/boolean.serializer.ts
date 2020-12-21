@@ -6,7 +6,7 @@ import { TypeSerializer } from './../type.serializer';
  * 
  * @type {BooleanSerializer}
  */
-export class BooleanSerializer implements TypeSerializer
+export class BooleanSerializer extends TypeSerializer
 {
     /**
      * Serializes provided value.
@@ -70,5 +70,19 @@ export class BooleanSerializer implements TypeSerializer
         }
 
         return new Boolean(x);
+    }
+
+    /**
+     * TODO: Implement implicit conversion.
+     * 
+     * Converts provided value to the target type value.
+     * 
+     * @param {any} x Some value.
+     * 
+     * @returns {any} Converted value or original value.
+     */
+    public convert(x: any): any
+    {
+        return x;
     }
 }

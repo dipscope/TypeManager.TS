@@ -1,6 +1,6 @@
 import { Type, Property, Alias, TypeSerializer, Serializer, TypeManager } from './../src';
 
-class CustomSerializer implements TypeSerializer
+class ASerializer extends TypeSerializer
 {
     public serialize(x: string): string
     {
@@ -23,7 +23,7 @@ class X
 @Type()
 class Y
 {
-    @Property() @Serializer(new CustomSerializer()) public a?: string;
+    @Property() @Serializer(new ASerializer()) public a?: string;
     @Property() @Alias('c') public b?: string;
     @Property(() => X) public x?: X; 
 }

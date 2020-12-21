@@ -55,11 +55,28 @@ export class TypeMetadata
     public alias?: string;
 
     /**
-     * Default value for undefined values.
+     * Default value for undefined ones.
+     * 
+     * Assigned only when use default value option is true.
      * 
      * @type {any}
      */
     public defaultValue?: any;
+
+    /**
+     * Use default value assignment for undefined values?
+     * 
+     * @type {boolean}
+     */
+    public useDefaultValue?: boolean;
+
+    /**
+     * Use implicit conversion when provided value can be converted
+     * to the target one?
+     * 
+     * @type {boolean}
+     */
+    public useImplicitConversion?: boolean;
 
     /**
      * Properties defined for a type.
@@ -133,24 +150,34 @@ export class TypeMetadata
      */
     public configure(typeOptions: TypeOptions): TypeMetadata
     {
-        if (!Fn.isNil(typeOptions.propertyOptionsMap))
+        if (!Fn.isUndefined(typeOptions.propertyOptionsMap))
         {
             this.configurePropertyMetadataMap(typeOptions.propertyOptionsMap);
         }
 
-        if (!Fn.isNil(typeOptions.typeSerializer)) 
+        if (!Fn.isUndefined(typeOptions.typeSerializer)) 
         {
             this.typeSerializer = typeOptions.typeSerializer;
         }
 
-        if (!Fn.isNil(typeOptions.alias)) 
+        if (!Fn.isUndefined(typeOptions.alias)) 
         {
             this.alias = typeOptions.alias;
         }
-
-        if (!Fn.isNil(typeOptions.defaultValue)) 
+        
+        if (!Fn.isUndefined(typeOptions.defaultValue)) 
         {
             this.defaultValue = typeOptions.defaultValue;
+        }
+
+        if (!Fn.isUndefined(typeOptions.useDefaultValue)) 
+        {
+            this.useDefaultValue = typeOptions.useDefaultValue;
+        }
+
+        if (!Fn.isUndefined(typeOptions.useImplicitConversion)) 
+        {
+            this.useImplicitConversion = typeOptions.useImplicitConversion;
         }
         
         return this;

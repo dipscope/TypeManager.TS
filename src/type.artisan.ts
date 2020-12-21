@@ -17,18 +17,31 @@ export class TypeArtisan
      * 
      * @type {string}
      */
-    public static readonly typeMetadataKey: string = '__TBTypeMetadata__';
+    public static readonly typeMetadataKey: string = '__TMTypeMetadata__';
     
     /**
-     * Type options map for explicitly defined types.
+     * Global type options shared among all types.
+     * 
+     * @type {TypeOptions}
+     */
+    public static readonly typeOptions: TypeOptions = {
+        defaultValue: undefined,
+        useDefaultValue: false,
+        useImplicitConversion: false
+    };
+
+    /**
+     * Type options per type. 
+     * 
+     * Overrides global type options.
      * 
      * @type {Map<TypeCtor, TypeOptions>}
      */
     public static readonly typeOptionsMap: Map<TypeCtor, TypeOptions> = new Map<TypeCtor, TypeOptions>([
-        [String,  { alias: 'String',  typeSerializer: new StringSerializer(),  defaultValue: null       }],
-        [Number,  { alias: 'Number',  typeSerializer: new NumberSerializer(),  defaultValue: 0          }],
-        [Boolean, { alias: 'Boolean', typeSerializer: new BooleanSerializer(), defaultValue: false      }],
-        [Date,    { alias: 'Date',    typeSerializer: new DateSerializer(),    defaultValue: new Date() }]
+        [String,  { alias: 'String',  typeSerializer: new StringSerializer(),  defaultValue: null             }],
+        [Number,  { alias: 'Number',  typeSerializer: new NumberSerializer(),  defaultValue: 0                }],
+        [Boolean, { alias: 'Boolean', typeSerializer: new BooleanSerializer(), defaultValue: false            }],
+        [Date,    { alias: 'Date',    typeSerializer: new DateSerializer(),    defaultValue: () => new Date() }]
     ]);
 
     /**
@@ -38,6 +51,37 @@ export class TypeArtisan
      */
     public static readonly typeCtorMap: Map<string, TypeCtor> = new Map<string, TypeCtor>();
     
+    /**
+     * Configures global type options.
+     * 
+     * @param {TypeOptions} typeOptions Type options.
+     * 
+     * @returns {void}
+     */
+    public static configureTypeOptions(typeOptions: TypeOptions): void
+    {
+        Object.assign(this.typeOptions, typeOptions);
+
+        return;
+    }
+
+    /**
+     * Configures type options per type.
+     * 
+     * @param {Map<TypeCtor, TypeOptions>} typeOptionsMap Type options map.
+     * 
+     * @returns {void}
+     */
+    public static configureTypeOptionsMap(typeOptionsMap: Map<TypeCtor, TypeOptions>): void
+    {
+        typeOptionsMap.forEach((typeOptions, typeCtor) => 
+        {
+            this.typeOptionsMap.set(typeCtor, typeOptions);
+        });
+
+        return;
+    }
+
     /**
      * Declares type metadata for provided type constructor based on general configuration.
      * 
@@ -52,7 +96,7 @@ export class TypeArtisan
         const typeSerializer  = new ObjectSerializer(typeCtor, this.extractTypeMetadata.bind(this));
         const typeMetadata    = new TypeMetadata(typeCtor, typeDeclaration, typeSerializer);
 
-        return typeMetadata.configure(typeOptions ?? {});
+        return typeMetadata.configure(this.typeOptions).configure(typeOptions ?? {});
     }
 
     /**
@@ -96,6 +140,7 @@ export class TypeArtisan
             typeMetadata.typeDeclaration = typeDeclaration;
         }
 
+        // TODO: Refactor - will not work for introduced global config.
         if (!Fn.isNil(typeOptions.alias)) 
         {
             this.typeCtorMap.set(typeOptions.alias, typeMetadata.typeCtor);

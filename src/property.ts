@@ -13,7 +13,7 @@ import { PropertyOptions } from './property.options';
  */
 export function Property(x?: TypeResolver | PropertyOptions | string, y?: PropertyOptions): PropertyDecorator
 {
-    const typeResolver    = Fn.isFunction(x) ? x : (Fn.isString(x) ? PropertyArtisan.buildTypeResolverForAlias(x) : null) as TypeResolver;
+    const typeResolver    = Fn.isFunction(x) ? x : (Fn.isString(x) ? PropertyArtisan.buildTypeResolverForAlias(x) : () => null) as TypeResolver;
     const propertyOptions = Fn.isObject(y) ? y : (Fn.isObject(x) ? x : {}) as PropertyOptions;
     
     if (Fn.isNil(propertyOptions.typeResolver))

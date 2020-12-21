@@ -17,7 +17,16 @@ export interface TypeManagerOptions
     logLevel?: LogLevel;
 
     /**
-     * Preconfigured options for types.
+     * Global type options shared among all types.
+     * 
+     * @type {TypeOptions}
+     */
+    typeOptions?: TypeOptions;
+
+    /**
+     * Type options per type. 
+     * 
+     * Overrides global type options.
      * 
      * @type {Map<TypeCtor, TypeOptions>}
      */

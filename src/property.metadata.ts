@@ -57,11 +57,28 @@ export class PropertyMetadata
     public deserializable?: boolean;
 
     /**
-     * Emit default values for undefined values?
+     * Default value for undefined ones.
+     * 
+     * Assigned only when use default value option is true.
+     * 
+     * @type {any}
+     */
+    public defaultValue?: any;
+
+    /**
+     * Use default value assignment for undefined values?
      * 
      * @type {boolean}
      */
-    public emitDefaultValue?: boolean;
+    public useDefaultValue?: boolean;
+
+    /**
+     * Use implicit conversion when provided value can be converted
+     * to the target one?
+     * 
+     * @type {boolean}
+     */
+    public useImplicitConversion?: boolean;
 
     /**
      * Constructor.
@@ -95,34 +112,44 @@ export class PropertyMetadata
      */
     public configure(propertyOptions: PropertyOptions): PropertyMetadata
     {
-        if (!Fn.isNil(propertyOptions.typeResolver)) 
+        if (!Fn.isUndefined(propertyOptions.typeResolver)) 
         {
             this.typeResolver = propertyOptions.typeResolver;
         }
 
-        if (!Fn.isNil(propertyOptions.typeSerializer)) 
+        if (!Fn.isUndefined(propertyOptions.typeSerializer)) 
         {
             this.typeSerializer = propertyOptions.typeSerializer;
         }
 
-        if (!Fn.isNil(propertyOptions.alias)) 
+        if (!Fn.isUndefined(propertyOptions.alias)) 
         {
             this.alias = propertyOptions.alias;
         }
 
-        if (!Fn.isNil(propertyOptions.serializable)) 
+        if (!Fn.isUndefined(propertyOptions.serializable)) 
         {
             this.serializable = propertyOptions.serializable;
         }
 
-        if (!Fn.isNil(propertyOptions.deserializable))
+        if (!Fn.isUndefined(propertyOptions.deserializable))
         {
             this.deserializable = propertyOptions.deserializable;
         }
 
-        if (!Fn.isNil(propertyOptions.emitDefaultValue)) 
+        if (!Fn.isUndefined(propertyOptions.defaultValue)) 
         {
-            this.emitDefaultValue = propertyOptions.emitDefaultValue;
+            this.defaultValue = propertyOptions.defaultValue;
+        }
+
+        if (!Fn.isUndefined(propertyOptions.useDefaultValue)) 
+        {
+            this.useDefaultValue = propertyOptions.useDefaultValue;
+        }
+
+        if (!Fn.isUndefined(propertyOptions.useImplicitConversion)) 
+        {
+            this.useImplicitConversion = propertyOptions.useImplicitConversion;
         }
 
         return this;

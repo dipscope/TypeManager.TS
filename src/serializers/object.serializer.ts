@@ -8,7 +8,7 @@ import { TypeMetadataResolver } from './../type.metadata.resolver';
  * 
  * @type {ObjectSerializer}
  */
-export class ObjectSerializer implements TypeSerializer
+export class ObjectSerializer extends TypeSerializer
 {
     /**
      * Type constructor function.
@@ -32,6 +32,8 @@ export class ObjectSerializer implements TypeSerializer
      */
     public constructor(typeCtor: TypeCtor, typeMetadataResolver: TypeMetadataResolver)
     {
+        super();
+
         this.typeCtor             = typeCtor;
         this.typeMetadataResolver = typeMetadataResolver;
 
@@ -81,47 +83,45 @@ export class ObjectSerializer implements TypeSerializer
                     continue;
                 }
 
-                const objectPropertyName  = propertyMetadata.alias ?? propertyMetadata.name;
-                const objectPropertyValue = type[propertyMetadata.name];
-
-                if (Fn.isUndefined(objectPropertyValue) && !propertyMetadata.emitDefaultValue)
-                {
-                    continue;
-                }
-
+                const objectPropertyName   = propertyMetadata.alias ?? propertyMetadata.name;
+                const objectPropertyValue  = type[propertyMetadata.name];
                 const propertyTypeCtor     = propertyMetadata.typeResolver();
                 const propertyTypeMetadata = Fn.isNil(propertyTypeCtor) ? null : this.typeMetadataResolver(propertyTypeCtor);
                 
-                if (Fn.isUndefined(objectPropertyValue) && propertyMetadata.emitDefaultValue && propertyTypeMetadata && !Fn.isUndefined(propertyTypeMetadata.defaultValue))
-                {
-                    object[objectPropertyName] = propertyTypeMetadata.defaultValue;
-
-                    continue;
-                }
-
                 if (Fn.isUndefined(objectPropertyValue))
                 {
+                    const useDefaultValue = propertyMetadata.useDefaultValue ?? propertyTypeMetadata?.useDefaultValue;
+                    const defaultValue    = propertyMetadata.defaultValue ?? propertyTypeMetadata?.defaultValue;
+
+                    if (useDefaultValue)
+                    {
+                        object[objectPropertyName] = Fn.isFunction(defaultValue) ? defaultValue() : defaultValue;
+                    }
+
                     continue;
                 }
-                
+
                 const propertyTypeSerializer = Fn.isNil(propertyTypeMetadata) ? null : propertyTypeMetadata.typeSerializer;
                 const propertySerializer     = propertyMetadata.typeSerializer ?? propertyTypeSerializer;
 
-                if (Fn.isNil(propertySerializer)) 
+                if (Fn.isNil(propertySerializer))
                 {
                     object[objectPropertyName] = objectPropertyValue;
 
                     continue;
                 }
 
-                if (Fn.isObject(objectPropertyValue) && propertySerializer instanceof ObjectSerializer)
+                const useImplicitConversion  = propertyMetadata.useImplicitConversion ?? propertyTypeMetadata?.useImplicitConversion;
+                const convertedPropertyValue = useImplicitConversion ? propertySerializer.convert(objectPropertyValue) : objectPropertyValue;
+
+                if (Fn.isObject(convertedPropertyValue) && propertySerializer instanceof ObjectSerializer)
                 {
-                    let relationObject = relationObjectMap.get(objectPropertyValue);
+                    let relationObject = relationObjectMap.get(convertedPropertyValue);
 
                     if (!relationObject)
                     {
-                        relationObject = propertySerializer.serialize(objectPropertyValue, relationObjectMap);
-                        relationObjectMap.set(objectPropertyValue, relationObject);
+                        relationObject = propertySerializer.serialize(convertedPropertyValue, relationObjectMap);
+                        relationObjectMap.set(convertedPropertyValue, relationObject);
                     }
 
                     object[objectPropertyName] = relationObject;
@@ -129,7 +129,7 @@ export class ObjectSerializer implements TypeSerializer
                     continue;
                 }
                 
-                object[objectPropertyName] = propertySerializer.serialize(objectPropertyValue);
+                object[objectPropertyName] = propertySerializer.serialize(convertedPropertyValue);
             }
 
             return object;
@@ -186,26 +186,21 @@ export class ObjectSerializer implements TypeSerializer
                     continue;
                 }
 
-                const typePropertyName  = propertyMetadata.name;
-                const typePropertyValue = object[propertyMetadata.alias ?? propertyMetadata.name];
-
-                if (Fn.isUndefined(typePropertyValue) && !propertyMetadata.emitDefaultValue)
-                {
-                    continue;
-                }
-
+                const typePropertyName     = propertyMetadata.name;
+                const typePropertyValue    = object[propertyMetadata.alias ?? propertyMetadata.name];
                 const propertyTypeCtor     = propertyMetadata.typeResolver();
                 const propertyTypeMetadata = Fn.isNil(propertyTypeCtor) ? null : this.typeMetadataResolver(propertyTypeCtor);
                 
-                if (Fn.isUndefined(typePropertyValue) && propertyMetadata.emitDefaultValue && propertyTypeMetadata && !Fn.isUndefined(propertyTypeMetadata.defaultValue))
-                {
-                    type[typePropertyName] = propertyTypeMetadata.defaultValue;
-
-                    continue;
-                }
-
                 if (Fn.isUndefined(typePropertyValue))
                 {
+                    const useDefaultValue = propertyMetadata.useDefaultValue ?? propertyTypeMetadata?.useDefaultValue;
+                    const defaultValue    = propertyMetadata.defaultValue ?? propertyTypeMetadata?.defaultValue;
+
+                    if (useDefaultValue)
+                    {
+                        type[typePropertyName] = Fn.isFunction(defaultValue) ? defaultValue() : defaultValue;
+                    }
+
                     continue;
                 }
                 
@@ -219,14 +214,17 @@ export class ObjectSerializer implements TypeSerializer
                     continue;
                 }
 
-                if (Fn.isObject(typePropertyValue) && propertySerializer instanceof ObjectSerializer)
+                const useImplicitConversion  = propertyMetadata.useImplicitConversion ?? propertyTypeMetadata?.useImplicitConversion;
+                const convertedPropertyValue = useImplicitConversion ? propertySerializer.convert(typePropertyValue) : typePropertyValue;
+
+                if (Fn.isObject(convertedPropertyValue) && propertySerializer instanceof ObjectSerializer)
                 {
-                    let relationType = relationTypeMap.get(typePropertyValue);
+                    let relationType = relationTypeMap.get(convertedPropertyValue);
 
                     if (!relationType)
                     {
-                        relationType = propertySerializer.deserialize(typePropertyValue, relationTypeMap);
-                        relationTypeMap.set(typePropertyValue, relationType);
+                        relationType = propertySerializer.deserialize(convertedPropertyValue, relationTypeMap);
+                        relationTypeMap.set(convertedPropertyValue, relationType);
                     }
 
                     type[typePropertyName] = relationType;
@@ -234,7 +232,7 @@ export class ObjectSerializer implements TypeSerializer
                     continue;
                 }
                 
-                type[typePropertyName] = propertySerializer.deserialize(typePropertyValue);
+                type[typePropertyName] = propertySerializer.deserialize(convertedPropertyValue);
             }
 
             return type;
@@ -246,5 +244,19 @@ export class ObjectSerializer implements TypeSerializer
         }
 
         return null;
+    }
+
+    /**
+     * TODO: Implement implicit conversion.
+     * 
+     * Converts provided value to the target type value.
+     * 
+     * @param {any} x Some value.
+     * 
+     * @returns {any} Converted value or original value.
+     */
+    public convert(x: any): any
+    {
+        return x;
     }
 }

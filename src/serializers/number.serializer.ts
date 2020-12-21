@@ -6,7 +6,7 @@ import { TypeSerializer } from './../type.serializer';
  * 
  * @type {NumberSerializer}
  */
-export class NumberSerializer implements TypeSerializer
+export class NumberSerializer extends TypeSerializer
 {
     /**
      * Serializes provided value.
@@ -70,5 +70,19 @@ export class NumberSerializer implements TypeSerializer
         }
 
         return new Number(x);
+    }
+
+    /**
+     * TODO: Implement implicit conversion.
+     * 
+     * Converts provided value to the target type value.
+     * 
+     * @param {any} x Some value.
+     * 
+     * @returns {any} Converted value or original value.
+     */
+    public convert(x: any): any
+    {
+        return x;
     }
 }

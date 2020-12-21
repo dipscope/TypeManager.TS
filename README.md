@@ -298,3 +298,13 @@ With Angular you do not need to install `reflect-metadata` as it is already incl
 ## License
 
 `TypeManager.TS` is licensed under the Apache 2.0 License.
+
+<!-- TODO:...
+* Write tests for cases below.
+* Describe stringify, parse methods in type manager.
+* Describe implicit conversion feature.
+* Describe custom serializer and related methods.
+* Describe default values and usage.
+* Describe function possible for default value initializer.
+* Describe global type configuration, type options and property ones.
+-->
