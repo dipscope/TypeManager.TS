@@ -1,4 +1,4 @@
-import { Type, Property, Alias, TypeSerializer, Serializer, TypeManager } from './../src';
+import { Type, Property, Alias, TypeSerializer, Serializer, TypeManager, DefaultValue, UseDefaultValue, UseImplicitConversion } from './../src';
 
 class ASerializer extends TypeSerializer
 {
@@ -18,6 +18,9 @@ class X
 {
     @Property() @Alias('c') public a?: string;
     @Property() public b?: string;
+    @Property() @DefaultValue('d') @UseDefaultValue() public d?: string;
+    @Property() @DefaultValue(() => 'e') @UseDefaultValue() public e?: string;
+    @Property() @UseImplicitConversion() public f?: string;
 }
 
 @Type()
@@ -46,6 +49,9 @@ describe('Type manager', function ()
         expect(entity.x).toBeInstanceOf(X);
         expect(entity.x.a).toBe('a');
         expect(entity.x.b).toBe('b');
+        expect(entity.x.d).toBe('d');
+        expect(entity.x.e).toBe('e');
+        expect(entity.x.f).not.toBeDefined();
 
         expect(entities).toBeInstanceOf(Array);
         entities.forEach((e: any) => 
@@ -56,6 +62,9 @@ describe('Type manager', function ()
             expect(e.x).toBeInstanceOf(X);
             expect(e.x.a).toBe('a');
             expect(e.x.b).toBe('b');
+            expect(e.x.d).toBe('d');
+            expect(e.x.e).toBe('e');
+            expect(e.x.f).not.toBeDefined();
         });
 
         expect(nullEntity).toBeNull();
@@ -70,6 +79,9 @@ describe('Type manager', function ()
         expect(object.x).toBeInstanceOf(Object);
         expect(object.x.c).toBe('a');
         expect(object.x.b).toBe('b');
+        expect(object.x.d).toBe('d');
+        expect(object.x.e).toBe('e');
+        expect(object.x.f).not.toBeDefined();
 
         expect(objects).toBeInstanceOf(Array);
         objects.forEach((o: any) => 
@@ -80,6 +92,9 @@ describe('Type manager', function ()
             expect(o.x).toBeInstanceOf(Object);
             expect(o.x.c).toBe('a');
             expect(o.x.b).toBe('b');
+            expect(o.x.d).toBe('d');
+            expect(o.x.e).toBe('e');
+            expect(o.x.f).not.toBeDefined();
         });
 
         expect(nullObject).toBeNull();

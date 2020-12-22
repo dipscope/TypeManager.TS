@@ -32,12 +32,12 @@ export class BooleanSerializer extends TypeSerializer
             return x.map(v => this.serialize(v));
         }
 
-        if (Log.warnEnabled) 
+        if (Log.errorEnabled) 
         {
-            Log.warn('Serializing non boolean value as boolean!', x);
+            Log.error('Cannot serialize value as boolean!', x);
         }
 
-        return new Boolean(x);
+        return undefined;
     }
 
     /**
@@ -64,17 +64,15 @@ export class BooleanSerializer extends TypeSerializer
             return x.map(v => this.deserialize(v));
         }
 
-        if (Log.warnEnabled) 
+        if (Log.errorEnabled) 
         {
-            Log.warn('Deserializing non boolean value as boolean!', x);
+            Log.error('Cannot deserialize value as boolean!', x);
         }
 
-        return new Boolean(x);
+        return undefined;
     }
 
     /**
-     * TODO: Implement implicit conversion.
-     * 
      * Converts provided value to the target type value.
      * 
      * @param {any} x Some value.
@@ -83,6 +81,16 @@ export class BooleanSerializer extends TypeSerializer
      */
     public convert(x: any): any
     {
+        if (Fn.isString(x) || Fn.isNumber(x)) 
+        {
+            return Boolean(x);
+        }
+
+        if (Fn.isArray(x))
+        {
+            return x.map(v => this.convert(v));
+        }
+
         return x;
     }
 }

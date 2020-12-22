@@ -49,9 +49,9 @@ export class TypeManager
             Log.logLevel = typeManagerOptions.logLevel;
         }
 
-        if (!Fn.isUndefined(typeManagerOptions.typeOptions)) 
+        if (!Fn.isUndefined(typeManagerOptions.typeOptionsBase)) 
         {
-            TypeArtisan.configureTypeOptions(typeManagerOptions.typeOptions);
+            TypeArtisan.configureTypeOptionsBase(typeManagerOptions.typeOptionsBase);
         }
 
         if (!Fn.isUndefined(typeManagerOptions.typeOptionsMap)) 

@@ -6,9 +6,11 @@ import { Property } from './../property';
  * Used to define if certain property should be serializable. By default if this 
  * decorator is not applied property is serializable and deserializable.
  *
+ * @param {boolean} serializable Serializable?
+ * 
  * @returns {PropertyDecorator} Property decorator.
  */
-export function Serializable(): PropertyDecorator
+export function Serializable(serializable?: boolean): PropertyDecorator
 {
-    return Property({ serializable: true, reflectMetadata: false });
+    return Property({ serializable: serializable ?? true, reflectMetadata: false });
 }

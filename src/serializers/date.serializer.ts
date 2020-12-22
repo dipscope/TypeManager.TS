@@ -32,12 +32,12 @@ export class DateSerializer extends TypeSerializer
             return x.map(v => this.serialize(v));
         }
 
-        if (Log.warnEnabled) 
+        if (Log.errorEnabled) 
         {
-            Log.warn('Serializing non date value as date!', x);
+            Log.error('Cannot serialize value as date!', x);
         }
 
-        return null;
+        return undefined;
     }
 
     /**
@@ -64,25 +64,11 @@ export class DateSerializer extends TypeSerializer
             return x.map(v => this.deserialize(v));
         }
 
-        if (Log.warnEnabled) 
+        if (Log.errorEnabled) 
         {
-            Log.warn('Deserializing non string value as date!', x);
+            Log.error('Cannot deserialize value as date!', x);
         }
 
-        return null;
-    }
-
-    /**
-     * TODO: Implement implicit conversion.
-     * 
-     * Converts provided value to the target type value.
-     * 
-     * @param {any} x Some value.
-     * 
-     * @returns {any} Converted value or original value.
-     */
-    public convert(x: any): any
-    {
-        return x;
+        return undefined;
     }
 }

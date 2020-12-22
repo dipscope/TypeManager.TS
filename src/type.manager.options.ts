@@ -1,6 +1,7 @@
 import { LogLevel } from './utils';
 import { TypeCtor } from './type.ctor';
 import { TypeOptions } from './type.options';
+import { TypeOptionsBase } from './type.options.base';
 
 /**
  * Type manager options.
@@ -19,9 +20,9 @@ export interface TypeManagerOptions
     /**
      * Global type options shared among all types.
      * 
-     * @type {TypeOptions}
+     * @type {TypeOptionsBase}
      */
-    typeOptions?: TypeOptions;
+    typeOptionsBase?: TypeOptionsBase;
 
     /**
      * Type options per type. 

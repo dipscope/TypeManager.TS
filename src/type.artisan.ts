@@ -4,6 +4,7 @@ import { TypeCtor } from './type.ctor';
 import { TypeDeclaration } from './type.declaration';
 import { TypeMetadata } from './type.metadata';
 import { TypeOptions } from './type.options';
+import { TypeOptionsBase } from './type.options.base';
 
 /**
  * Type artisan class to encapsulate type manipulating functions.
@@ -22,9 +23,9 @@ export class TypeArtisan
     /**
      * Global type options shared among all types.
      * 
-     * @type {TypeOptions}
+     * @type {TypeOptionsBase}
      */
-    public static readonly typeOptions: TypeOptions = {
+    public static readonly typeOptionsBase: TypeOptionsBase = {
         defaultValue: undefined,
         useDefaultValue: false,
         useImplicitConversion: false
@@ -54,13 +55,13 @@ export class TypeArtisan
     /**
      * Configures global type options.
      * 
-     * @param {TypeOptions} typeOptions Type options.
+     * @param {TypeOptionsBase} typeOptionsBase Type options base.
      * 
      * @returns {void}
      */
-    public static configureTypeOptions(typeOptions: TypeOptions): void
+    public static configureTypeOptionsBase(typeOptionsBase: TypeOptionsBase): void
     {
-        Object.assign(this.typeOptions, typeOptions);
+        Object.assign(this.typeOptionsBase, typeOptionsBase);
 
         return;
     }
@@ -96,7 +97,14 @@ export class TypeArtisan
         const typeSerializer  = new ObjectSerializer(typeCtor, this.extractTypeMetadata.bind(this));
         const typeMetadata    = new TypeMetadata(typeCtor, typeDeclaration, typeSerializer);
 
-        return typeMetadata.configure(this.typeOptions).configure(typeOptions ?? {});
+        typeMetadata.configure(this.typeOptionsBase).configure(typeOptions ?? {});
+
+        if (!Fn.isNil(typeMetadata.alias))
+        {
+            this.typeCtorMap.set(typeMetadata.alias, typeMetadata.typeCtor);
+        }
+
+        return typeMetadata;
     }
 
     /**
@@ -140,7 +148,6 @@ export class TypeArtisan
             typeMetadata.typeDeclaration = typeDeclaration;
         }
 
-        // TODO: Refactor - will not work for introduced global config.
         if (!Fn.isNil(typeOptions.alias)) 
         {
             this.typeCtorMap.set(typeOptions.alias, typeMetadata.typeCtor);

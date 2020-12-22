@@ -1,4 +1,5 @@
 import { PropertyOptions } from './property.options';
+import { TypeOptionsBase } from './type.options.base';
 import { TypeSerializer } from './type.serializer';
 
 /**
@@ -6,7 +7,7 @@ import { TypeSerializer } from './type.serializer';
  * 
  * @type {TypeOptions}
  */
-export interface TypeOptions
+export interface TypeOptions extends TypeOptionsBase
 {
     /**
      * Property options related to this type.
@@ -30,28 +31,4 @@ export interface TypeOptions
      * @type {string}
      */
     alias?: string;
-
-    /**
-     * Default value for undefined ones.
-     * 
-     * Assigned only when use default value option is true.
-     * 
-     * @type {any}
-     */
-    defaultValue?: any;
-
-    /**
-     * Use default value assignment for undefined values?
-     * 
-     * @type {boolean}
-     */
-    useDefaultValue?: boolean;
-
-    /**
-     * Use implicit conversion when provided value can be converted
-     * to the target one?
-     * 
-     * @type {boolean}
-     */
-    useImplicitConversion?: boolean;
 }

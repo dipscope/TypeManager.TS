@@ -32,12 +32,12 @@ export class StringSerializer extends TypeSerializer
             return x.map(v => this.serialize(v));
         }
 
-        if (Log.warnEnabled) 
+        if (Log.errorEnabled) 
         {
-            Log.warn('Serializing non string value as string!', x);
+            Log.error('Cannot serialize value as string!', x);
         }
 
-        return new String(x);
+        return undefined;
     }
 
     /**
@@ -64,17 +64,15 @@ export class StringSerializer extends TypeSerializer
             return x.map(v => this.deserialize(v));
         }
 
-        if (Log.warnEnabled) 
+        if (Log.errorEnabled) 
         {
-            Log.warn('Deserializing non string value as string!', x);
+            Log.error('Cannot deserialize value as string!', x);
         }
 
-        return new String(x);
+        return undefined;
     }
 
     /**
-     * TODO: Implement implicit conversion.
-     * 
      * Converts provided value to the target type value.
      * 
      * @param {any} x Some value.
@@ -83,6 +81,26 @@ export class StringSerializer extends TypeSerializer
      */
     public convert(x: any): any
     {
+        if (Fn.isNumber(x) || Fn.isBoolean(x)) 
+        {
+            return String(x);
+        }
+
+        if (Fn.isDate(x))
+        {
+            return x.toISOString();
+        }
+
+        if (Fn.isObject(x))
+        {
+            return JSON.stringify(x);
+        }
+
+        if (Fn.isArray(x))
+        {
+            return x.map(v => this.convert(v));
+        }
+        
         return x;
     }
 }

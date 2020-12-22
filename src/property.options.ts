@@ -1,12 +1,13 @@
-import { TypeSerializer } from './type.serializer';
 import { TypeResolver } from './type.resolver';
+import { TypeOptionsBase } from './type.options.base';
+import { TypeSerializer } from './type.serializer';
 
 /**
  * Property options.
  * 
  * @type {PropertyOptions}
  */
-export interface PropertyOptions
+export interface PropertyOptions extends TypeOptionsBase
 {
     /**
      * Type resolver to get a property type.
@@ -53,28 +54,4 @@ export interface PropertyOptions
      * @type {boolean}
      */
     deserializable?: boolean;
-
-    /**
-     * Default value for undefined ones.
-     * 
-     * Assigned only when use default value option is true.
-     * 
-     * @type {any}
-     */
-    defaultValue?: any;
-
-    /**
-     * Use default value assignment for undefined values?
-     * 
-     * @type {boolean}
-     */
-    useDefaultValue?: boolean;
-
-    /**
-     * Use implicit conversion when provided value can be converted
-     * to the target one?
-     * 
-     * @type {boolean}
-     */
-    useImplicitConversion?: boolean;
 }
