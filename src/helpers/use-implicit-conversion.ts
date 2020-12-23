@@ -22,6 +22,6 @@ export function UseImplicitConversion(useImplicitConversion?: boolean): ClassDec
             return Type({ useImplicitConversion: useImplicitConversion ?? true })(target);
         }
 
-        return Property({ useImplicitConversion: useImplicitConversion ?? true, reflectMetadata: false })(target, propertyName!);
+        return Property({ useImplicitConversion: useImplicitConversion ?? true })(target, propertyName!);
     }
 }

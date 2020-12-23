@@ -85,7 +85,8 @@ export class ObjectSerializer extends TypeSerializer
 
                 const objectPropertyName   = propertyMetadata.alias ?? propertyMetadata.name;
                 const objectPropertyValue  = type[propertyMetadata.name];
-                const propertyTypeCtor     = propertyMetadata.typeResolver();
+                const propertyTypeResolver = propertyMetadata.typeResolver ?? propertyMetadata.reflectTypeResolver;
+                const propertyTypeCtor     = propertyTypeResolver();
                 const propertyTypeMetadata = Fn.isNil(propertyTypeCtor) ? null : this.typeMetadataResolver(propertyTypeCtor);
                 
                 if (Fn.isUndefined(objectPropertyValue))
@@ -95,7 +96,7 @@ export class ObjectSerializer extends TypeSerializer
 
                     if (useDefaultValue)
                     {
-                        object[objectPropertyName] = Fn.isFunction(defaultValue) ? defaultValue() : defaultValue;
+                        object[objectPropertyName] = propertyMetadata.multiple ? [] : (Fn.isFunction(defaultValue) ? defaultValue() : defaultValue);
                     }
 
                     continue;
@@ -188,7 +189,8 @@ export class ObjectSerializer extends TypeSerializer
 
                 const typePropertyName     = propertyMetadata.name;
                 const typePropertyValue    = object[propertyMetadata.alias ?? propertyMetadata.name];
-                const propertyTypeCtor     = propertyMetadata.typeResolver();
+                const propertyTypeResolver = propertyMetadata.typeResolver ?? propertyMetadata.reflectTypeResolver;
+                const propertyTypeCtor     = propertyTypeResolver();
                 const propertyTypeMetadata = Fn.isNil(propertyTypeCtor) ? null : this.typeMetadataResolver(propertyTypeCtor);
                 
                 if (Fn.isUndefined(typePropertyValue))
@@ -198,7 +200,7 @@ export class ObjectSerializer extends TypeSerializer
 
                     if (useDefaultValue)
                     {
-                        type[typePropertyName] = Fn.isFunction(defaultValue) ? defaultValue() : defaultValue;
+                        type[typePropertyName] = propertyMetadata.multiple ? [] : (Fn.isFunction(defaultValue) ? defaultValue() : defaultValue);
                     }
 
                     continue;

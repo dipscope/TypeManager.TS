@@ -22,6 +22,6 @@ export function DefaultValue(defaultValue: any): ClassDecorator & PropertyDecora
             return Type({ defaultValue: defaultValue })(target);
         }
 
-        return Property({ defaultValue: defaultValue, reflectMetadata: false })(target, propertyName!);
+        return Property({ defaultValue: defaultValue })(target, propertyName!);
     }
 }

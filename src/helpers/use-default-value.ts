@@ -22,6 +22,6 @@ export function UseDefaultValue(useDefaultValue?: boolean): ClassDecorator & Pro
             return Type({ useDefaultValue: useDefaultValue ?? true })(target);
         }
 
-        return Property({ useDefaultValue: useDefaultValue ?? true, reflectMetadata: false })(target, propertyName!);
+        return Property({ useDefaultValue: useDefaultValue ?? true })(target, propertyName!);
     }
 }

@@ -22,6 +22,6 @@ export function Alias(alias: string): ClassDecorator & PropertyDecorator
             return Type({ alias: alias })(target);
         }
 
-        return Property({ alias: alias, reflectMetadata: false })(target, propertyName!);
+        return Property({ alias: alias })(target, propertyName!);
     }
 }

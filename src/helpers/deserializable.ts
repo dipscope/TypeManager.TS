@@ -12,5 +12,5 @@ import { Property } from './../property';
  */
 export function Deserializable(deserializable?: boolean): PropertyDecorator
 {
-    return Property({ deserializable: deserializable ?? true, reflectMetadata: false });
+    return Property({ deserializable: deserializable ?? true });
 }

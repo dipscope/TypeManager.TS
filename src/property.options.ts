@@ -17,11 +17,11 @@ export interface PropertyOptions extends TypeOptionsBase
     typeResolver?: TypeResolver;
 
     /**
-     * Use reflect metadata when type resolver is not defined.
+     * Type alias used to build a type resolver.
      * 
-     * @type {boolean}
+     * @type {string}
      */
-    reflectMetadata?: boolean;
+    typeAlias?: string;
 
     /**
      * Custom property type serializer.
@@ -54,4 +54,11 @@ export interface PropertyOptions extends TypeOptionsBase
      * @type {boolean}
      */
     deserializable?: boolean;
+
+    /**
+     * Multiple property?
+     * 
+     * @type {boolean}
+     */
+    multiple?: boolean;
 }

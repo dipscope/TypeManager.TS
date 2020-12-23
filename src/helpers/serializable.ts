@@ -12,5 +12,5 @@ import { Property } from './../property';
  */
 export function Serializable(serializable?: boolean): PropertyDecorator
 {
-    return Property({ serializable: serializable ?? true, reflectMetadata: false });
+    return Property({ serializable: serializable ?? true });
 }

@@ -13,19 +13,19 @@ import { TypeDeclaration } from './type.declaration';
 export class PropertyArtisan
 {
     /**
-     * Injects property metadata to a certain type metadata.
+     * Injects property metadata to a certain property.
      * 
-     * @param {TypeCtor} typeCtor Type constructor function.
+     * @param {TypeCtor} declaringTypeCtor Declaring type constructor function.
      * @param {string} propertyName Property name.
      * @param {PropertyOptions} propertyOptions Property options.
      * 
      * @returns {PropertyMetadata} Property metadata for provided property.
      */
-    public static injectPropertyMetadata(typeCtor: TypeCtor, propertyName: string, propertyOptions: PropertyOptions): PropertyMetadata
+    public static injectPropertyMetadata(declaringTypeCtor: TypeCtor, propertyName: string, propertyOptions: PropertyOptions): PropertyMetadata
     {
-        const typeMetadata     = TypeArtisan.injectTypeMetadata(typeCtor, {}, TypeDeclaration.Implicit);
+        const typeMetadata     = TypeArtisan.injectTypeMetadata(declaringTypeCtor, {}, TypeDeclaration.Implicit);
         const metadataInjected = typeMetadata.propertyMetadataMap.has(propertyName);
-        const propertyMetadata = metadataInjected ? typeMetadata.propertyMetadataMap.get(propertyName)! : new PropertyMetadata(propertyName);
+        const propertyMetadata = metadataInjected ? typeMetadata.propertyMetadataMap.get(propertyName)! : new PropertyMetadata(declaringTypeCtor, propertyName);
 
         if (!metadataInjected)
         {

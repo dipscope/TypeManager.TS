@@ -13,19 +13,14 @@ import { PropertyOptions } from './property.options';
  */
 export function Property(x?: TypeResolver | PropertyOptions | string, y?: PropertyOptions): PropertyDecorator
 {
-    const typeResolver    = Fn.isFunction(x) ? x : (Fn.isString(x) ? PropertyArtisan.buildTypeResolverForAlias(x) : () => null) as TypeResolver;
+    const typeResolver    = Fn.isFunction(x) ? x : (Fn.isString(x) ? PropertyArtisan.buildTypeResolverForAlias(x) : undefined) as TypeResolver;
     const propertyOptions = Fn.isObject(y) ? y : (Fn.isObject(x) ? x : {}) as PropertyOptions;
     
-    if (Fn.isNil(propertyOptions.typeResolver))
+    if (Fn.isUndefined(propertyOptions.typeResolver))
     {
-        propertyOptions.typeResolver = typeResolver;
+        propertyOptions.typeResolver = Fn.isString(propertyOptions.typeAlias) ? PropertyArtisan.buildTypeResolverForAlias(propertyOptions.typeAlias) : typeResolver;
     }
-    
-    if (Fn.isNil(propertyOptions.reflectMetadata)) 
-    {
-        propertyOptions.reflectMetadata = true;
-    }
-    
+
     return function (target: any, propertyName: string | symbol): void
     {
         const declaringTypeCtor = target.constructor;
@@ -60,17 +55,7 @@ export function Property(x?: TypeResolver | PropertyOptions | string, y?: Proper
             
             return;
         }
-
-        if (Fn.isNil(propertyOptions.typeResolver) && propertyOptions.reflectMetadata)
-        {
-            const typeCtor = Fn.extractReflectMetadata('design:type', target, propertyName);
-
-            if (!Fn.isNil(typeCtor))
-            {
-                propertyOptions.typeResolver = () => typeCtor;
-            }
-        }
-
+        
         PropertyArtisan.injectPropertyMetadata(declaringTypeCtor, propertyName, propertyOptions);
 
         return;

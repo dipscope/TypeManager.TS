@@ -133,7 +133,7 @@ export class TypeMetadata
     {
         propertyOptionsMap.forEach((propertyOptions, propertyName) =>
         {
-            const propertyMetadata = new PropertyMetadata(propertyName);
+            const propertyMetadata = new PropertyMetadata(this.typeCtor, propertyName);
 
             this.propertyMetadataMap.set(propertyName, propertyMetadata.configure(propertyOptions));
         });

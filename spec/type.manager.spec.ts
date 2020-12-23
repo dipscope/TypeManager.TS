@@ -26,8 +26,8 @@ class X
 @Type()
 class Y
 {
-    @Property() @Serializer(new ASerializer()) public a?: string;
-    @Property() @Alias('c') public b?: string;
+    @Property(() => String) @Serializer(new ASerializer()) public a?: string;
+    @Property(() => String) @Alias('c') public b?: string;
     @Property(() => X) public x?: X; 
 }
 

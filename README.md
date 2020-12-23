@@ -4,6 +4,29 @@
 
 Type manager is a parsing package for TypeScript which will help you to transform JSON strings or plain objects into typed object instances. It supports [decorators](https://www.typescriptlang.org/docs/handbook/decorators.html) or declarative configuration and allows you to configure parsing of your or 3rd party classes easily.
 
+## Table of contents
+
+* [How it works?](#how-it-works)
+* [Installation](#installation)
+* [Defining decorators](#defining-decorators)
+    * [Type decorator](#type-decorator)
+    * [Property decorator](#property-decorator)
+    * [Handling relations](#handling-relations)
+* [Defining helper decorators](#defining-helper-decorators)
+    * [Alias decorator](#alias-decorator)
+    * [Serializer decorator](#serializer-decorator)
+    * [Serializable and deserializable decorator](#serializable-and-deserializable-decorator)
+    * [Multiple decorator](#multiple-decorator)
+    * [Default value decorator](#default-value-decorator)
+    * [Use default value decorator](#use-default-value-decorator)
+    * [Use implicit conversion decorator](#use-implicit-conversion-decorator)
+* [Defining configuration without decorators](#defining-configuration-without-decorators)
+    * [Configuring global options](#configuring-global-options)
+    * [Configuring type options manually](#configuring-type-options-manually)
+* [Defining custom type serializer](#defining-custom-type-serializer)
+* [Using with Angular](#using-with-angular)
+* [License](#license)
+
 ## How it works?
 
 It defines configuration for each object which you are going to serialize or deserialize and uses this configuration to process data of your choice. There are two possible ways to define a configuration:
@@ -30,8 +53,8 @@ _This package has no dependencies. If you want additional type-safety and reduce
  We have plenty of decorators. Each of them will be described in details but let's start from the most simple example of configuration.
 
 ```typescript
-import { Type, Property } from '@dipscope/type-manager';
 import 'reflect-metadata';
+import { Type, Property } from '@dipscope/type-manager';
 
 @Type()
 export class User
@@ -101,8 +124,8 @@ There are more options can be provided, so check `TypeOptions` definition or sec
 Property decorator defined per property configuration within a type and should be declared right before a property definition.
 
 ```typescript
-import { Type, Property } from '@dipscope/type-manager';
 import 'reflect-metadata';
+import { Type, Property } from '@dipscope/type-manager';
 
 @Type()
 export class User
@@ -116,8 +139,8 @@ This will register a `name` property for a `User`. Each property has a type asso
 If you are using [reflect-metadata](https://github.com/rbuckton/reflect-metadata) or your are fine with direct serialization then provide an options as a first argument.
 
 ```typescript
-import { Type, Property } from '@dipscope/type-manager';
 import 'reflect-metadata';
+import { Type, Property } from '@dipscope/type-manager';
 
 @Type()
 export class User
@@ -147,8 +170,8 @@ There are plenty of configure options, so check `PropertyOptions` definition or 
 Handling relation types not differs from built in property types, so if you are using [reflect-metadata](https://github.com/rbuckton/reflect-metadata) the definition can be the following.
 
 ```typescript
-import { Type, Property } from '@dipscope/type-manager';
 import 'reflect-metadata';
+import { Type, Property } from '@dipscope/type-manager';
 
 @Type()
 export class UserStatus
@@ -165,17 +188,24 @@ export class User
 }
 ```
 
-Array relations will be handled the same way.
+Array relations should always declare a type resolver as reflect metadata return type is an array.
 
 ```typescript
-import { Type, Property } from '@dipscope/type-manager';
 import 'reflect-metadata';
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type()
+export class UserStatus
+{
+    @Property() public name: string;
+    @Property() public title: string;
+}
 
 @Type()
 export class User
 {
     @Property() public name: string;
-    @Property() public userStatuses: UserStatus[];
+    @Property(() => UserStatus) public userStatuses: UserStatus[];
 }
 ```
 
@@ -199,7 +229,27 @@ export class User
 }
 ```
 
-If any type defines an alias - it can be used as a type resolver.
+Note that in this case all properties without type resolvers will be handled directly. If you want absolutely the same behaviour as with reflect metadata then you have to define complete configuration.
+
+```typescript
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type()
+export class UserStatus
+{
+    @Property(() => String) public name: string;
+    @Property(() => String) public title: string;
+}
+
+@Type()
+export class User
+{
+    @Property(() => String) public name: string;
+    @Property(() => UserStatus) public userStatus: UserStatus;
+}
+```
+
+ If any type defines an alias - it can be used as a type resolver.
 
 ```typescript
 import { Type, Property } from '@dipscope/type-manager';
@@ -209,14 +259,14 @@ import { Type, Property } from '@dipscope/type-manager';
 })
 export class UserStatus
 {
-    @Property() public name: string;
-    @Property() public title: string;
+    @Property(() => String) public name: string;
+    @Property(() => String) public title: string;
 }
 
 @Type()
 export class User
 {
-    @Property() public name: string;
+    @Property(() => String) public name: string;
     @Property('UserStatus') public userStatus: UserStatus;
 }
 ```
@@ -269,6 +319,28 @@ export class User
 {
     @Property() @Serializable() public name: string;
     @Property() @Deserializable() public email: string;
+}
+```
+
+### Multiple decorator
+
+This decorator used to indicate that certain property is an array when using without reflect metadata.
+
+```typescript
+import { Type, Property, Multiple } from '@dipscope/type-manager';
+
+@Type()
+export class UserStatus
+{
+    @Property(() => String) public name: string;
+    @Property(() => String) public title: string;
+}
+
+@Type()
+export class User
+{
+    @Property(() => String) public name: string;
+    @Property(() => UserStatus) @Multiple() public userStatuses: UserStatus[];
 }
 ```
 
@@ -385,8 +457,8 @@ export class User
 Also if you are declaring only 3rd party classes the use case can be the following with [reflect-metadata](https://github.com/rbuckton/reflect-metadata).
 
 ```typescript
-import { Type, Property } from '@dipscope/type-manager';
 import 'reflect-metadata';
+import { Type, Property } from '@dipscope/type-manager';
 
 @Type()
 export class User

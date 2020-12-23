@@ -23,6 +23,6 @@ export function Serializer(typeSerializer: TypeSerializer): ClassDecorator & Pro
             return Type({ typeSerializer: typeSerializer })(target);
         }
 
-        return Property({ typeSerializer: typeSerializer, reflectMetadata: false })(target, propertyName!);
+        return Property({ typeSerializer: typeSerializer })(target, propertyName!);
     }
 }
