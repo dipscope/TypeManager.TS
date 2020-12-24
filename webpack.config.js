@@ -36,7 +36,9 @@ module.exports = {
         extensions: [ '.tsx', '.ts', '.js' ],
     },
     output: {
+        path: Path.resolve(__dirname, 'dist'),
         filename: 'bundle.js',
-        path: Path.resolve(__dirname, 'dist')
+        library: 'typeManager',
+        libraryTarget: 'umd'
     }
 };
