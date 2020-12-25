@@ -48,7 +48,7 @@ export class Fn
      */
     public static isObject(x: any): x is { [key: string]: any }
     {
-        return typeof x === 'object';
+        return typeof x === 'object' && x !== null;
     }
 
     /**

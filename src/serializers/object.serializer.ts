@@ -136,12 +136,12 @@ export class ObjectSerializer extends TypeSerializer
             return object;
         }
 
-        if (Log.warnEnabled)
+        if (Log.errorEnabled)
         {
-            Log.warn('Serializing non type value as object!', x);
+            Log.error('Cannot serialize value as object!', x);
         }
 
-        return null;
+        return undefined;
     }
 
     /**
@@ -182,7 +182,7 @@ export class ObjectSerializer extends TypeSerializer
 
             for (const propertyMetadata of typeMetadata.propertyMetadataMap.values()) 
             {
-                if (propertyMetadata.serializationConfigured && !propertyMetadata.serializable)
+                if (propertyMetadata.serializationConfigured && !propertyMetadata.deserializable)
                 {
                     continue;
                 }
@@ -240,11 +240,11 @@ export class ObjectSerializer extends TypeSerializer
             return type;
         }
         
-        if (Log.warnEnabled)
+        if (Log.errorEnabled)
         {
-            Log.warn('Deserializing non object value as type!', x);
+            Log.error('Cannot deserialize value as object!', x);
         }
 
-        return null;
+        return undefined;
     }
 }

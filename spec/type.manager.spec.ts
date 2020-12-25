@@ -1,4 +1,5 @@
-import { Type, Property, Alias, TypeSerializer, Serializer, TypeManager, DefaultValue, UseDefaultValue, UseImplicitConversion } from './../src';
+import { Type, Property, Alias, TypeSerializer, Serializer, TypeManager, DefaultValue, UseDefaultValue } from './../src';
+import { UseImplicitConversion, Serializable, Deserializable } from './../src';
 
 class ASerializer extends TypeSerializer
 {
@@ -21,6 +22,8 @@ class X
     @Property() @DefaultValue('d') @UseDefaultValue() public d?: string;
     @Property() @DefaultValue(() => 'e') @UseDefaultValue() public e?: string;
     @Property() @UseImplicitConversion() public f?: string;
+    @Property() @Serializable() public g?: string;
+    @Property() @Deserializable() public h?: string;
 }
 
 @Type()
@@ -36,7 +39,7 @@ describe('Type manager', function ()
     it('should deserialize type when object is provided and vice versa', function () 
     {
         const yTypeManager = new TypeManager(Y);
-        const baseObject   = { a: 'a', c: 'b', x: { c: 'a', b: 'b' } };
+        const baseObject   = { a: 'a', c: 'b', x: { c: 'a', b: 'b', f: null, g: 'g', h: 'h' } };
         const baseObjects  = [baseObject, baseObject];
 
         const entity     = yTypeManager.deserialize(baseObject);
@@ -51,9 +54,13 @@ describe('Type manager', function ()
         expect(entity.x.b).toBe('b');
         expect(entity.x.d).toBe('d');
         expect(entity.x.e).toBe('e');
-        expect(entity.x.f).not.toBeDefined();
+        expect(entity.x.f).toBeNull();
+        expect(entity.x.g).toBeUndefined(); 
+        expect(entity.x.h).toBe('h');
 
         expect(entities).toBeInstanceOf(Array);
+        expect(entities[0]).toEqual(entities[1]);
+
         entities.forEach((e: any) => 
         {
             expect(e).toBeInstanceOf(Y);
@@ -64,10 +71,16 @@ describe('Type manager', function ()
             expect(e.x.b).toBe('b');
             expect(e.x.d).toBe('d');
             expect(e.x.e).toBe('e');
-            expect(e.x.f).not.toBeDefined();
+            expect(e.x.f).toBeNull();
+            expect(e.x.g).toBeUndefined();
+            expect(e.x.h).toBe('h');
         });
 
         expect(nullEntity).toBeNull();
+
+        entity.x.g      = 'g';
+        entities[0].x.g = 'g';
+        entities[1].x.g = 'g';
 
         const object     = yTypeManager.serialize(entity);
         const objects    = yTypeManager.serialize(entities);
@@ -81,9 +94,13 @@ describe('Type manager', function ()
         expect(object.x.b).toBe('b');
         expect(object.x.d).toBe('d');
         expect(object.x.e).toBe('e');
-        expect(object.x.f).not.toBeDefined();
+        expect(object.x.f).toBeNull();
+        expect(object.x.g).toBe('g');
+        expect(object.x.h).toBeUndefined();
 
         expect(objects).toBeInstanceOf(Array);
+        expect(objects[0]).toEqual(objects[1]);
+
         objects.forEach((o: any) => 
         {
             expect(o).toBeInstanceOf(Object);
@@ -94,7 +111,9 @@ describe('Type manager', function ()
             expect(o.x.b).toBe('b');
             expect(o.x.d).toBe('d');
             expect(o.x.e).toBe('e');
-            expect(o.x.f).not.toBeDefined();
+            expect(o.x.f).toBeNull();
+            expect(o.x.g).toBe('g');
+            expect(o.x.h).toBeUndefined();
         });
 
         expect(nullObject).toBeNull();
