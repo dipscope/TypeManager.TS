@@ -67,6 +67,23 @@ export class TypeArtisan
     }
 
     /**
+     * Configures type options.
+     * 
+     * @param {TypeCtor} typeCtor Type constructor function.
+     * @param {TypeOptions} typeOptions Type options.
+     * 
+     * @returns {void}
+     */
+    public static configureTypeOptions(typeCtor: TypeCtor, typeOptions: TypeOptions): void 
+    {
+        this.typeOptionsMap.set(typeCtor, typeOptions);
+
+        this.injectTypeMetadata(typeCtor, typeOptions, TypeDeclaration.Explicit);
+
+        return;
+    }
+
+    /**
      * Configures type options per type.
      * 
      * @param {Map<TypeCtor, TypeOptions>} typeOptionsMap Type options map.
@@ -77,7 +94,7 @@ export class TypeArtisan
     {
         typeOptionsMap.forEach((typeOptions, typeCtor) => 
         {
-            this.typeOptionsMap.set(typeCtor, typeOptions);
+            this.configureTypeOptions(typeCtor, typeOptions);
         });
 
         return;
@@ -92,12 +109,13 @@ export class TypeArtisan
      */
     public static declareTypeMetadata(typeCtor: TypeCtor): TypeMetadata
     {
+        const typeOptionsBase = this.typeOptionsBase;
         const typeOptions     = this.typeOptionsMap.get(typeCtor);
         const typeDeclaration = typeOptions ? TypeDeclaration.Explicit : TypeDeclaration.Implicit;
         const typeSerializer  = new ObjectSerializer(typeCtor, this.extractTypeMetadata.bind(this));
-        const typeMetadata    = new TypeMetadata(typeCtor, typeDeclaration, typeSerializer);
+        const typeMetadata    = new TypeMetadata(typeCtor, typeOptionsBase, typeDeclaration, typeSerializer);
 
-        typeMetadata.configure(this.typeOptionsBase).configure(typeOptions ?? {});
+        typeMetadata.configure(typeOptions ?? {});
 
         if (!Fn.isNil(typeMetadata.alias))
         {

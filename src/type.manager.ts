@@ -1,8 +1,10 @@
-import { Fn, Log } from './utils';
+import { Fn, Log, LogLevel } from './utils';
 import { TypeMetadata } from './type.metadata';
 import { TypeManagerOptions } from './type.manager.options';
 import { TypeCtor } from './type.ctor';
 import { TypeArtisan } from './type.artisan';
+import { TypeOptionsBase } from './type.options.base';
+import { TypeOptions } from './type.options';
 
 /**
  * Type manager class for external usage.
@@ -36,7 +38,64 @@ export class TypeManager
     }
 
     /**
-     * Configures internal objects explicitly.
+     * Sets log level.
+     * 
+     * @param {LogLevel} logLevel Log level.
+     * 
+     * @returns {void}
+     */
+    public static setLogLevel(logLevel: LogLevel): void 
+    {
+        Log.logLevel = logLevel;
+
+        return;
+    }
+
+    /**
+     * Configures global type options.
+     * 
+     * @param {TypeOptionsBase} typeOptionsBase Type options base.
+     * 
+     * @returns {void}
+     */
+    public static configureTypeOptionsBase(typeOptionsBase: TypeOptionsBase): void
+    {
+        TypeArtisan.configureTypeOptionsBase(typeOptionsBase);
+
+        return;
+    }
+
+    /**
+     * Configures type options.
+     * 
+     * @param {TypeCtor} typeCtor Type constructor function.
+     * @param {TypeOptions} typeOptions Type options.
+     * 
+     * @returns {void}
+     */
+    public static configureTypeOptions(typeCtor: TypeCtor, typeOptions: TypeOptions): void 
+    {
+        TypeArtisan.configureTypeOptions(typeCtor, typeOptions);
+
+        return;
+    }
+
+    /**
+     * Configures type options per type.
+     * 
+     * @param {Map<TypeCtor, TypeOptions>} typeOptionsMap Type options map.
+     * 
+     * @returns {void}
+     */
+    public static configureTypeOptionsMap(typeOptionsMap: Map<TypeCtor, TypeOptions>): void
+    {
+        TypeArtisan.configureTypeOptionsMap(typeOptionsMap);
+
+        return;
+    }
+
+    /**
+     * Configures type manager in general.
      * 
      * @param {TypeManagerOptions} typeManagerOptions Type manager options.
      * 
@@ -46,17 +105,17 @@ export class TypeManager
     {
         if (!Fn.isUndefined(typeManagerOptions.logLevel))
         {
-            Log.logLevel = typeManagerOptions.logLevel;
+            this.setLogLevel(typeManagerOptions.logLevel);
         }
 
         if (!Fn.isUndefined(typeManagerOptions.typeOptionsBase)) 
         {
-            TypeArtisan.configureTypeOptionsBase(typeManagerOptions.typeOptionsBase);
+            this.configureTypeOptionsBase(typeManagerOptions.typeOptionsBase);
         }
 
         if (!Fn.isUndefined(typeManagerOptions.typeOptionsMap)) 
         {
-            TypeArtisan.configureTypeOptionsMap(typeManagerOptions.typeOptionsMap);
+            this.configureTypeOptionsMap(typeManagerOptions.typeOptionsMap);
         }
 
         return;

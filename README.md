@@ -23,6 +23,7 @@ Type manager is a parsing package for TypeScript which will help you to transfor
 * [Defining configuration without decorators](#defining-configuration-without-decorators)
     * [Configuring global options](#configuring-global-options)
     * [Configuring type options manually](#configuring-type-options-manually)
+* [Type options evaluation](#type-options-evaluation)
 * [Defining custom type serializer](#defining-custom-type-serializer)
 * [Using with Angular](#using-with-angular)
 * [License](#license)
@@ -394,7 +395,9 @@ With this any value which can be converted to `string` will be converted properl
 
 ## Defining configuration without decorators
 
-There are circumstances when decorators cannot be used. For example you are using a 3rd party package and cannot decorate classes from it. Another use case - you want to configure some options globally. In this case you can define the complete configuration through special static configure method.
+There are circumstances when decorators cannot be used. For example you are using a 3rd party package and cannot decorate classes from it. Another use case - you want to configure some options globally. In this case you can define the complete configuration through special static configure method. 
+
+There are also exist separate methods to configure each type manager option, so the provided examples can be simplified to avoid creating additional object. It is useful when you need to configure only one option. In our examples we are always use the main one to give you a general overview.
 
 ### Configuring global options
 
@@ -480,6 +483,17 @@ export class User
     @Property(() => DateTime) public createdAt: DateTime;
 }
 ``` 
+
+## Type options evaluation
+
+There is a well defined order to how type options are applied when using all possible configure methods on one type.
+
+1. Base type options are applied;
+2. Decorator type options are applied;
+3. Declarative type options are applied;
+4. Property type options are applied;
+
+One should remember this when combining and overriding options in different places.
 
 ## Defining custom type serializer
 

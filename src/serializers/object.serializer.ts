@@ -70,7 +70,7 @@ export class ObjectSerializer extends TypeSerializer
                     Log.error(`${typeMetadata.name}: cannot serialize implicitly declared type! Declare a type using decorator or configure function!`, x);
                 }
 
-                return null;
+                return undefined;
             }
 
             const type   = x;
@@ -91,8 +91,8 @@ export class ObjectSerializer extends TypeSerializer
                 
                 if (Fn.isUndefined(objectPropertyValue))
                 {
-                    const useDefaultValue = propertyMetadata.useDefaultValue ?? propertyTypeMetadata?.useDefaultValue;
-                    const defaultValue    = propertyMetadata.defaultValue ?? propertyTypeMetadata?.defaultValue;
+                    const useDefaultValue = propertyMetadata.useDefaultValue ?? propertyTypeMetadata?.useDefaultValue ?? propertyTypeMetadata?.typeOptionsBase?.useDefaultValue;
+                    const defaultValue    = propertyMetadata.defaultValue ?? propertyTypeMetadata?.defaultValue ?? propertyTypeMetadata?.typeOptionsBase?.defaultValue;
 
                     if (useDefaultValue)
                     {
@@ -112,7 +112,7 @@ export class ObjectSerializer extends TypeSerializer
                     continue;
                 }
 
-                const useImplicitConversion  = propertyMetadata.useImplicitConversion ?? propertyTypeMetadata?.useImplicitConversion;
+                const useImplicitConversion  = propertyMetadata.useImplicitConversion ?? propertyTypeMetadata?.useImplicitConversion ?? propertyTypeMetadata?.typeOptionsBase?.useImplicitConversion;
                 const convertedPropertyValue = useImplicitConversion ? propertySerializer.convert(objectPropertyValue) : objectPropertyValue;
 
                 if (Fn.isObject(convertedPropertyValue) && propertySerializer instanceof ObjectSerializer)
@@ -174,7 +174,7 @@ export class ObjectSerializer extends TypeSerializer
                     Log.error(`${typeMetadata.name}: cannot deserialize implicitly declared type! Declare a type using decorator or configure function!`, x);
                 }
 
-                return null;
+                return undefined;
             }
 
             const object = x;
@@ -195,8 +195,8 @@ export class ObjectSerializer extends TypeSerializer
                 
                 if (Fn.isUndefined(typePropertyValue))
                 {
-                    const useDefaultValue = propertyMetadata.useDefaultValue ?? propertyTypeMetadata?.useDefaultValue;
-                    const defaultValue    = propertyMetadata.defaultValue ?? propertyTypeMetadata?.defaultValue;
+                    const useDefaultValue = propertyMetadata.useDefaultValue ?? propertyTypeMetadata?.useDefaultValue ?? propertyTypeMetadata?.typeOptionsBase?.useDefaultValue;
+                    const defaultValue    = propertyMetadata.defaultValue ?? propertyTypeMetadata?.defaultValue ?? propertyTypeMetadata?.typeOptionsBase?.defaultValue;
 
                     if (useDefaultValue)
                     {
@@ -216,7 +216,7 @@ export class ObjectSerializer extends TypeSerializer
                     continue;
                 }
 
-                const useImplicitConversion  = propertyMetadata.useImplicitConversion ?? propertyTypeMetadata?.useImplicitConversion;
+                const useImplicitConversion  = propertyMetadata.useImplicitConversion ?? propertyTypeMetadata?.useImplicitConversion ?? propertyTypeMetadata?.typeOptionsBase?.useImplicitConversion;
                 const convertedPropertyValue = useImplicitConversion ? propertySerializer.convert(typePropertyValue) : typePropertyValue;
 
                 if (Fn.isObject(convertedPropertyValue) && propertySerializer instanceof ObjectSerializer)

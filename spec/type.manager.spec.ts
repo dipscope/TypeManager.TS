@@ -34,6 +34,13 @@ class Y
     @Property(() => X) public x?: X; 
 }
 
+@Type()
+class Z 
+{
+    @Property(() => String) public a?: string;
+    @Property(() => X) public x?: X;
+}
+
 describe('Type manager', function ()
 {
     it('should deserialize type when object is provided and vice versa', function () 
@@ -41,6 +48,13 @@ describe('Type manager', function ()
         const yTypeManager = new TypeManager(Y);
         const baseObject   = { a: 'a', c: 'b', x: { c: 'a', b: 'b', f: null, g: 'g', h: 'h' } };
         const baseObjects  = [baseObject, baseObject];
+
+        TypeManager.configure({
+            typeOptionsBase : {
+                defaultValue: undefined,
+                useDefaultValue: false
+            }
+        });
 
         const entity     = yTypeManager.deserialize(baseObject);
         const entities   = yTypeManager.deserialize(baseObjects);
@@ -117,5 +131,57 @@ describe('Type manager', function ()
         });
 
         expect(nullObject).toBeNull();
+    });
+
+    it('should use base type default value when it is enabled', function ()
+    {
+        const zTypeManager = new TypeManager(Z);
+        const baseObject   = { a: 'a' };
+
+        TypeManager.configure({
+            typeOptionsBase : {
+                defaultValue: 'x',
+                useDefaultValue: true
+            }
+        });
+
+        const entity = zTypeManager.deserialize(baseObject);
+
+        expect(entity).toBeInstanceOf(Z);
+        expect(entity.a).toBe('a');
+        expect(entity.x).toBe('x');
+
+        entity.x = undefined;
+
+        const object = zTypeManager.serialize(entity);
+
+        expect(object).toBeInstanceOf(Object);
+        expect(object.a).toBe('a');
+        expect(object.x).toBe('x');
+    });
+
+    it('should not use base type default value when it is disabled', function () 
+    {
+        const zTypeManager = new TypeManager(Z);
+        const baseObject   = { a: 'a' };
+
+        TypeManager.configure({ 
+            typeOptionsBase : {
+                defaultValue: 'x',
+                useDefaultValue: false
+            }
+        });
+
+        const entity = zTypeManager.deserialize(baseObject);
+
+        expect(entity).toBeInstanceOf(Z);
+        expect(entity.a).toBe('a');
+        expect(entity.x).toBeUndefined();
+
+        const object = zTypeManager.serialize(entity);
+
+        expect(object).toBeInstanceOf(Object);
+        expect(object.a).toBe('a');
+        expect(object.x).toBeUndefined();
     });
 });

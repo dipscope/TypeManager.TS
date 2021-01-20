@@ -5,6 +5,7 @@ import { TypeDeclaration } from './type.declaration';
 import { TypeCtor } from './type.ctor';
 import { PropertyMetadata } from './property.metadata';
 import { PropertyOptions } from './property.options';
+import { TypeOptionsBase } from './type.options.base';
 
 /**
  * Main class used to describe a certain type.
@@ -28,6 +29,13 @@ export class TypeMetadata
      * @type {TypeCtor}
      */
     public typeCtor: TypeCtor;
+
+    /**
+     * Type options used by default.
+     * 
+     * @type {TypeOptionsBase}
+     */
+    public typeOptionsBase: TypeOptionsBase;
 
     /**
      * Type declaration.
@@ -89,13 +97,15 @@ export class TypeMetadata
      * Constructor.
      * 
      * @param {TypeCtor} typeCtor Type constructor function.
+     * @param {TypeOptionsBase} typeOptionsBase Type options used by default.
      * @param {TypeDeclaration} typeDeclaration Type declaration.
      * @param {TypeSerializer} typeSerializer Type serializer.
      */
-    public constructor(typeCtor: TypeCtor, typeDeclaration: TypeDeclaration, typeSerializer: TypeSerializer)
+    public constructor(typeCtor: TypeCtor, typeOptionsBase: TypeOptionsBase, typeDeclaration: TypeDeclaration, typeSerializer: TypeSerializer)
     {
         this.name            = Fn.nameOf(typeCtor);
         this.typeCtor        = typeCtor;
+        this.typeOptionsBase = typeOptionsBase;
         this.typeDeclaration = typeDeclaration;
         this.typeSerializer  = typeSerializer;
         
