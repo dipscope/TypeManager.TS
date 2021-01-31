@@ -10,7 +10,7 @@ import { Property } from './../property';
  * 
  * @param {TypeSerializer} typeSerializer Type serializer.
  * 
- * @returns {Function} Class or property decorator.
+ * @returns {ClassDecorator&PropertyDecorator} Class or property decorator.
  */
 export function Serializer(typeSerializer: TypeSerializer): ClassDecorator & PropertyDecorator
 {

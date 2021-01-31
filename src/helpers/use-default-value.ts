@@ -9,7 +9,7 @@ import { Property } from './../property';
  * 
  * @param {boolean} useDefaultValue True when default value should be used. False otherwise.
  * 
- * @returns {Function} Class or property decorator.
+ * @returns {ClassDecorator&PropertyDecorator} Class or property decorator.
  */
 export function UseDefaultValue(useDefaultValue?: boolean): ClassDecorator & PropertyDecorator
 {

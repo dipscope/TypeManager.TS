@@ -1,9 +1,9 @@
 import { TypeCtor } from './type.ctor';
-import { PropertyOptions } from './property.options';
 import { TypeArtisan } from './type.artisan';
-import { PropertyMetadata } from './property.metadata';
 import { TypeResolver } from './type.resolver';
 import { TypeDeclaration } from './type.declaration';
+import { PropertyOptions } from './property.options';
+import { PropertyMetadata } from './property.metadata';
 
 /**
  * Property artisan class to encapsulate property manipulating functions.
@@ -13,26 +13,20 @@ import { TypeDeclaration } from './type.declaration';
 export class PropertyArtisan
 {
     /**
-     * Injects property metadata to a certain property.
+     * Defines property metadata for a certain type constructor.
      * 
      * @param {TypeCtor} declaringTypeCtor Declaring type constructor function.
      * @param {string} propertyName Property name.
      * @param {PropertyOptions} propertyOptions Property options.
      * 
-     * @returns {PropertyMetadata} Property metadata for provided property.
+     * @returns {PropertyMetadata} Property metadata for provided type constructor.
      */
-    public static injectPropertyMetadata(declaringTypeCtor: TypeCtor, propertyName: string, propertyOptions: PropertyOptions): PropertyMetadata
+    public static definePropertyMetadata(declaringTypeCtor: TypeCtor, propertyName: string, propertyOptions: PropertyOptions): PropertyMetadata
     {
-        const typeMetadata     = TypeArtisan.injectTypeMetadata(declaringTypeCtor, {}, TypeDeclaration.Implicit);
-        const metadataInjected = typeMetadata.propertyMetadataMap.has(propertyName);
-        const propertyMetadata = metadataInjected ? typeMetadata.propertyMetadataMap.get(propertyName)! : new PropertyMetadata(declaringTypeCtor, propertyName);
+        const typeMetadata     = TypeArtisan.defineTypeMetadata(declaringTypeCtor, {}, TypeDeclaration.Implicit);
+        const propertyMetadata = typeMetadata.configurePropertyMetadata(propertyName, propertyOptions);
 
-        if (!metadataInjected)
-        {
-            typeMetadata.propertyMetadataMap.set(propertyName, propertyMetadata);
-        }
-
-        return propertyMetadata.configure(propertyOptions);
+        return propertyMetadata;
     }
 
     /**

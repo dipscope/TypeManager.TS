@@ -5,7 +5,27 @@
  */
 declare class Reflect 
 {
-    static getMetadata(metadataKey: string, target: any, targetKey: string | symbol): any;
+    /**
+     * Gets metadata value of a metadata key on the prototype chain of an object or property.
+     * 
+     * @param {string} metadataKey Unique metadata key.
+     * @param {any} target Target to extract from. 
+     * @param {string|symbol} targetKey Key in a target.
+     * 
+     * @returns {any} Metadata for a key or undefined if metadata is not present.
+     */
+    static getMetadata(metadataKey: string, target: any, targetKey?: string | symbol): any;
+
+    /**
+     * Gets metadata value of an own metadata key of an object or property.
+     * 
+     * @param {string} metadataKey Unique metadata key.
+     * @param {any} target Target to extract from. 
+     * @param {string|symbol} targetKey Key in a target.
+     * 
+     * @returns {any} Metadata for a key or undefined if metadata is not present.
+     */
+    static getOwnMetadata(metadataKey: string, target: any, targetKey?: string | symbol): any;
 }
 
 /**
@@ -171,10 +191,24 @@ export class Fn
      * @param {any} target Target to extract from. 
      * @param {string|symbol} targetKey Key in a target.
      * 
-     * @returns {any} Metadata for a key or null if metadata is not present.
+     * @returns {any} Metadata for a key or undefined if metadata is not present.
      */
-    public static extractReflectMetadata(metadataKey: string, target: any, targetKey: string | symbol): any
+    public static extractReflectMetadata(metadataKey: string, target: any, targetKey?: string | symbol): any
     {
-        return Fn.isReflectMetadataSupported() ? Reflect.getMetadata(metadataKey, target, targetKey) : null;
+        return Fn.isReflectMetadataSupported() ? Reflect.getMetadata(metadataKey, target, targetKey) : undefined;
+    }
+
+    /**
+     * Extracts own reflect metadata.
+     * 
+     * @param {string} metadataKey Unique metadata key.
+     * @param {any} target Target to extract from. 
+     * @param {string|symbol} targetKey Key in a target.
+     * 
+     * @returns {any} Metadata for a key or undefined if metadata is not present.
+     */
+    public static extractOwnReflectMetadata(metadataKey: string, target: any, targetKey?: string | symbol): any
+    {
+        return Fn.isReflectMetadataSupported() ? Reflect.getOwnMetadata(metadataKey, target, targetKey) : undefined;
     }
 }

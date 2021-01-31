@@ -13,7 +13,7 @@ export function Type(typeOptions?: TypeOptions): ClassDecorator
 {
     return function (target: any): any
     {
-        TypeArtisan.injectTypeMetadata(target, typeOptions ?? {}, TypeDeclaration.Explicit);
+        TypeArtisan.defineTypeMetadata(target, typeOptions ?? {}, TypeDeclaration.Explicit);
 
         return target;
     };

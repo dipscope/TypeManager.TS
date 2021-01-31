@@ -130,7 +130,14 @@ export class TypeManager
      */
     public serialize(x: any): any 
     {
-        return this.typeMetadata.typeSerializer.serialize(x);
+        const typeSerializer = this.typeMetadata.typeSerializer ?? this.typeMetadata.typeOptionsBase.typeSerializer;
+
+        if (Fn.isNil(typeSerializer))
+        {
+            return undefined
+        }
+
+        return typeSerializer.serialize(x, this.typeMetadata);
     }
 
     /**
@@ -142,7 +149,14 @@ export class TypeManager
      */
     public deserialize(x: any): any
     {
-        return this.typeMetadata.typeSerializer.deserialize(x);
+        const typeSerializer = this.typeMetadata.typeSerializer ?? this.typeMetadata.typeOptionsBase.typeSerializer;
+
+        if (Fn.isNil(typeSerializer))
+        {
+            return undefined
+        }
+
+        return typeSerializer.deserialize(x, this.typeMetadata);
     }
 
     /**

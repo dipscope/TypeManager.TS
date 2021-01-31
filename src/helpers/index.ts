@@ -1,6 +1,7 @@
 export * from './alias';
 export * from './default-value';
 export * from './deserializable';
+export * from './injectable';
 export * from './multiple';
 export * from './serializable';
 export * from './serializer';

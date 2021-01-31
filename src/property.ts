@@ -56,7 +56,7 @@ export function Property(x?: TypeResolver | PropertyOptions | string, y?: Proper
             return;
         }
         
-        PropertyArtisan.injectPropertyMetadata(declaringTypeCtor, propertyName, propertyOptions);
+        PropertyArtisan.definePropertyMetadata(declaringTypeCtor, propertyName, propertyOptions);
 
         return;
     };

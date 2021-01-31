@@ -9,7 +9,7 @@ import { Property } from './../property';
  * 
  * @param {boolean} useImplicitConversion True when implicit conversion should be used. False otherwise.
  * 
- * @returns {Function} Class or property decorator.
+ * @returns {ClassDecorator&PropertyDecorator} Class or property decorator.
  */
 export function UseImplicitConversion(useImplicitConversion?: boolean): ClassDecorator & PropertyDecorator
 {

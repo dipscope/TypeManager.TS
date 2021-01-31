@@ -1,40 +1,32 @@
+import { TypeMetadata } from './type.metadata';
+import { PropertyMetadata } from './property.metadata';
+
 /**
  * Type serializer.
  * 
  * @type {TypeSerializer}
  */
-export abstract class TypeSerializer
+export interface TypeSerializer
 {
     /**
      * Serializes provided value.
      * 
      * @param {any} x Some value.
+     * @param {TypeMetadata} typeMetadata Type metadata.
+     * @param {PropertyMetadata} propertyMetadata Property metadata.
      * 
      * @returns {any} Serialized value.
      */
-    public abstract serialize(x: any): any;
+    serialize(x: any, typeMetadata: TypeMetadata, propertyMetadata?: PropertyMetadata): any;
 
     /**
      * Deserializes provided value.
      * 
      * @param {any} x Some value.
+     * @param {TypeMetadata} typeMetadata Type metadata.
+     * @param {PropertyMetadata} propertyMetadata Property metadata.
      * 
      * @returns {any} Deserialized value.
      */
-    public abstract deserialize(x: any): any;
-
-    /**
-     * Called if implicit conversion is enabled. 
-     * 
-     * Converts provided value to the target type value. If conversion is 
-     * not possible then returns original value.
-     * 
-     * @param {any} x Some value.
-     * 
-     * @returns {any} Converted value or original value.
-     */
-    public convert(x: any): any
-    {
-        return x;
-    }
+    deserialize(x: any, typeMetadata: TypeMetadata, propertyMetadata?: PropertyMetadata): any;
 }

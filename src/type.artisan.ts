@@ -1,10 +1,12 @@
 import { Fn } from './utils';
 import { StringSerializer, NumberSerializer, BooleanSerializer, DateSerializer, ObjectSerializer } from './serializers';
+import { SingletonInjector } from './injectors';
 import { TypeCtor } from './type.ctor';
 import { TypeDeclaration } from './type.declaration';
 import { TypeMetadata } from './type.metadata';
 import { TypeOptions } from './type.options';
 import { TypeOptionsBase } from './type.options.base';
+import { TypeMetadataResolver } from './type.metadata.resolver';
 
 /**
  * Type artisan class to encapsulate type manipulating functions.
@@ -26,8 +28,8 @@ export class TypeArtisan
      * @type {TypeOptionsBase}
      */
     public static readonly typeOptionsBase: TypeOptionsBase = {
-        defaultValue: undefined,
-        useDefaultValue: false,
+        defaultValue:          undefined,
+        useDefaultValue:       false,
         useImplicitConversion: false
     };
 
@@ -78,7 +80,7 @@ export class TypeArtisan
     {
         this.typeOptionsMap.set(typeCtor, typeOptions);
 
-        this.injectTypeMetadata(typeCtor, typeOptions, TypeDeclaration.Explicit);
+        this.defineTypeMetadata(typeCtor, typeOptions, TypeDeclaration.Explicit);
 
         return;
     }
@@ -109,11 +111,11 @@ export class TypeArtisan
      */
     public static declareTypeMetadata(typeCtor: TypeCtor): TypeMetadata
     {
-        const typeOptionsBase = this.typeOptionsBase;
-        const typeOptions     = this.typeOptionsMap.get(typeCtor);
-        const typeDeclaration = typeOptions ? TypeDeclaration.Explicit : TypeDeclaration.Implicit;
-        const typeSerializer  = new ObjectSerializer(typeCtor, this.extractTypeMetadata.bind(this));
-        const typeMetadata    = new TypeMetadata(typeCtor, typeOptionsBase, typeDeclaration, typeSerializer);
+        const typeOptionsBase      = this.typeOptionsBase;
+        const typeOptions          = this.typeOptionsMap.get(typeCtor);
+        const typeDeclaration      = typeOptions ? TypeDeclaration.Explicit : TypeDeclaration.Implicit;
+        const typeMetadataResolver = this.extractTypeMetadata.bind(this);
+        const typeMetadata         = new TypeMetadata(typeCtor, typeOptionsBase, typeDeclaration, typeMetadataResolver);
 
         typeMetadata.configure(typeOptions ?? {});
 
@@ -126,7 +128,7 @@ export class TypeArtisan
     }
 
     /**
-     * Injects type metadata into the type proptotype.
+     * Defines type metadata for the type prototype.
      * 
      * @param {TypeCtor} typeCtor Type constructor function.
      * @param {TypeOptions} typeOptions Type options.
@@ -134,14 +136,14 @@ export class TypeArtisan
      * 
      * @returns {TypeMetadata} Type metadata for provided type constructor.
      */
-    public static injectTypeMetadata(typeCtor: TypeCtor, typeOptions: TypeOptions, typeDeclaration: TypeDeclaration): TypeMetadata
+    public static defineTypeMetadata(typeCtor: TypeCtor, typeOptions: TypeOptions, typeDeclaration: TypeDeclaration): TypeMetadata
     {
-        const prototype        = typeCtor.prototype;
-        const metadataKey      = this.typeMetadataKey;
-        const metadataInjected = prototype.hasOwnProperty(metadataKey);
-        const typeMetadata     = metadataInjected ? prototype[metadataKey] as TypeMetadata : this.declareTypeMetadata(typeCtor);
+        const prototype       = typeCtor.prototype;
+        const metadataKey     = this.typeMetadataKey;
+        const metadataDefined = prototype.hasOwnProperty(metadataKey);
+        const typeMetadata    = metadataDefined ? prototype[metadataKey] as TypeMetadata : this.declareTypeMetadata(typeCtor);
 
-        if (!metadataInjected)
+        if (!metadataDefined)
         {
             const typeMetadataParent = prototype[metadataKey] as TypeMetadata;
 
@@ -186,7 +188,7 @@ export class TypeArtisan
         const prototype        = typeCtor.prototype;
         const metadataKey      = this.typeMetadataKey;
         const metadataInjected = prototype.hasOwnProperty(metadataKey);
-        const typeMetadata     = metadataInjected ? prototype[metadataKey] as TypeMetadata : this.injectTypeMetadata(typeCtor, {}, TypeDeclaration.Implicit);
+        const typeMetadata     = metadataInjected ? prototype[metadataKey] as TypeMetadata : this.defineTypeMetadata(typeCtor, {}, TypeDeclaration.Implicit);
 
         return typeMetadata;
     }

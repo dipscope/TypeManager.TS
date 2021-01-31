@@ -1,7 +1,9 @@
 import { Fn } from './utils';
-import { TypeCtor } from './type.ctor';
 import { TypeResolver } from './type.resolver';
 import { TypeSerializer } from './type.serializer';
+import { TypeInjector } from './type.injector';
+import { TypeFactory } from './type.factory';
+import { TypeMetadata } from './type.metadata';
 import { PropertyOptions } from './property.options';
 
 /**
@@ -12,45 +14,6 @@ import { PropertyOptions } from './property.options';
 export class PropertyMetadata
 {
     /**
-     * Property name as declared in type.
-     * 
-     * @type {string}
-     */
-    public name: string;
-
-    /**
-     * Type resolver defined using reflect metadata.
-     * 
-     * Used as a fallback when type resolver is not defined.
-     * 
-     * @type {TypeResolver}
-     */
-    public reflectTypeResolver: TypeResolver;
-
-    /**
-     * Type resolver to get a property type.
-     * 
-     * @type {TypeResolver}
-     */
-    public typeResolver?: TypeResolver;
-
-    /**
-     * Type alias.
-     * 
-     * @type {string}
-     */
-    public typeAlias?: string;
-
-    /**
-     * Custom property type serializer.
-     * 
-     * Used to override default one.
-     * 
-     * @type {TypeSerializer}
-     */
-    public typeSerializer?: TypeSerializer;
-
-    /**
      * Property alias.
      * 
      * Used if property name in object differs from declared for type.
@@ -60,11 +23,20 @@ export class PropertyMetadata
     public alias?: string;
 
     /**
-     * Serializable to object?
+     * Type metadata to which property metadata belongs to.
      * 
-     * @type {boolean}
+     * @type {TypeMetadata}
      */
-    public serializable?: boolean;
+    public declaringTypeMetadata: TypeMetadata;
+
+    /**
+     * Default value for undefined ones.
+     * 
+     * Assigned only when use default value option is true.
+     * 
+     * @type {any}
+     */
+    public defaultValue?: any;
 
     /**
      * Deserializable from object?
@@ -81,13 +53,11 @@ export class PropertyMetadata
     public multiple?: boolean;
 
     /**
-     * Default value for undefined ones.
+     * Property name as declared in type.
      * 
-     * Assigned only when use default value option is true.
-     * 
-     * @type {any}
+     * @type {string}
      */
-    public defaultValue?: any;
+    public name: string;
 
     /**
      * Use default value assignment for undefined values?
@@ -105,18 +75,72 @@ export class PropertyMetadata
     public useImplicitConversion?: boolean;
 
     /**
+     * Type resolver defined using reflect metadata.
+     * 
+     * Used as a fallback when type resolver is not defined.
+     * 
+     * @type {TypeResolver}
+     */
+    public reflectTypeResolver: TypeResolver;
+
+    /**
+     * Serializable to object?
+     * 
+     * @type {boolean}
+     */
+    public serializable?: boolean;
+
+    /**
+     * Type alias.
+     * 
+     * @type {string}
+     */
+    public typeAlias?: string;
+
+    /**
+     * Type factory used to build instances of type.
+     * 
+     * @type {TypeFactory}
+     */
+    public typeFactory?: TypeFactory;
+
+    /**
+     * Type injector used to resolve types.
+     * 
+     * @type {TypeInjector}
+     */
+    public typeInjector?: TypeInjector;
+
+    /**
+     * Type resolver to get a property type.
+     * 
+     * @type {TypeResolver}
+     */
+    public typeResolver?: TypeResolver;
+
+    /**
+     * Custom property type serializer.
+     * 
+     * Used to override default one.
+     * 
+     * @type {TypeSerializer}
+     */
+    public typeSerializer?: TypeSerializer;
+
+    /**
      * Constructor.
      * 
-     * @param {TypeCtor} declaringTypeCtor Declaring type constructor.
+     * @param {TypeMetadata} declaringTypeMetadata Type metadata to which property metadata belongs to.
      * @param {string} name Property name.
      */
-    public constructor(declaringTypeCtor: TypeCtor, name: string)
+    public constructor(declaringTypeMetadata: TypeMetadata, name: string)
     {
-        const propertyTypeCtor = Fn.extractReflectMetadata('design:type', declaringTypeCtor.prototype, name);
+        const propertyTypeCtor = Fn.extractReflectMetadata('design:type', declaringTypeMetadata.typeCtor.prototype, name);
 
-        this.name                = name;
-        this.reflectTypeResolver = () => propertyTypeCtor;
-        this.multiple            = propertyTypeCtor === Array;
+        this.declaringTypeMetadata = declaringTypeMetadata;
+        this.multiple              = propertyTypeCtor === Array;
+        this.name                  = name;
+        this.reflectTypeResolver   = () => propertyTypeCtor;
 
         return;
     }
@@ -132,6 +156,24 @@ export class PropertyMetadata
     }
 
     /**
+     * Gets property type metadata if it can be defined.
+     * 
+     * @returns {TypeMetadata|undefined} Type metadata or undefined.
+     */
+    public get typeMetadata(): TypeMetadata | undefined
+    {
+        const typeResolver = this.typeResolver ?? this.reflectTypeResolver;
+        const typeCtor     = typeResolver();
+
+        if (!Fn.isNil(typeCtor))
+        {
+            return this.declaringTypeMetadata.resolveTypeMetadata(typeCtor);
+        }
+
+        return undefined;
+    }
+
+    /**
      * Configures property metadata based on provided options.
      * 
      * @param {PropertyOptions} propertyOptions Property options.
@@ -140,29 +182,14 @@ export class PropertyMetadata
      */
     public configure(propertyOptions: PropertyOptions): PropertyMetadata
     {
-        if (!Fn.isUndefined(propertyOptions.typeResolver)) 
-        {
-            this.typeResolver = propertyOptions.typeResolver;
-        }
-
-        if (!Fn.isUndefined(propertyOptions.typeAlias)) 
-        {
-            this.typeAlias = propertyOptions.typeAlias;
-        }
-
-        if (!Fn.isUndefined(propertyOptions.typeSerializer)) 
-        {
-            this.typeSerializer = propertyOptions.typeSerializer;
-        }
-
-        if (!Fn.isUndefined(propertyOptions.alias)) 
+        if (!Fn.isUndefined(propertyOptions.alias))
         {
             this.alias = propertyOptions.alias;
         }
 
-        if (!Fn.isUndefined(propertyOptions.serializable)) 
+        if (!Fn.isUndefined(propertyOptions.defaultValue)) 
         {
-            this.serializable = propertyOptions.serializable;
+            this.defaultValue = propertyOptions.defaultValue;
         }
 
         if (!Fn.isUndefined(propertyOptions.deserializable))
@@ -175,11 +202,6 @@ export class PropertyMetadata
             this.multiple = propertyOptions.multiple;
         }
 
-        if (!Fn.isUndefined(propertyOptions.defaultValue)) 
-        {
-            this.defaultValue = propertyOptions.defaultValue;
-        }
-
         if (!Fn.isUndefined(propertyOptions.useDefaultValue)) 
         {
             this.useDefaultValue = propertyOptions.useDefaultValue;
@@ -188,6 +210,36 @@ export class PropertyMetadata
         if (!Fn.isUndefined(propertyOptions.useImplicitConversion)) 
         {
             this.useImplicitConversion = propertyOptions.useImplicitConversion;
+        }
+
+        if (!Fn.isUndefined(propertyOptions.typeAlias)) 
+        {
+            this.typeAlias = propertyOptions.typeAlias;
+        }
+
+        if (!Fn.isUndefined(propertyOptions.serializable)) 
+        {
+            this.serializable = propertyOptions.serializable;
+        }
+
+        if (!Fn.isUndefined(propertyOptions.typeFactory))
+        {
+            this.typeFactory = propertyOptions.typeFactory;
+        }
+
+        if (!Fn.isUndefined(propertyOptions.typeInjector))
+        {
+            this.typeInjector = propertyOptions.typeInjector;
+        }
+
+        if (!Fn.isUndefined(propertyOptions.typeResolver))
+        {
+            this.typeResolver = propertyOptions.typeResolver;
+        }
+
+        if (!Fn.isUndefined(propertyOptions.typeSerializer)) 
+        {
+            this.typeSerializer = propertyOptions.typeSerializer;
         }
 
         return this;

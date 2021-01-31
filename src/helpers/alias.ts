@@ -9,7 +9,7 @@ import { Property } from './../property';
  * 
  * @param {string} alias Type or property alias.
  * 
- * @returns {Function} Class or property decorator.
+ * @returns {ClassDecorator&PropertyDecorator} Class or property decorator.
  */
 export function Alias(alias: string): ClassDecorator & PropertyDecorator
 {

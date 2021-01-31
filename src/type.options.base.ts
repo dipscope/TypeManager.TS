@@ -1,3 +1,7 @@
+import { TypeSerializer } from './type.serializer';
+import { TypeFactory } from './type.factory';
+import { TypeInjector } from './type.injector';
+
 /**
  * Type options base interface.
  * 
@@ -28,4 +32,25 @@ export interface TypeOptionsBase
      * @type {boolean}
      */
     useImplicitConversion?: boolean;
+
+    /**
+     * Type factory used to build instances of type.
+     * 
+     * @type {TypeFactory}
+     */
+    typeFactory?: TypeFactory;
+
+    /**
+     * Type injector used to resolve types.
+     * 
+     * @type {TypeInjector}
+     */
+    typeInjector?: TypeInjector;
+
+    /**
+     * Serializer used to serialize and deserialize a type.
+     * 
+     * @type {TypeSerializer}
+     */
+    typeSerializer?: TypeSerializer;
 }

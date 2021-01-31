@@ -9,7 +9,7 @@ import { Property } from './../property';
  * 
  * @param {any} value Value.
  * 
- * @returns {Function} Class or property decorator.
+ * @returns {ClassDecorator&PropertyDecorator} Class or property decorator.
  */
 export function DefaultValue(defaultValue: any): ClassDecorator & PropertyDecorator
 {
