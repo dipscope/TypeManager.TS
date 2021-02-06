@@ -12,7 +12,7 @@ import { TypeInjector } from './../type.injector';
 export class ObjectFactory implements TypeFactory
 {
     /**
-     * Build type described by provided type metadata.
+     * Builds type described by provided type metadata.
      * 
      * @param {TypeMetadata} typeMetadata Type metadata.
      * @param {TypeContext} typeContext Type context.
@@ -22,7 +22,8 @@ export class ObjectFactory implements TypeFactory
      */
     public build(typeMetadata: TypeMetadata, typeContext: TypeContext, typeInjector: TypeInjector): any
     {
-        const args: any[] = [];
+        const typeCtor = typeMetadata.typeCtor;
+        const args     = new Array<any>(typeCtor.length).fill(undefined);
 
         for (const injectMetadata of typeMetadata.injectMetadataMap.values())
         {
@@ -30,7 +31,7 @@ export class ObjectFactory implements TypeFactory
 
             if (!Fn.isNil(argKey))
             {
-                args[injectMetadata.index] = typeContext.get(argKey);
+                args[injectMetadata.index] = typeContext.get(argKey)?.value;
 
                 continue;
             }
@@ -45,6 +46,6 @@ export class ObjectFactory implements TypeFactory
             }
         }
 
-        return typeContext.populate(new typeMetadata.typeCtor(...args));
+        return new typeCtor(...args);
     }
 }

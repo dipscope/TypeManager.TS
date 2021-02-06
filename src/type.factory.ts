@@ -10,7 +10,7 @@ import { TypeInjector } from './type.injector';
 export interface TypeFactory
 {
     /**
-     * Build type described by provided type metadata.
+     * Builds type described by provided type metadata.
      * 
      * @param {TypeMetadata} typeMetadata Type metadata.
      * @param {TypeContext} typeContext Type context.

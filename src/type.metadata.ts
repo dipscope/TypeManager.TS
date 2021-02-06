@@ -1,7 +1,6 @@
 import { Fn } from './utils';
 import { TypeSerializer } from './type.serializer';
 import { TypeOptions } from './type.options';
-import { TypeDeclaration } from './type.declaration';
 import { TypeCtor } from './type.ctor';
 import { TypeFactory } from './type.factory';
 import { TypeMetadataResolver } from './type.metadata.resolver';
@@ -11,6 +10,7 @@ import { TypeOptionsBase } from './type.options.base';
 import { TypeInjector } from './type.injector';
 import { InjectMetadata } from './inject.metadata';
 import { InjectOptions } from './inject.options';
+import { CustomData } from './custom.data';
 
 /**
  * Main class used to describe a certain type.
@@ -20,104 +20,41 @@ import { InjectOptions } from './inject.options';
 export class TypeMetadata
 {
     /**
-     * Type alias.
-     * 
-     * Can be used to resolve a type at runtime instead of type resolver function.
-     * 
-     * @type {string}
-     */
-    public alias?: string;
-
-    /**
-     * Default value for undefined ones.
-     * 
-     * Assigned only when use default value option is true.
-     * 
-     * @type {any}
-     */
-    public defaultValue?: any;
-
-    /**
-     * Injectable type?
-     * 
-     * @type {boolean}
-     */
-    public injectable?: boolean;
-
-    /**
      * Constructor function name. 
      * 
      * Defined at runtime based on the constructor function.
      * 
      * @type {string}
      */
-    public name: string;
-
-    /**
-     * Use default value assignment for undefined values?
-     * 
-     * @type {boolean}
-     */
-    public useDefaultValue?: boolean;
-
-    /**
-     * Use implicit conversion when provided value can be converted
-     * to the target one?
-     * 
-     * @type {boolean}
-     */
-    public useImplicitConversion?: boolean;
+    public readonly name: string;
 
     /**
      * Type constructor function.
      * 
      * @type {TypeCtor}
      */
-    public typeCtor: TypeCtor;
-
-    /**
-     * Type declaration.
-     * 
-     * Metadata can be declared explicitly by developer of implicitly at runtime.
-     * 
-     * @type {TypeDeclaration}
-     */
-    public typeDeclaration: TypeDeclaration;
-
-    /**
-     * Type factory used to build instances of type.
-     * 
-     * @type {TypeFactory}
-     */
-    public typeFactory?: TypeFactory;
-
-    /**
-     * Type injector used to resolve types.
-     * 
-     * @type {TypeInjector}
-     */
-    public typeInjector?: TypeInjector;
+    public readonly typeCtor: TypeCtor;
 
     /**
      * Type metadata resolver.
      * 
      * @type {TypeMetadataResolver}
      */
-    public typeMetadataResolver: TypeMetadataResolver;
+    public readonly typeMetadataResolver: TypeMetadataResolver;
 
     /**
      * Type options used by default.
      * 
      * @type {TypeOptionsBase}
      */
-    public typeOptionsBase: TypeOptionsBase;
+    public readonly typeOptionsBase: TypeOptionsBase;
 
     /**
-     * Serializer used to serialize and deserialize a type.
+     * Type options.
      * 
-     * @type {TypeSerializer}
+     * @type {TypeOptions}
      */
-    public typeSerializer?: TypeSerializer;
+    public readonly typeOptions: TypeOptions = {};
 
     /**
      * Properties defined for a type. Map key is a property name.
@@ -138,10 +75,9 @@ export class TypeMetadata
      * 
      * @param {TypeCtor} typeCtor Type constructor function.
      * @param {TypeOptionsBase} typeOptionsBase Type options used by default.
-     * @param {TypeDeclaration} typeDeclaration Type declaration.
      * @param {TypeMetadataResolver} typeMetadataResolver Type declaration.
      */
-    public constructor(typeCtor: TypeCtor, typeOptionsBase: TypeOptionsBase, typeDeclaration: TypeDeclaration, typeMetadataResolver: TypeMetadataResolver)
+    public constructor(typeCtor: TypeCtor, typeOptionsBase: TypeOptionsBase, typeMetadataResolver: TypeMetadataResolver)
     {
         const injectTypeCtors = (Fn.extractOwnReflectMetadata('design:paramtypes', typeCtor.prototype) ?? []) as TypeCtor[];
 
@@ -153,30 +89,106 @@ export class TypeMetadata
         this.name                 = Fn.nameOf(typeCtor);
         this.typeCtor             = typeCtor;
         this.typeOptionsBase      = typeOptionsBase;
-        this.typeDeclaration      = typeDeclaration;
         this.typeMetadataResolver = typeMetadataResolver;
         
         return;
     }
 
     /**
-     * Checks if type metadata was declared explicitly.
+     * Gets current alias.
      * 
-     * @returns {boolean} True when declared explicitly. False otherwise.
+     * @returns {string|undefined} Alias or undefined.
      */
-    public get declaredExplicitly(): boolean
+    public get alias(): string | undefined
     {
-        return this.typeDeclaration === TypeDeclaration.Explicit;
+        return this.typeOptions.alias;
     }
 
     /**
-     * Checks if type metadata was declared implicitly.
+     * Gets current custom data.
      * 
-     * @returns {boolean} True when declared implicitly. False otherwise.
+     * @returns {CustomData} Custom data.
      */
-    public get declaredImplicitly(): boolean
+    public get customData(): CustomData
     {
-        return this.typeDeclaration === TypeDeclaration.Implicit;
+        return this.typeOptions.customData ?? this.typeOptionsBase.customData;
+    }
+
+    /**
+     * Gets current default value.
+     * 
+     * @returns {any|undefined} Resolved default value or undefined.
+     */
+    public get defaultValue(): any | undefined
+    {
+        const defaultValue = this.typeOptions.defaultValue ?? this.typeOptionsBase.defaultValue;
+
+        if (this.useDefaultValue)
+        {
+            return Fn.isFunction(defaultValue) ? defaultValue() : defaultValue;
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Gets current injectable value.
+     * 
+     * @returns {boolean} Injectable indicator.
+     */
+    public get injectable(): boolean
+    {
+        return this.typeOptions.injectable ?? false;
+    }
+
+    /**
+     * Gets indicator if default value should be used.
+     * 
+     * @returns {boolean} True when type should use default value. False otherwise.
+     */
+    public get useDefaultValue(): boolean
+    {
+        return this.typeOptions.useDefaultValue ?? this.typeOptionsBase.useDefaultValue;
+    }
+
+    /**
+     * Gets indicator if implicit conversion should be used.
+     * 
+     * @returns {boolean} True when type should use implicit conversion. False otherwise.
+     */
+    public get useImplicitConversion(): boolean
+    {
+        return this.typeOptions.useImplicitConversion ?? this.typeOptionsBase.useImplicitConversion;
+    }
+
+    /**
+     * Gets current type factory.
+     * 
+     * @returns {TypeFactory} Type factory.
+     */
+    public get typeFactory(): TypeFactory
+    {
+        return this.typeOptions.typeFactory ?? this.typeOptionsBase.typeFactory;
+    }
+
+    /**
+     * Gets current type injector.
+     * 
+     * @returns {TypeInjector} Type injector.
+     */
+    public get typeInjector(): TypeInjector
+    {
+        return this.typeOptions.typeInjector ?? this.typeOptionsBase.typeInjector;
+    }
+
+    /**
+     * Gets current type serializer.
+     * 
+     * @returns {TypeSerializer} Type serializer.
+     */
+    public get typeSerializer(): TypeSerializer
+    {
+        return this.typeOptions.typeSerializer ?? this.typeOptionsBase.typeSerializer;
     }
 
     /**
@@ -184,11 +196,48 @@ export class TypeMetadata
      * 
      * @param {TypeCtor} typeCtor Type constructor function.
      * 
-     * @returns {TypeMetadata}
+     * @returns {TypeMetadata} Resolved type metadata.
      */
     public resolveTypeMetadata(typeCtor: TypeCtor): TypeMetadata
     {
         return this.typeMetadataResolver(typeCtor);
+    }
+
+    /**
+     * Clones current metadata instance.
+     * 
+     * @returns {TypeMetadata} Clone of current metadata instance.
+     */
+    public clone(): TypeMetadata
+    {
+        const typeMetadata = new TypeMetadata(this.typeCtor, this.typeOptionsBase, this.typeMetadataResolver);
+        const typeOptions  = Fn.assign({}, this.typeOptions);
+
+        if (Fn.isNil(typeOptions.injectOptionsMap))
+        {
+            typeOptions.injectOptionsMap = new Map<number, InjectOptions>();
+        }
+
+        for (const injectMetadata of this.injectMetadataMap.values())
+        {
+            const injectOptions = Fn.assign({}, injectMetadata.injectOptions);
+
+            typeOptions.injectOptionsMap.set(injectMetadata.index, injectOptions);
+        }
+
+        if (Fn.isNil(typeOptions.propertyOptionsMap))
+        {
+            typeOptions.propertyOptionsMap = new Map<string, PropertyOptions>();
+        }
+
+        for (const propertyMetadata of this.propertyMetadataMap.values())
+        {
+            const propertyOptions = Fn.assign({}, propertyMetadata.propertyOptions);
+
+            typeOptions.propertyOptionsMap.set(propertyMetadata.name, propertyOptions);
+        }
+
+        return typeMetadata.configure(typeOptions);
     }
 
     /**
@@ -240,16 +289,16 @@ export class TypeMetadata
      * 
      * @param {Map<string, PropertyOptions>} propertyOptionsMap Property options map.
      * 
-     * @returns {void}
+     * @returns {TypeMetadata} Current instance of type metadata.
      */
-    public configurePropertyMetadataMap(propertyOptionsMap: Map<string, PropertyOptions>): void
+    public configurePropertyMetadataMap(propertyOptionsMap: Map<string, PropertyOptions>): TypeMetadata
     {
         propertyOptionsMap.forEach((propertyOptions, propertyName) =>
         {
             this.configurePropertyMetadata(propertyName, propertyOptions);
         });
 
-        return;
+        return this;
     }
 
     /**
@@ -257,16 +306,35 @@ export class TypeMetadata
      * 
      * @param {Map<number, InjectOptions>} injectOptionsMap Inject options map.
      * 
-     * @returns {void}
+     * @returns {TypeMetadata} Current instance of type metadata.
      */
-    public configureInjectMetadataMap(injectOptionsMap: Map<number, InjectOptions>): void
+    public configureInjectMetadataMap(injectOptionsMap: Map<number, InjectOptions>): TypeMetadata
     {
         injectOptionsMap.forEach((injectOptions, injectIndex) =>
         {
             this.configureInjectMetadata(injectIndex, injectOptions);
         });
 
-        return;
+        return this;
+    }
+
+    /**
+     * Configures type options custom data.
+     * 
+     * @param {CustomData} customData Custom data.
+     * 
+     * @returns {PropertyMetadata} Configured property metadata.
+     */
+    public configureTypeOptionsCustomData(customData: CustomData): TypeMetadata
+    {
+        if (Fn.isNil(this.typeOptions.customData))
+        {
+            this.typeOptions.customData = {};
+        }
+
+        Fn.assign(this.typeOptions.customData, customData);
+
+        return this;
     }
 
     /**
@@ -274,48 +342,53 @@ export class TypeMetadata
      * 
      * @param {TypeOptions} typeOptions Type options.
      * 
-     * @returns {TypeMetadata} Instance of type metadata.
+     * @returns {TypeMetadata} Current instance of type metadata.
      */
     public configure(typeOptions: TypeOptions): TypeMetadata
     {
         if (!Fn.isUndefined(typeOptions.alias)) 
         {
-            this.alias = typeOptions.alias;
+            this.typeOptions.alias = typeOptions.alias;
+        }
+
+        if (!Fn.isUndefined(typeOptions.customData))
+        {
+            this.configureTypeOptionsCustomData(typeOptions.customData);
         }
 
         if (!Fn.isUndefined(typeOptions.defaultValue)) 
         {
-            this.defaultValue = typeOptions.defaultValue;
+            this.typeOptions.defaultValue = typeOptions.defaultValue;
         }
 
         if (!Fn.isUndefined(typeOptions.injectable))
         {
-            this.injectable = typeOptions.injectable;
+            this.typeOptions.injectable = typeOptions.injectable;
         }
 
         if (!Fn.isUndefined(typeOptions.useDefaultValue)) 
         {
-            this.useDefaultValue = typeOptions.useDefaultValue;
+            this.typeOptions.useDefaultValue = typeOptions.useDefaultValue;
         }
 
         if (!Fn.isUndefined(typeOptions.useImplicitConversion)) 
         {
-            this.useImplicitConversion = typeOptions.useImplicitConversion;
+            this.typeOptions.useImplicitConversion = typeOptions.useImplicitConversion;
         }
 
         if (!Fn.isUndefined(typeOptions.typeFactory)) 
         {
-            this.typeFactory = typeOptions.typeFactory;
+            this.typeOptions.typeFactory = typeOptions.typeFactory;
         }
 
         if (!Fn.isUndefined(typeOptions.typeInjector))
         {
-            this.typeInjector = typeOptions.typeInjector;
+            this.typeOptions.typeInjector = typeOptions.typeInjector;
         }
 
         if (!Fn.isUndefined(typeOptions.typeSerializer)) 
         {
-            this.typeSerializer = typeOptions.typeSerializer;
+            this.typeOptions.typeSerializer = typeOptions.typeSerializer;
         }
 
         if (!Fn.isUndefined(typeOptions.propertyOptionsMap))

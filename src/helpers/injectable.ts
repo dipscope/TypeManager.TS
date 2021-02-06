@@ -9,7 +9,7 @@ import { Type } from './../type';
  * 
  * @returns {ClassDecorator} Class decorator.
  */
-export function Injectable(injectable?: boolean): ClassDecorator
+export function Injectable(injectable: boolean = true): ClassDecorator
 {
-    return Type({ injectable: injectable ?? true });
+    return Type({ injectable: injectable });
 }

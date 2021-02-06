@@ -1,14 +1,13 @@
 import { PropertyOptions } from './property.options';
 import { InjectOptions } from './inject.options';
 import { TypeOptionsBase } from './type.options.base';
-import { TypeSerializer } from './type.serializer';
 
 /**
  * Type options interface.
  * 
  * @type {TypeOptions}
  */
-export interface TypeOptions extends TypeOptionsBase
+export interface TypeOptions extends Partial<TypeOptionsBase>
 {
     /**
      * Type alias. 
@@ -39,11 +38,4 @@ export interface TypeOptions extends TypeOptionsBase
      * @type {Map<string, PropertyOptions>}
      */
     propertyOptionsMap?: Map<string, PropertyOptions>;
-
-    /**
-     * Serializer used to serialize and deserialize a type.
-     * 
-     * @type {TypeSerializer}
-     */
-    typeSerializer?: TypeSerializer;
 }

@@ -18,22 +18,20 @@ export class TypeManager
      * 
      * @type {TypeMetadata}
      */
-    private readonly typeMetadata: TypeMetadata;
+    public readonly typeMetadata: TypeMetadata;
 
     /**
      * Constructor.
      * 
      * @param {TypeCtor} typeCtor Type constructor function.
+     * @param {TypeOptions} typeOptions Type options binded to the instance.
      */
-    public constructor(typeCtor: TypeCtor)
+    public constructor(typeCtor: TypeCtor, typeOptions: TypeOptions = {})
     {
-        this.typeMetadata = TypeArtisan.extractTypeMetadata(typeCtor);
+        this.typeMetadata = TypeArtisan.extractTypeMetadata(typeCtor).clone();
 
-        if (this.typeMetadata.declaredImplicitly && Log.errorEnabled)
-        {
-            Log.error(`${Fn.nameOf(typeCtor)}: cannot build implicitly declared type! Declare a type using decorator or configure function!`);
-        }
-        
+        this.typeMetadata.configure(typeOptions);
+
         return;
     }
 
@@ -54,11 +52,11 @@ export class TypeManager
     /**
      * Configures global type options.
      * 
-     * @param {TypeOptionsBase} typeOptionsBase Type options base.
+     * @param {Partial<TypeOptionsBase>} typeOptionsBase Type options base.
      * 
      * @returns {void}
      */
-    public static configureTypeOptionsBase(typeOptionsBase: TypeOptionsBase): void
+    public static configureTypeOptionsBase(typeOptionsBase: Partial<TypeOptionsBase>): void
     {
         TypeArtisan.configureTypeOptionsBase(typeOptionsBase);
 
@@ -122,6 +120,65 @@ export class TypeManager
     }
 
     /**
+     * Serializes provided value based on the type constructor function.
+     * 
+     * @param {TypeCtor} typeCtor Type constructor function.
+     * @param {any} x Input value.
+     * 
+     * @returns {any} Object created from provided input value. 
+     */
+    public static serialize(typeCtor: TypeCtor, x: any): any 
+    {
+        const typeMetadata = TypeArtisan.extractTypeMetadata(typeCtor);
+
+        return typeMetadata.typeSerializer.serialize(x, typeMetadata);
+    }
+
+    /**
+     * Deserializes provided value based on the type constructor function.
+     * 
+     * @param {TypeCtor} typeCtor Type constructor function.
+     * @param {any} x Input value.
+     * 
+     * @returns {any} Type created from provided input value. 
+     */
+    public static deserialize(typeCtor: TypeCtor, x: any): any
+    {
+        const typeMetadata = TypeArtisan.extractTypeMetadata(typeCtor);
+
+        return typeMetadata.typeSerializer.deserialize(x, typeMetadata);
+    }
+
+    /**
+     * Converts provided value to a JavaScript Object Notation (JSON) string.
+     * 
+     * @param {TypeCtor} typeCtor Type constructor function.
+     * @param {any} x Input value, usually an object or array, to be converted.
+     * @param {Function|number[]|string[]} replacer A function that transforms the results or an array of strings and numbers that acts as an approved list.
+     * @param {string|number} space Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
+     * 
+     * @returns {string} JSON string.
+     */
+    public static stringify(typeCtor: TypeCtor, x: any, replacer?: (this: any, key: string, value: any) => any | number[] | string[] | null, space?: string | number): string
+    {
+        return JSON.stringify(this.serialize(typeCtor, x), replacer, space);
+    }
+
+    /**
+     * Converts a JavaScript Object Notation (JSON) string into a type.
+     * 
+     * @param {TypeCtor} typeCtor Type constructor function.
+     * @param {any} x A valid JSON string.
+     * @param {Function} reviver A function that transforms the results. This function is called for each member of the object.
+     * 
+     * @returns {any} Type created from provided input value.
+     */
+    public static parse(typeCtor: TypeCtor, x: string, reviver?: (this: any, key: string, value: any) => any): any
+    {
+        return this.deserialize(typeCtor, JSON.parse(x, reviver));
+    }
+
+    /**
      * Serializes provided value.
      * 
      * @param {any} x Input value.
@@ -130,14 +187,7 @@ export class TypeManager
      */
     public serialize(x: any): any 
     {
-        const typeSerializer = this.typeMetadata.typeSerializer ?? this.typeMetadata.typeOptionsBase.typeSerializer;
-
-        if (Fn.isNil(typeSerializer))
-        {
-            return undefined
-        }
-
-        return typeSerializer.serialize(x, this.typeMetadata);
+        return this.typeMetadata.typeSerializer.serialize(x, this.typeMetadata);
     }
 
     /**
@@ -149,14 +199,7 @@ export class TypeManager
      */
     public deserialize(x: any): any
     {
-        const typeSerializer = this.typeMetadata.typeSerializer ?? this.typeMetadata.typeOptionsBase.typeSerializer;
-
-        if (Fn.isNil(typeSerializer))
-        {
-            return undefined
-        }
-
-        return typeSerializer.deserialize(x, this.typeMetadata);
+        return this.typeMetadata.typeSerializer.deserialize(x, this.typeMetadata);
     }
 
     /**

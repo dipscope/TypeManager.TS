@@ -5,6 +5,7 @@ import { TypeInjector } from './type.injector';
 import { TypeFactory } from './type.factory';
 import { TypeMetadata } from './type.metadata';
 import { PropertyOptions } from './property.options';
+import { CustomData } from './custom.data';
 
 /**
  * Main class used to describe certain property.
@@ -14,65 +15,18 @@ import { PropertyOptions } from './property.options';
 export class PropertyMetadata
 {
     /**
-     * Property alias.
-     * 
-     * Used if property name in object differs from declared for type.
-     * 
-     * @type {string}
-     */
-    public alias?: string;
-
-    /**
      * Type metadata to which property metadata belongs to.
      * 
      * @type {TypeMetadata}
      */
-    public declaringTypeMetadata: TypeMetadata;
-
-    /**
-     * Default value for undefined ones.
-     * 
-     * Assigned only when use default value option is true.
-     * 
-     * @type {any}
-     */
-    public defaultValue?: any;
-
-    /**
-     * Deserializable from object?
-     * 
-     * @type {boolean}
-     */
-    public deserializable?: boolean;
-
-    /**
-     * Multiple property?
-     * 
-     * @type {boolean}
-     */
-    public multiple?: boolean;
+    public readonly declaringTypeMetadata: TypeMetadata;
 
     /**
      * Property name as declared in type.
      * 
      * @type {string}
      */
-    public name: string;
-
-    /**
-     * Use default value assignment for undefined values?
-     * 
-     * @type {boolean}
-     */
-    public useDefaultValue?: boolean;
-
-    /**
-     * Use implicit conversion when provided value can be converted
-     * to the target one?
-     * 
-     * @type {boolean}
-     */
-    public useImplicitConversion?: boolean;
+    public readonly name: string;
 
     /**
      * Type resolver defined using reflect metadata.
@@ -81,51 +35,14 @@ export class PropertyMetadata
      * 
      * @type {TypeResolver}
      */
-    public reflectTypeResolver: TypeResolver;
+    public readonly reflectTypeResolver: TypeResolver;
 
     /**
-     * Serializable to object?
+     * Property options.
      * 
-     * @type {boolean}
+     * @type {PropertyOptions}
      */
-    public serializable?: boolean;
-
-    /**
-     * Type alias.
-     * 
-     * @type {string}
-     */
-    public typeAlias?: string;
-
-    /**
-     * Type factory used to build instances of type.
-     * 
-     * @type {TypeFactory}
-     */
-    public typeFactory?: TypeFactory;
-
-    /**
-     * Type injector used to resolve types.
-     * 
-     * @type {TypeInjector}
-     */
-    public typeInjector?: TypeInjector;
-
-    /**
-     * Type resolver to get a property type.
-     * 
-     * @type {TypeResolver}
-     */
-    public typeResolver?: TypeResolver;
-
-    /**
-     * Custom property type serializer.
-     * 
-     * Used to override default one.
-     * 
-     * @type {TypeSerializer}
-     */
-    public typeSerializer?: TypeSerializer;
+    public readonly propertyOptions: PropertyOptions = {};
 
     /**
      * Constructor.
@@ -137,12 +54,99 @@ export class PropertyMetadata
     {
         const propertyTypeCtor = Fn.extractReflectMetadata('design:type', declaringTypeMetadata.typeCtor.prototype, name);
 
-        this.declaringTypeMetadata = declaringTypeMetadata;
-        this.multiple              = propertyTypeCtor === Array;
-        this.name                  = name;
-        this.reflectTypeResolver   = () => propertyTypeCtor;
+        this.declaringTypeMetadata    = declaringTypeMetadata;
+        this.name                     = name;
+        this.reflectTypeResolver      = () => propertyTypeCtor;
+        this.propertyOptions.multiple = propertyTypeCtor === Array;
 
         return;
+    }
+
+    /**
+     * Gets current alias.
+     * 
+     * @returns {string|undefined} Alias or undefined.
+     */
+    public get alias(): string | undefined
+    {
+        return this.propertyOptions.alias;
+    }
+
+    /**
+     * Gets current custom data.
+     * 
+     * @returns {CustomData} Custom data.
+     */
+    public get customData(): CustomData
+    {
+        return this.propertyOptions.customData ?? this.typeMetadata?.customData ?? {};
+    }
+
+    /**
+     * Gets current default value.
+     * 
+     * @returns {any|undefined} Resolved default value or undefined.
+     */
+    public get defaultValue(): any | undefined
+    {
+        const defaultValue = this.multiple ? [] : (this.propertyOptions.defaultValue ?? this.typeMetadata?.defaultValue);
+
+        if (this.useDefaultValue)
+        {
+            return Fn.isFunction(defaultValue) ? defaultValue() : defaultValue;
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Gets current deserializable value.
+     * 
+     * @returns {boolean} True when property is deserializable. False otherwise.
+     */
+    public get deserializable(): boolean | undefined
+    {
+        return this.propertyOptions.deserializable;
+    }
+
+    /**
+     * Gets current multiple value.
+     * 
+     * @returns {boolean} Multiple value or undefined.
+     */
+    public get multiple(): boolean | undefined
+    {
+        return this.propertyOptions.multiple;
+    }
+
+    /**
+     * Gets indicator if default value should be used.
+     * 
+     * @returns {boolean} True when property should use default value. False otherwise.
+     */
+    public get useDefaultValue(): boolean | undefined
+    {
+        return this.propertyOptions.useDefaultValue ?? this.typeMetadata?.useDefaultValue;
+    }
+
+    /**
+     * Gets indicator if implicit conversion should be used.
+     * 
+     * @returns {boolean} True when property should use implicit conversion. False otherwise.
+     */
+    public get useImplicitConversion(): boolean | undefined
+    {
+        return this.propertyOptions.useImplicitConversion ?? this.typeMetadata?.useImplicitConversion;
+    }
+
+    /**
+     * Gets current serializable value.
+     * 
+     * @returns {boolean} True when property is serializable. False otherwise.
+     */
+    public get serializable(): boolean | undefined
+    {
+        return this.propertyOptions.serializable;
     }
 
     /**
@@ -152,7 +156,37 @@ export class PropertyMetadata
      */
     public get serializationConfigured(): boolean
     {
-        return !Fn.isNil(this.serializable) || !Fn.isNil(this.deserializable);
+        return !Fn.isNil(this.propertyOptions.serializable) || !Fn.isNil(this.propertyOptions.deserializable);
+    }
+
+    /**
+     * Gets current type alias.
+     * 
+     * @returns {string|undefined} Type alias or undefined.
+     */
+    public get typeAlias(): string | undefined
+    {
+        return this.propertyOptions.typeAlias;
+    }
+
+    /**
+     * Gets current type factory.
+     * 
+     * @returns {TypeFactory|undefined} Type factory or undefined.
+     */
+    public get typeFactory(): TypeFactory | undefined
+    {
+        return this.propertyOptions.typeFactory ?? this.typeMetadata?.typeFactory;
+    }
+
+    /**
+     * Gets current type injector.
+     * 
+     * @returns {TypeInjector|undefined} Type injector or undefined.
+     */
+    public get typeInjector(): TypeInjector | undefined
+    {
+        return this.propertyOptions.typeInjector ?? this.typeMetadata?.typeInjector;
     }
 
     /**
@@ -162,8 +196,7 @@ export class PropertyMetadata
      */
     public get typeMetadata(): TypeMetadata | undefined
     {
-        const typeResolver = this.typeResolver ?? this.reflectTypeResolver;
-        const typeCtor     = typeResolver();
+        const typeCtor = this.typeResolver();
 
         if (!Fn.isNil(typeCtor))
         {
@@ -171,6 +204,58 @@ export class PropertyMetadata
         }
 
         return undefined;
+    }
+
+    /**
+     * Gets current type resolver.
+     * 
+     * @type {TypeResolver} Type resolver or undefined.
+     */
+    public get typeResolver(): TypeResolver 
+    {
+        return this.propertyOptions.typeResolver ?? this.reflectTypeResolver;
+    }
+
+    /**
+     * Gets current type serializer.
+     * 
+     * @returns {TypeSerializer|undefined} Type serializer or undefined.
+     */
+    public get typeSerializer(): TypeSerializer | undefined
+    {
+        return this.propertyOptions.typeSerializer ?? this.typeMetadata?.typeSerializer;
+    }
+
+    /**
+     * Clones current metadata instance.
+     * 
+     * @returns {PropertyMetadata} Clone of current metadata instance.
+     */
+    public clone(): PropertyMetadata
+    {
+        const propertyMetadata = new PropertyMetadata(this.declaringTypeMetadata, this.name);
+        const propertyOptions  = Fn.assign({}, this.propertyOptions);
+
+        return propertyMetadata.configure(propertyOptions);
+    }
+
+    /**
+     * Configures property options custom data.
+     * 
+     * @param {CustomData} customData Custom data.
+     * 
+     * @returns {PropertyMetadata} Configured property metadata.
+     */
+    public configurePropertyOptionsCustomData(customData: CustomData): PropertyMetadata
+    {
+        if (Fn.isNil(this.propertyOptions.customData))
+        {
+            this.propertyOptions.customData = {};
+        }
+
+        Fn.assign(this.propertyOptions.customData, customData);
+
+        return this;
     }
 
     /**
@@ -184,62 +269,67 @@ export class PropertyMetadata
     {
         if (!Fn.isUndefined(propertyOptions.alias))
         {
-            this.alias = propertyOptions.alias;
+            this.propertyOptions.alias = propertyOptions.alias;
+        }
+
+        if (!Fn.isUndefined(propertyOptions.customData))
+        {
+            this.configurePropertyOptionsCustomData(propertyOptions.customData);
         }
 
         if (!Fn.isUndefined(propertyOptions.defaultValue)) 
         {
-            this.defaultValue = propertyOptions.defaultValue;
+            this.propertyOptions.defaultValue = propertyOptions.defaultValue;
         }
 
         if (!Fn.isUndefined(propertyOptions.deserializable))
         {
-            this.deserializable = propertyOptions.deserializable;
+            this.propertyOptions.deserializable = propertyOptions.deserializable;
         }
 
         if (!Fn.isUndefined(propertyOptions.multiple))
         {
-            this.multiple = propertyOptions.multiple;
+            this.propertyOptions.multiple = propertyOptions.multiple;
         }
 
         if (!Fn.isUndefined(propertyOptions.useDefaultValue)) 
         {
-            this.useDefaultValue = propertyOptions.useDefaultValue;
+            this.propertyOptions.useDefaultValue = propertyOptions.useDefaultValue;
         }
 
         if (!Fn.isUndefined(propertyOptions.useImplicitConversion)) 
         {
-            this.useImplicitConversion = propertyOptions.useImplicitConversion;
+            this.propertyOptions.useImplicitConversion = propertyOptions.useImplicitConversion;
         }
 
         if (!Fn.isUndefined(propertyOptions.typeAlias)) 
         {
-            this.typeAlias = propertyOptions.typeAlias;
+            this.propertyOptions.typeAlias = propertyOptions.typeAlias;
         }
 
         if (!Fn.isUndefined(propertyOptions.serializable)) 
         {
-            this.serializable = propertyOptions.serializable;
+            this.propertyOptions.serializable = propertyOptions.serializable;
         }
 
         if (!Fn.isUndefined(propertyOptions.typeFactory))
         {
-            this.typeFactory = propertyOptions.typeFactory;
+            this.propertyOptions.typeFactory = propertyOptions.typeFactory;
         }
 
         if (!Fn.isUndefined(propertyOptions.typeInjector))
         {
-            this.typeInjector = propertyOptions.typeInjector;
+            this.propertyOptions.typeInjector = propertyOptions.typeInjector;
         }
 
         if (!Fn.isUndefined(propertyOptions.typeResolver))
         {
-            this.typeResolver = propertyOptions.typeResolver;
+            this.propertyOptions.typeResolver = propertyOptions.typeResolver;
         }
 
         if (!Fn.isUndefined(propertyOptions.typeSerializer)) 
         {
-            this.typeSerializer = propertyOptions.typeSerializer;
+            this.propertyOptions.typeSerializer = propertyOptions.typeSerializer;
         }
 
         return this;

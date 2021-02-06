@@ -1,7 +1,6 @@
 import { TypeCtor } from './type.ctor';
 import { TypeArtisan } from './type.artisan';
 import { TypeResolver } from './type.resolver';
-import { TypeDeclaration } from './type.declaration';
 import { PropertyOptions } from './property.options';
 import { PropertyMetadata } from './property.metadata';
 
@@ -23,7 +22,7 @@ export class PropertyArtisan
      */
     public static definePropertyMetadata(declaringTypeCtor: TypeCtor, propertyName: string, propertyOptions: PropertyOptions): PropertyMetadata
     {
-        const typeMetadata     = TypeArtisan.defineTypeMetadata(declaringTypeCtor, {}, TypeDeclaration.Implicit);
+        const typeMetadata     = TypeArtisan.defineTypeMetadata(declaringTypeCtor);
         const propertyMetadata = typeMetadata.configurePropertyMetadata(propertyName, propertyOptions);
 
         return propertyMetadata;

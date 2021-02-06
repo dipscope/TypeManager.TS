@@ -11,7 +11,7 @@ import { Property } from './../property';
  * 
  * @returns {ClassDecorator&PropertyDecorator} Class or property decorator.
  */
-export function UseDefaultValue(useDefaultValue?: boolean): ClassDecorator & PropertyDecorator
+export function UseDefaultValue(useDefaultValue: boolean = true): ClassDecorator & PropertyDecorator
 {
     return function (target: any, propertyName?: string | symbol): any
     {
@@ -19,9 +19,9 @@ export function UseDefaultValue(useDefaultValue?: boolean): ClassDecorator & Pro
 
         if (usedOnClass)
         {
-            return Type({ useDefaultValue: useDefaultValue ?? true })(target);
+            return Type({ useDefaultValue: useDefaultValue })(target);
         }
 
-        return Property({ useDefaultValue: useDefaultValue ?? true })(target, propertyName!);
+        return Property({ useDefaultValue: useDefaultValue })(target, propertyName!);
     }
 }

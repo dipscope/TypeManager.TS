@@ -20,9 +20,9 @@ export interface TypeManagerOptions
     /**
      * Global type options shared among all types.
      * 
-     * @type {TypeOptionsBase}
+     * @type {Partial<TypeOptionsBase>}
      */
-    typeOptionsBase?: TypeOptionsBase;
+    typeOptionsBase?: Partial<TypeOptionsBase>;
 
     /**
      * Type options per type. 

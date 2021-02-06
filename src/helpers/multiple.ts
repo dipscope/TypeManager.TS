@@ -9,7 +9,7 @@ import { Property } from './../property';
  * 
  * @returns {PropertyDecorator} Property decorator.
  */
-export function Multiple(multiple?: boolean): PropertyDecorator
+export function Multiple(multiple: boolean = true): PropertyDecorator
 {
-    return Property({ multiple: multiple ?? true });
+    return Property({ multiple: multiple });
 }

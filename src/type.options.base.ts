@@ -1,6 +1,7 @@
 import { TypeSerializer } from './type.serializer';
 import { TypeFactory } from './type.factory';
 import { TypeInjector } from './type.injector';
+import { CustomData } from './custom.data';
 
 /**
  * Type options base interface.
@@ -9,6 +10,13 @@ import { TypeInjector } from './type.injector';
  */
 export interface TypeOptionsBase
 {
+    /**
+     * Custom developer data.
+     * 
+     * @type {CustomData}
+     */
+    customData: CustomData;
+
     /**
      * Default value for undefined ones.
      * 
@@ -23,7 +31,7 @@ export interface TypeOptionsBase
      * 
      * @type {boolean}
      */
-    useDefaultValue?: boolean;
+    useDefaultValue: boolean;
 
     /**
      * Use implicit conversion when provided value can be converted
@@ -31,26 +39,26 @@ export interface TypeOptionsBase
      * 
      * @type {boolean}
      */
-    useImplicitConversion?: boolean;
+    useImplicitConversion: boolean;
 
     /**
      * Type factory used to build instances of type.
      * 
      * @type {TypeFactory}
      */
-    typeFactory?: TypeFactory;
+    typeFactory: TypeFactory;
 
     /**
      * Type injector used to resolve types.
      * 
      * @type {TypeInjector}
      */
-    typeInjector?: TypeInjector;
+    typeInjector: TypeInjector;
 
     /**
      * Serializer used to serialize and deserialize a type.
      * 
      * @type {TypeSerializer}
      */
-    typeSerializer?: TypeSerializer;
+    typeSerializer: TypeSerializer;
 }

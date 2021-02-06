@@ -1,4 +1,5 @@
-import { Type, Property, TypeArtisan, UseDefaultValue } from './../../src';
+import { Type, Property, TypeArtisan } from './../../src';
+import { UseDefaultValue } from './../../src/helpers';
 
 @Type()
 @UseDefaultValue()
@@ -13,7 +14,7 @@ describe('Use default value decorator', function ()
     {
         const typeMetadata = TypeArtisan.extractTypeMetadata(X);
 
-        expect(typeMetadata.useDefaultValue).toBeTrue();
+        expect(typeMetadata.typeOptions.useDefaultValue).toBeTrue();
     });
 
     it('should enable use of default value for a property', function ()
@@ -23,6 +24,6 @@ describe('Use default value decorator', function ()
         const aPropertyMetadata = typeMetadata.propertyMetadataMap.get('a');
 
         expect(aPropertyMetadata).toBeDefined();
-        expect(aPropertyMetadata?.useDefaultValue).toBeTrue();
+        expect(aPropertyMetadata?.propertyOptions.useDefaultValue).toBeTrue();
     });
 });

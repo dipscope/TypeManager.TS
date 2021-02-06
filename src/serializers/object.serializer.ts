@@ -1,136 +1,93 @@
 import { Fn, Log } from './../utils';
 import { TypeSerializer } from './../type.serializer';
-import { TypeCtor } from './../type.ctor';
-import { TypeMetadataResolver } from './../type.metadata.resolver';
+import { TypeMetadata } from './../type.metadata';
+import { PropertyMetadata } from './../property.metadata';
+import { TypeContextEntry } from './../type.context.entry';
+import { TypeContext } from './../type.context';
 
 /**
  * Object serializer.
  * 
  * @type {ObjectSerializer}
  */
-export class ObjectSerializer extends TypeSerializer
+export class ObjectSerializer implements TypeSerializer
 {
-    /**
-     * Type constructor function.
-     * 
-     * @type {TypeCtor}
-     */
-    private readonly typeCtor: TypeCtor;
-
-    /**
-     * Type metadata resolver.
-     * 
-     * @type {TypeMetadataResolver}
-     */
-    private readonly typeMetadataResolver: TypeMetadataResolver;
-
-    /**
-     * Constructor.
-     * 
-     * @param {TypeCtor} typeCtor Type constructor function.
-     * @param {TypeMetadataResolver} typeMetadataResolver Type metadata resolver.
-     */
-    public constructor(typeCtor: TypeCtor, typeMetadataResolver: TypeMetadataResolver)
-    {
-        super();
-
-        this.typeCtor             = typeCtor;
-        this.typeMetadataResolver = typeMetadataResolver;
-
-        return;
-    }
-
     /**
      * Serializes provided value.
      * 
      * @param {any} x Some value.
+     * @param {TypeMetadata} typeMetadata Type metadata when it is known.
+     * @param {PropertyMetadata} propertyMetadata Property metadata when serialization is performed on a property level.
+     * @param {WeakMap<any, any>} objectMap Object map to handle circular references.
      * 
      * @returns {any} Serialized value.
      */
-    public serialize(x: any, relationObjectMap: WeakMap<any, any> = new WeakMap<any, any>()): any
+    public serialize(x: any, typeMetadata?: TypeMetadata, propertyMetadata?: PropertyMetadata, objectMap: WeakMap<any, any> = new WeakMap<any, any>()): any
     {
-        if (Fn.isNil(x))
+        if (Fn.isUndefined(x))
+        {
+            return propertyMetadata?.defaultValue ?? typeMetadata?.defaultValue;
+        }
+
+        if (Fn.isNull(x))
         {
             return null;
         }
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.serialize(v, relationObjectMap));
+            return x.map(v => this.serialize(v, typeMetadata, propertyMetadata, objectMap));
         }
 
-        if (Fn.isObject(x))
+        if (Fn.isObject(x) && !Fn.isNil(typeMetadata))
         {
-            const typeMetadata = this.typeMetadataResolver(this.typeCtor);
-
-            if (typeMetadata.declaredImplicitly)
-            {
-                if (Log.errorEnabled)
-                {
-                    Log.error(`${typeMetadata.name}: cannot serialize implicitly declared type! Declare a type using decorator or configure function!`, x);
-                }
-
-                return undefined;
-            }
-
             const type   = x;
             const object = {} as any;
 
-            for (const propertyMetadata of typeMetadata.propertyMetadataMap.values()) 
+            for (const propertyMetadata of typeMetadata.propertyMetadataMap.values())
             {
                 if (propertyMetadata.serializationConfigured && !propertyMetadata.serializable)
                 {
                     continue;
                 }
 
-                const objectPropertyName   = propertyMetadata.alias ?? propertyMetadata.name;
-                const objectPropertyValue  = type[propertyMetadata.name];
-                const propertyTypeResolver = propertyMetadata.typeResolver ?? propertyMetadata.reflectTypeResolver;
-                const propertyTypeCtor     = propertyTypeResolver();
-                const propertyTypeMetadata = Fn.isNil(propertyTypeCtor) ? null : this.typeMetadataResolver(propertyTypeCtor);
-                
-                if (Fn.isUndefined(objectPropertyValue))
-                {
-                    const useDefaultValue = propertyMetadata.useDefaultValue ?? propertyTypeMetadata?.useDefaultValue ?? propertyTypeMetadata?.typeOptionsBase?.useDefaultValue;
-                    const defaultValue    = propertyMetadata.defaultValue ?? propertyTypeMetadata?.defaultValue ?? propertyTypeMetadata?.typeOptionsBase?.defaultValue;
+                const propertyName           = propertyMetadata.alias ?? propertyMetadata.name;
+                const propertyValue          = type[propertyMetadata.name];
+                const propertyTypeSerializer = propertyMetadata.typeSerializer;
 
-                    if (useDefaultValue)
+                if (Fn.isNil(propertyTypeSerializer))
+                {
+                    let value = propertyValue;
+
+                    if (Fn.isUndefined(value))
                     {
-                        object[objectPropertyName] = propertyMetadata.multiple ? [] : (Fn.isFunction(defaultValue) ? defaultValue() : defaultValue);
+                        value = propertyMetadata.defaultValue;
                     }
 
-                    continue;
-                }
-
-                const propertyTypeSerializer = Fn.isNil(propertyTypeMetadata) ? null : propertyTypeMetadata.typeSerializer;
-                const propertySerializer     = propertyMetadata.typeSerializer ?? propertyTypeSerializer;
-
-                if (Fn.isNil(propertySerializer))
-                {
-                    object[objectPropertyName] = objectPropertyValue;
+                    object[propertyName] = value;
 
                     continue;
                 }
 
-                const useImplicitConversion  = propertyMetadata.useImplicitConversion ?? propertyTypeMetadata?.useImplicitConversion ?? propertyTypeMetadata?.typeOptionsBase?.useImplicitConversion;
-                const convertedPropertyValue = useImplicitConversion ? propertySerializer.convert(objectPropertyValue) : objectPropertyValue;
+                const propertyTypeMetadata = propertyMetadata.typeMetadata;
 
-                if (Fn.isObject(convertedPropertyValue) && propertySerializer instanceof ObjectSerializer)
+                if (Fn.isObject(propertyValue) && propertyTypeSerializer instanceof ObjectSerializer)
                 {
-                    let relationObject = relationObjectMap.get(convertedPropertyValue);
+                    let value = objectMap.get(propertyValue);
 
-                    if (!relationObject)
+                    if (Fn.isUndefined(value))
                     {
-                        relationObject = propertySerializer.serialize(convertedPropertyValue, relationObjectMap);
-                        relationObjectMap.set(convertedPropertyValue, relationObject);
+                        value = propertyTypeSerializer.serialize(propertyValue, propertyTypeMetadata, propertyMetadata, objectMap);
+
+                        objectMap.set(propertyValue, value);
                     }
 
-                    object[objectPropertyName] = relationObject;
+                    object[propertyName] = value;
 
                     continue;
                 }
-                
-                object[objectPropertyName] = propertySerializer.serialize(convertedPropertyValue);
+
+                object[propertyName] = propertyTypeSerializer.serialize(propertyValue, propertyTypeMetadata, propertyMetadata);
             }
 
             return object;
@@ -148,93 +105,106 @@ export class ObjectSerializer extends TypeSerializer
      * Deserializes provided value.
      * 
      * @param {any} x Some value.
+     * @param {TypeMetadata} typeMetadata Type metadata when it is known.
+     * @param {PropertyMetadata} propertyMetadata Property metadata when serialization is performed on a property level.
+     * @param {WeakMap<any, any>} objectMap Object map to handle circular references.
      * 
      * @returns {any} Deserialized value.
      */
-    public deserialize(x: any, relationTypeMap: WeakMap<any, any> = new WeakMap<any, any>()): any
+    public deserialize(x: any, typeMetadata?: TypeMetadata, propertyMetadata?: PropertyMetadata, objectMap: WeakMap<any, any> = new WeakMap<any, any>()): any
     {
-        if (Fn.isNil(x))
+        if (Fn.isUndefined(x))
+        {
+            return propertyMetadata?.defaultValue ?? typeMetadata?.defaultValue;
+        }
+
+        if (Fn.isNull(x))
         {
             return null;
         }
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.deserialize(v, relationTypeMap));
+            return x.map(v => this.deserialize(v, typeMetadata, propertyMetadata, objectMap));
         }
 
-        if (Fn.isObject(x))
+        if (Fn.isObject(x) && !Fn.isNil(typeMetadata))
         {
-            const typeMetadata = this.typeMetadataResolver(this.typeCtor);
+            const object                 = x;
+            const parentPropertyMetadata = propertyMetadata;
+            const typeContext            = new TypeContext();
 
-            if (typeMetadata.declaredImplicitly)
+            for (const propertyMetadata of typeMetadata.propertyMetadataMap.values())
             {
-                if (Log.errorEnabled)
-                {
-                    Log.error(`${typeMetadata.name}: cannot deserialize implicitly declared type! Declare a type using decorator or configure function!`, x);
-                }
+                const propertyName  = propertyMetadata.alias ?? propertyMetadata.name;
+                const propertyValue = object[propertyName];
 
-                return undefined;
-            }
-
-            const object = x;
-            const type   = new typeMetadata.typeCtor();
-
-            for (const propertyMetadata of typeMetadata.propertyMetadataMap.values()) 
-            {
                 if (propertyMetadata.serializationConfigured && !propertyMetadata.deserializable)
                 {
+                    typeContext.set(propertyName, new TypeContextEntry(propertyName, propertyValue));
+
                     continue;
                 }
 
-                const typePropertyName     = propertyMetadata.name;
-                const typePropertyValue    = object[propertyMetadata.alias ?? propertyMetadata.name];
-                const propertyTypeResolver = propertyMetadata.typeResolver ?? propertyMetadata.reflectTypeResolver;
-                const propertyTypeCtor     = propertyTypeResolver();
-                const propertyTypeMetadata = Fn.isNil(propertyTypeCtor) ? null : this.typeMetadataResolver(propertyTypeCtor);
-                
-                if (Fn.isUndefined(typePropertyValue))
-                {
-                    const useDefaultValue = propertyMetadata.useDefaultValue ?? propertyTypeMetadata?.useDefaultValue ?? propertyTypeMetadata?.typeOptionsBase?.useDefaultValue;
-                    const defaultValue    = propertyMetadata.defaultValue ?? propertyTypeMetadata?.defaultValue ?? propertyTypeMetadata?.typeOptionsBase?.defaultValue;
+                const propertyTypeSerializer = propertyMetadata.typeSerializer;
 
-                    if (useDefaultValue)
+                if (Fn.isNil(propertyTypeSerializer))
+                {
+                    let value = propertyValue;
+
+                    if (Fn.isUndefined(value))
                     {
-                        type[typePropertyName] = propertyMetadata.multiple ? [] : (Fn.isFunction(defaultValue) ? defaultValue() : defaultValue);
+                        value = propertyMetadata.defaultValue;
                     }
 
-                    continue;
-                }
-                
-                const propertyTypeSerializer = Fn.isNil(propertyTypeMetadata) ? null : propertyTypeMetadata.typeSerializer;
-                const propertySerializer     = propertyMetadata.typeSerializer ?? propertyTypeSerializer;
-
-                if (Fn.isNil(propertySerializer)) 
-                {
-                    type[typePropertyName] = typePropertyValue;
+                    typeContext.set(propertyName, new TypeContextEntry(propertyName, value, propertyMetadata));
 
                     continue;
                 }
 
-                const useImplicitConversion  = propertyMetadata.useImplicitConversion ?? propertyTypeMetadata?.useImplicitConversion ?? propertyTypeMetadata?.typeOptionsBase?.useImplicitConversion;
-                const convertedPropertyValue = useImplicitConversion ? propertySerializer.convert(typePropertyValue) : typePropertyValue;
+                const propertyTypeMetadata = propertyMetadata.typeMetadata;
 
-                if (Fn.isObject(convertedPropertyValue) && propertySerializer instanceof ObjectSerializer)
+                if (Fn.isObject(propertyValue) && propertyTypeSerializer instanceof ObjectSerializer)
                 {
-                    let relationType = relationTypeMap.get(convertedPropertyValue);
+                    let value = objectMap.get(propertyValue);
 
-                    if (!relationType)
+                    if (Fn.isUndefined(value))
                     {
-                        relationType = propertySerializer.deserialize(convertedPropertyValue, relationTypeMap);
-                        relationTypeMap.set(convertedPropertyValue, relationType);
+                        value = propertyTypeSerializer.deserialize(propertyValue, propertyTypeMetadata, propertyMetadata, objectMap);
+
+                        objectMap.set(propertyValue, value);
                     }
 
-                    type[typePropertyName] = relationType;
+                    typeContext.set(propertyName, new TypeContextEntry(propertyName, value, propertyMetadata));
 
                     continue;
                 }
-                
-                type[typePropertyName] = propertySerializer.deserialize(convertedPropertyValue);
+
+                typeContext.set(propertyName, new TypeContextEntry(
+                    propertyName,
+                    propertyTypeSerializer.deserialize(propertyValue, propertyTypeMetadata, propertyMetadata), 
+                    propertyMetadata
+                ));
+            }
+
+            for (const propertyName in object) 
+            {
+                if (object.hasOwnProperty(propertyName) && !typeContext.has(propertyName))
+                {
+                    typeContext.set(propertyName, new TypeContextEntry(propertyName, object[propertyName]));
+                }
+            }
+
+            const typeFactory  = parentPropertyMetadata?.typeFactory ?? typeMetadata.typeFactory;
+            const typeInjector = parentPropertyMetadata?.typeInjector ?? typeMetadata.typeInjector;
+            const type         = typeFactory.build(typeMetadata, typeContext, typeInjector);
+
+            for (const typeContextEntry of typeContext.values())
+            {
+                if (!Fn.isNil(typeContextEntry.propertyMetadata) && Fn.isUndefined(type[typeContextEntry.propertyMetadata.name]))
+                {
+                    type[typeContextEntry.propertyMetadata.name] = typeContextEntry.value;
+                }
             }
 
             return type;

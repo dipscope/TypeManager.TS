@@ -10,7 +10,7 @@ import { Property } from './../property';
  * 
  * @returns {PropertyDecorator} Property decorator.
  */
-export function Deserializable(deserializable?: boolean): PropertyDecorator
+export function Deserializable(deserializable: boolean = true): PropertyDecorator
 {
-    return Property({ deserializable: deserializable ?? true });
+    return Property({ deserializable: deserializable });
 }

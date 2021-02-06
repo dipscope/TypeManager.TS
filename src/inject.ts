@@ -26,20 +26,27 @@ export function Inject(x: TypeCtor | InjectOptions | string): ParameterDecorator
 
     return function (target: any, propertyName: string | symbol, injectIndex: number): void
     {
-        const declaringTypeCtor = target.constructor;
-        const targetName        = `${Fn.nameOf(declaringTypeCtor)}.${String(propertyName)}`;
-
-        if (!Fn.isNumber(injectIndex))
+        if (!Fn.isCtor(target))
         {
-            if (Log.errorEnabled)
+            if (Log.errorEnabled) 
             {
-                Log.error(`${targetName}: inject decorator can only be applied to a parameter!`);
+                Log.error(`${Fn.nameOf(target.constructor)}: inject decorator cannot be applied to a method!`);
             }
             
             return;
         }
 
-        InjectArtisan.defineInjectMetadata(declaringTypeCtor, injectIndex, injectOptions);
+        if (!Fn.isNumber(injectIndex))
+        {
+            if (Log.errorEnabled)
+            {
+                Log.error(`${Fn.nameOf(target)}: inject decorator cannot be applied to a property!`);
+            }
+            
+            return;
+        }
+
+        InjectArtisan.defineInjectMetadata(target, injectIndex, injectOptions);
 
         return;
     };

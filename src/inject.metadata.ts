@@ -15,22 +15,14 @@ export class InjectMetadata
      * 
      * @type {TypeMetadata}
      */
-    public declaringTypeMetadata: TypeMetadata;
+    public readonly declaringTypeMetadata: TypeMetadata;
 
     /**
      * Index of injection within a type constructor function.
      * 
      * @type {number}
      */
-    public index: number;
-
-    /**
-     * Parameter key to inject within a type context. If specified
-     * type constructor will be ignored.
-     * 
-     * @type {string}
-     */
-    public key?: string;
+    public readonly index: number;
 
     /**
      * Type of injection defined using reflect metadata.
@@ -39,15 +31,14 @@ export class InjectMetadata
      * 
      * @type {TypeCtor}
      */
-    public reflectTypeCtor?: TypeCtor;
+    public readonly reflectTypeCtor?: TypeCtor;
 
     /**
-     * Type of injection. Used if key is not specified. Will be resolved using 
-     * type injector.
+     * Inject options.
      * 
-     * @type {TypeCtor}
+     * @type {InjectOptions}
      */
-    public typeCtor?: TypeCtor; 
+    public readonly injectOptions: InjectOptions = {};
 
     /**
      * Constructor.
@@ -67,13 +58,33 @@ export class InjectMetadata
     }
 
     /**
+     * Gets current key.
+     * 
+     * @returns {string|undefined} Key or undefined.
+     */
+    public get key(): string | undefined
+    {
+        return this.injectOptions.key;
+    }
+
+    /**
+     * Gets current type constructor.
+     * 
+     * @returns {TypeCtor|undefined} Type constructor or undefined.
+     */
+    public get typeCtor(): TypeCtor | undefined
+    {
+        return this.injectOptions.typeCtor ?? this.reflectTypeCtor;
+    }
+
+    /**
      * Gets inject type metadata if it can be defined.
      * 
      * @returns {TypeMetadata|undefined} Type metadata or undefined.
      */
     public get typeMetadata(): TypeMetadata | undefined
     {
-        const typeCtor = this.typeCtor ?? this.reflectTypeCtor;
+        const typeCtor = this.typeCtor;
 
         if (!Fn.isNil(typeCtor))
         {
@@ -81,6 +92,19 @@ export class InjectMetadata
         }
 
         return undefined;
+    }
+
+    /**
+     * Clones current metadata instance.
+     * 
+     * @returns {InjectMetadata} Clone of current metadata instance.
+     */
+    public clone(): InjectMetadata
+    {
+        const injectMetadata = new InjectMetadata(this.declaringTypeMetadata, this.index);
+        const injectOptions  = Fn.assign({}, this.injectOptions);
+
+        return injectMetadata.configure(injectOptions);
     }
 
     /**
@@ -94,12 +118,12 @@ export class InjectMetadata
     {
         if (!Fn.isUndefined(injectOptions.key))
         {
-            this.key = injectOptions.key;
+            this.injectOptions.key = injectOptions.key;
         }
 
         if (!Fn.isUndefined(injectOptions.typeCtor)) 
         {
-            this.typeCtor = injectOptions.typeCtor;
+            this.injectOptions.typeCtor = injectOptions.typeCtor;
         }
 
         return this;

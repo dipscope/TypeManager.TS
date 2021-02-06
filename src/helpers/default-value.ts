@@ -7,7 +7,7 @@ import { Property } from './../property';
  * 
  * Used to define default value for type or property.
  * 
- * @param {any} value Value.
+ * @param {any} defaultValue Default value.
  * 
  * @returns {ClassDecorator&PropertyDecorator} Class or property decorator.
  */

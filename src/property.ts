@@ -23,14 +23,11 @@ export function Property(x?: TypeResolver | PropertyOptions | string, y?: Proper
 
     return function (target: any, propertyName: string | symbol): void
     {
-        const declaringTypeCtor = target.constructor;
-        const targetName        = `${Fn.nameOf(declaringTypeCtor)}.${String(propertyName)}`;
-
-        if (Fn.isFunction(target))
+        if (Fn.isCtor(target))
         {
             if (Log.errorEnabled) 
             {
-                Log.error(`${targetName}: cannot decorate a static property!`);
+                Log.error(`${Fn.nameOf(target)}.${String(propertyName)}: property decorator cannot be applied to a static property!`);
             }
             
             return;
@@ -40,7 +37,7 @@ export function Property(x?: TypeResolver | PropertyOptions | string, y?: Proper
         {
             if (Log.errorEnabled) 
             {
-                Log.error(`${targetName}: cannot decorate a symbol property!`);
+                Log.error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a symbol!`);
             }
 
             return;
@@ -50,13 +47,13 @@ export function Property(x?: TypeResolver | PropertyOptions | string, y?: Proper
         {
             if (Log.errorEnabled)
             {
-                Log.error(`${targetName}: cannot decorate a method property!`);
+                Log.error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a method property!`);
             }
             
             return;
         }
-        
-        PropertyArtisan.definePropertyMetadata(declaringTypeCtor, propertyName, propertyOptions);
+
+        PropertyArtisan.definePropertyMetadata(target.constructor, propertyName, propertyOptions);
 
         return;
     };

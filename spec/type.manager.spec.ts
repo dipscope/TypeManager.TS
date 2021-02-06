@@ -1,7 +1,6 @@
-import { Type, Property, Alias, TypeSerializer, Serializer, TypeManager, DefaultValue, UseDefaultValue } from './../src';
-import { UseImplicitConversion, Serializable, Deserializable } from './../src';
+import { Type, Property, TypeSerializer, TypeManager } from './../src';
 
-class ASerializer extends TypeSerializer
+class ASerializer implements TypeSerializer
 {
     public serialize(x: string): string
     {
@@ -17,20 +16,20 @@ class ASerializer extends TypeSerializer
 @Type()
 class X
 {
-    @Property() @Alias('c') public a?: string;
+    @Property({ alias: 'c' }) public a?: string;
     @Property() public b?: string;
-    @Property() @DefaultValue('d') @UseDefaultValue() public d?: string;
-    @Property() @DefaultValue(() => 'e') @UseDefaultValue() public e?: string;
-    @Property() @UseImplicitConversion() public f?: string;
-    @Property() @Serializable() public g?: string;
-    @Property() @Deserializable() public h?: string;
+    @Property({ defaultValue: 'd', useDefaultValue: true }) public d?: string;
+    @Property({ defaultValue: () => 'e', useDefaultValue: true }) public e?: string;
+    @Property({ useImplicitConversion: true }) public f?: string;
+    @Property({ serializable: true }) public g?: string;
+    @Property({ deserializable: true }) public h?: string;
 }
 
 @Type()
 class Y
 {
-    @Property(() => String) @Serializer(new ASerializer()) public a?: string;
-    @Property(() => String) @Alias('c') public b?: string;
+    @Property(() => String, { typeSerializer: new ASerializer() }) public a?: string;
+    @Property(() => String, { alias: 'c'}) public b?: string;
     @Property(() => X) public x?: X; 
 }
 

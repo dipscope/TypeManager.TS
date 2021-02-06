@@ -1,25 +1,34 @@
 import { Fn, Log } from './../utils';
 import { TypeSerializer } from './../type.serializer';
+import { TypeMetadata } from './../type.metadata';
+import { PropertyMetadata } from './../property.metadata';
 
 /**
  * Date serializer.
  * 
  * @type {DateSerializer}
  */
-export class DateSerializer extends TypeSerializer
+export class DateSerializer implements TypeSerializer
 {
     /**
      * Serializes provided value.
      * 
      * @param {any} x Some value.
+     * @param {TypeMetadata} typeMetadata Type metadata when it is known.
+     * @param {PropertyMetadata} propertyMetadata Property metadata when serialization is performed on a property level.
      * 
      * @returns {any} Serialized value.
      */
-    public serialize(x: any): any
+    public serialize(x: any, typeMetadata?: TypeMetadata, propertyMetadata?: PropertyMetadata): any
     {
-        if (Fn.isNil(x))
+        if (Fn.isUndefined(x))
         {
-            return null;
+            return propertyMetadata?.defaultValue ?? typeMetadata?.defaultValue;
+        }
+
+        if (Fn.isNull(x))
+        {
+            return x;
         }
 
         if (Fn.isDate(x))
@@ -29,7 +38,7 @@ export class DateSerializer extends TypeSerializer
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.serialize(v));
+            return x.map(v => this.serialize(v, typeMetadata, propertyMetadata));
         }
 
         if (Log.errorEnabled) 
@@ -44,14 +53,21 @@ export class DateSerializer extends TypeSerializer
      * Deserializes provided value.
      * 
      * @param {any} x Some value.
+     * @param {TypeMetadata} typeMetadata Type metadata when it is known.
+     * @param {PropertyMetadata} propertyMetadata Property metadata when serialization is performed on a property level.
      * 
      * @returns {any} Deserialized value.
      */
-    public deserialize(x: any): any
+    public deserialize(x: any, typeMetadata?: TypeMetadata, propertyMetadata?: PropertyMetadata): any
     {
-        if (Fn.isNil(x))
+        if (Fn.isUndefined(x))
         {
-            return null;
+            return propertyMetadata?.defaultValue ?? typeMetadata?.defaultValue;
+        }
+
+        if (Fn.isNull(x))
+        {
+            return x;
         }
 
         if (Fn.isString(x))
@@ -61,7 +77,7 @@ export class DateSerializer extends TypeSerializer
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.deserialize(v));
+            return x.map(v => this.deserialize(v, typeMetadata, propertyMetadata));
         }
 
         if (Log.errorEnabled) 

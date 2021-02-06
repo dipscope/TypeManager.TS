@@ -6,7 +6,7 @@ import { TypeOptionsBase } from './type.options.base';
  * 
  * @type {PropertyOptions}
  */
-export interface PropertyOptions extends TypeOptionsBase
+export interface PropertyOptions extends Partial<TypeOptionsBase>
 {
     /**
      * Property alias.

@@ -48,6 +48,18 @@ export class Fn
     }
 
     /**
+     * Checks if value is null.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is null. False otherwise.
+     */
+    public static isNull(x: any): x is null
+    {
+        return x === null;
+    }
+
+    /**
      * Checks if value is undefined.
      * 
      * @param {any} x Input value.
@@ -68,7 +80,19 @@ export class Fn
      */
     public static isObject(x: any): x is { [key: string]: any }
     {
-        return typeof x === 'object' && x !== null;
+        return x !== null && typeof x === 'object';
+    }
+
+    /**
+     * Checks if value is a pure object.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is a pure object. False otherwise.
+     */
+    public static isPureObject(x: any): x is { [key: string]: any }
+    {
+        return x !== null && typeof x === 'object' && Object.getPrototypeOf(x).isPrototypeOf(Object);
     }
 
     /**
@@ -81,6 +105,18 @@ export class Fn
     public static isFunction(x: any): x is (...args: any[]) => any
     {
         return typeof x === 'function';
+    }
+
+    /**
+     * Checks if value is a constructor.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is a constructor. False otherwise.
+     */
+    public static isCtor(x: any): x is new (...args: any[]) => any
+    {
+        return typeof x === 'function' && x.prototype && x.prototype.constructor === x;
     }
 
     /**
@@ -153,6 +189,46 @@ export class Fn
     public static isDate(x: any): x is Date
     {
         return x instanceof Date;
+    }
+
+    /**
+     * Performs deep assign and returns target object.
+     *
+     * @param {any} target Target object.
+     * @param {any} source Source object.
+     *
+     * @returns {any} Target object.
+     */
+    public static assign(target: any, source: any): any
+    {
+        if (!this.isObject(target) || !this.isObject(source))
+        {
+            return target;
+        }
+
+        for (const key in source)
+        {
+            if (!source.hasOwnProperty(key))
+            {
+                continue;
+            }
+
+            if (!this.isObject(source[key]) || !this.isPureObject(source[key]))
+            {
+                target[key] = source[key];
+
+                continue;
+            }
+
+            if (!this.isObject(target[key]))
+            {
+                target[key] = {};
+            }
+
+            target[key] = this.assign(target[key], source[key]);
+        }
+
+        return target;
     }
 
     /**

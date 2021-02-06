@@ -1,6 +1,5 @@
 import { TypeCtor } from './type.ctor';
 import { TypeArtisan } from './type.artisan';
-import { TypeDeclaration } from './type.declaration';
 import { InjectOptions } from './inject.options';
 import { InjectMetadata } from './inject.metadata';
 
@@ -22,7 +21,7 @@ export class InjectArtisan
      */
     public static defineInjectMetadata(declaringTypeCtor: TypeCtor, injectIndex: number, injectOptions: InjectOptions): InjectMetadata
     {
-        const typeMetadata   = TypeArtisan.defineTypeMetadata(declaringTypeCtor, {}, TypeDeclaration.Implicit);
+        const typeMetadata   = TypeArtisan.defineTypeMetadata(declaringTypeCtor);
         const injectMetadata = typeMetadata.configureInjectMetadata(injectIndex, injectOptions);
 
         return injectMetadata;

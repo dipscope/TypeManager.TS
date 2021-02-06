@@ -1,4 +1,5 @@
-import { Type, Property, TypeArtisan, UseImplicitConversion } from '../../src';
+import { Type, Property, TypeArtisan  } from './../../src';
+import { UseImplicitConversion } from './../../src/helpers';
 
 @Type()
 @UseImplicitConversion()
@@ -13,7 +14,7 @@ describe('Use implicit conversion decorator', function ()
     {
         const typeMetadata = TypeArtisan.extractTypeMetadata(X);
 
-        expect(typeMetadata.useImplicitConversion).toBeTrue();
+        expect(typeMetadata.typeOptions.useImplicitConversion).toBeTrue();
     });
 
     it('should enable use of implicit conversion for a property', function ()
@@ -23,6 +24,6 @@ describe('Use implicit conversion decorator', function ()
         const aPropertyMetadata = typeMetadata.propertyMetadataMap.get('a');
 
         expect(aPropertyMetadata).toBeDefined();
-        expect(aPropertyMetadata?.useImplicitConversion).toBeTrue();
+        expect(aPropertyMetadata?.propertyOptions.useImplicitConversion).toBeTrue();
     });
 });

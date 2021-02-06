@@ -1,9 +1,11 @@
-import { Type, TypeArtisan, Property, Serializable } from './../../src';
+import { Type, TypeArtisan, Property } from './../../src';
+import { Serializable } from './../../src/helpers';
 
 @Type()
 class X
 {
     @Property() @Serializable() public a?: string;
+    @Property() @Serializable(false) public b?: string;
 }
 
 describe('Serializable decorator', function () 
@@ -13,10 +15,16 @@ describe('Serializable decorator', function ()
         const typeMetadata = TypeArtisan.extractTypeMetadata(X);
 
         const aPropertyMetadata = typeMetadata.propertyMetadataMap.get('a');
+        const bPropertyMetadata = typeMetadata.propertyMetadataMap.get('b');
 
         expect(aPropertyMetadata).toBeDefined();
         expect(aPropertyMetadata?.serializationConfigured).toBeTrue();
-        expect(aPropertyMetadata?.serializable).toBeTrue();
-        expect(aPropertyMetadata?.deserializable).not.toBeDefined();
+        expect(aPropertyMetadata?.propertyOptions.deserializable).toBeUndefined();
+        expect(aPropertyMetadata?.propertyOptions.serializable).toBeTrue();
+
+        expect(bPropertyMetadata).toBeDefined();
+        expect(bPropertyMetadata?.serializationConfigured).toBeTrue();
+        expect(bPropertyMetadata?.propertyOptions.deserializable).toBeUndefined();
+        expect(bPropertyMetadata?.propertyOptions.serializable).toBeFalse();
     });
 });

@@ -1,6 +1,5 @@
 import { TypeArtisan } from './type.artisan';
 import { TypeOptions } from './type.options';
-import { TypeDeclaration } from './type.declaration';
 
 /**
  * Type decorator.
@@ -13,7 +12,7 @@ export function Type(typeOptions?: TypeOptions): ClassDecorator
 {
     return function (target: any): any
     {
-        TypeArtisan.defineTypeMetadata(target, typeOptions ?? {}, TypeDeclaration.Explicit);
+        TypeArtisan.defineTypeMetadata(target, typeOptions ?? {});
 
         return target;
     };

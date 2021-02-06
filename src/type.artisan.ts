@@ -1,12 +1,11 @@
-import { Fn } from './utils';
-import { StringSerializer, NumberSerializer, BooleanSerializer, DateSerializer, ObjectSerializer } from './serializers';
+import { Fn, Log } from './utils';
+import { ObjectFactory } from './factories';
 import { SingletonInjector } from './injectors';
+import { StringSerializer, NumberSerializer, BooleanSerializer, DateSerializer, ObjectSerializer } from './serializers';
 import { TypeCtor } from './type.ctor';
-import { TypeDeclaration } from './type.declaration';
 import { TypeMetadata } from './type.metadata';
 import { TypeOptions } from './type.options';
 import { TypeOptionsBase } from './type.options.base';
-import { TypeMetadataResolver } from './type.metadata.resolver';
 
 /**
  * Type artisan class to encapsulate type manipulating functions.
@@ -28,9 +27,13 @@ export class TypeArtisan
      * @type {TypeOptionsBase}
      */
     public static readonly typeOptionsBase: TypeOptionsBase = {
+        customData:            {},
         defaultValue:          undefined,
         useDefaultValue:       false,
-        useImplicitConversion: false
+        useImplicitConversion: false,
+        typeFactory:           new ObjectFactory(),
+        typeInjector:          new SingletonInjector(),
+        typeSerializer:        new ObjectSerializer()
     };
 
     /**
@@ -57,13 +60,48 @@ export class TypeArtisan
     /**
      * Configures global type options.
      * 
-     * @param {TypeOptionsBase} typeOptionsBase Type options base.
+     * @param {Partial<TypeOptionsBase>} typeOptionsBase Type options base.
      * 
      * @returns {void}
      */
-    public static configureTypeOptionsBase(typeOptionsBase: TypeOptionsBase): void
+    public static configureTypeOptionsBase(typeOptionsBase: Partial<TypeOptionsBase>): void
     {
-        Object.assign(this.typeOptionsBase, typeOptionsBase);
+        Fn.assign(this.typeOptionsBase, typeOptionsBase);
+
+        if (!Log.errorEnabled)
+        {
+            return;
+        }
+
+        if (Fn.isNil(this.typeOptionsBase.customData))
+        {
+            Log.error('Custom type options must be specified for type options base!');
+        }
+
+        if (Fn.isNil(this.typeOptionsBase.useDefaultValue))
+        {
+            Log.error('Using of default values must be specified for type options base!');
+        }
+
+        if (Fn.isNil(this.typeOptionsBase.useImplicitConversion))
+        {
+            Log.error('Using of implicit convertion must be specified for type options base!');
+        }
+
+        if (Fn.isNil(this.typeOptionsBase.typeFactory))
+        {
+            Log.error('Type factory must be specified for type options base!');
+        }
+
+        if (Fn.isNil(this.typeOptionsBase.typeInjector))
+        {
+            Log.error('Type injector must be specified for type options base!');
+        }
+
+        if (Fn.isNil(this.typeOptionsBase.typeSerializer))
+        {
+            Log.error('Type serializer must be specified for type options base!');
+        }
 
         return;
     }
@@ -76,11 +114,20 @@ export class TypeArtisan
      * 
      * @returns {void}
      */
-    public static configureTypeOptions(typeCtor: TypeCtor, typeOptions: TypeOptions): void 
+    public static configureTypeOptions(typeCtor: TypeCtor, typeOptions: TypeOptions): void
     {
-        this.typeOptionsMap.set(typeCtor, typeOptions);
+        let definedTypeOptions = this.typeOptionsMap.get(typeCtor);
 
-        this.defineTypeMetadata(typeCtor, typeOptions, TypeDeclaration.Explicit);
+        if (Fn.isNil(definedTypeOptions))
+        {
+            definedTypeOptions = {};
+
+            this.typeOptionsMap.set(typeCtor, definedTypeOptions);
+        }
+
+        Fn.assign(definedTypeOptions, typeOptions);
+
+        this.defineTypeMetadata(typeCtor, typeOptions);
 
         return;
     }
@@ -113,9 +160,8 @@ export class TypeArtisan
     {
         const typeOptionsBase      = this.typeOptionsBase;
         const typeOptions          = this.typeOptionsMap.get(typeCtor);
-        const typeDeclaration      = typeOptions ? TypeDeclaration.Explicit : TypeDeclaration.Implicit;
         const typeMetadataResolver = this.extractTypeMetadata.bind(this);
-        const typeMetadata         = new TypeMetadata(typeCtor, typeOptionsBase, typeDeclaration, typeMetadataResolver);
+        const typeMetadata         = new TypeMetadata(typeCtor, typeOptionsBase, typeMetadataResolver);
 
         typeMetadata.configure(typeOptions ?? {});
 
@@ -132,11 +178,10 @@ export class TypeArtisan
      * 
      * @param {TypeCtor} typeCtor Type constructor function.
      * @param {TypeOptions} typeOptions Type options.
-     * @param {TypeDeclaration} typeDeclaration Type declaration.
      * 
      * @returns {TypeMetadata} Type metadata for provided type constructor.
      */
-    public static defineTypeMetadata(typeCtor: TypeCtor, typeOptions: TypeOptions, typeDeclaration: TypeDeclaration): TypeMetadata
+    public static defineTypeMetadata(typeCtor: TypeCtor, typeOptions: TypeOptions = {}): TypeMetadata
     {
         const prototype       = typeCtor.prototype;
         const metadataKey     = this.typeMetadataKey;
@@ -149,10 +194,10 @@ export class TypeArtisan
 
             if (typeMetadataParent)
             {
-                typeMetadataParent.propertyMetadataMap.forEach((propertyMetadata, propertyName) =>
+                for (const propertyMetadata of typeMetadataParent.propertyMetadataMap.values())
                 {
-                    typeMetadata.propertyMetadataMap.set(propertyName, propertyMetadata);
-                });
+                    typeMetadata.propertyMetadataMap.set(propertyMetadata.name, propertyMetadata);
+                }
             }
     
             Object.defineProperty(prototype, metadataKey, {
@@ -163,12 +208,7 @@ export class TypeArtisan
             });
         }
         
-        if (!typeMetadata.declaredExplicitly)
-        {
-            typeMetadata.typeDeclaration = typeDeclaration;
-        }
-
-        if (!Fn.isNil(typeOptions.alias)) 
+        if (!Fn.isNil(typeOptions.alias))
         {
             this.typeCtorMap.set(typeOptions.alias, typeMetadata.typeCtor);
         }
@@ -185,10 +225,10 @@ export class TypeArtisan
      */
     public static extractTypeMetadata(typeCtor: TypeCtor): TypeMetadata
     {
-        const prototype        = typeCtor.prototype;
-        const metadataKey      = this.typeMetadataKey;
-        const metadataInjected = prototype.hasOwnProperty(metadataKey);
-        const typeMetadata     = metadataInjected ? prototype[metadataKey] as TypeMetadata : this.defineTypeMetadata(typeCtor, {}, TypeDeclaration.Implicit);
+        const prototype       = typeCtor.prototype;
+        const metadataKey     = this.typeMetadataKey;
+        const metadataDefined = prototype.hasOwnProperty(metadataKey);
+        const typeMetadata    = metadataDefined ? prototype[metadataKey] as TypeMetadata : this.defineTypeMetadata(typeCtor);
 
         return typeMetadata;
     }

@@ -1,11 +1,11 @@
-import { Type, TypeArtisan, Property, Multiple } from '../../src';
+import { Type, TypeArtisan, Property } from '../../src';
+import { Multiple } from '../../src/helpers';
 
 @Type()
 class X
 {
-    @Property() public a?: string[];
-    @Property() @Multiple() public b?: string;
-    @Property() @Multiple(false) public c?: string;
+    @Property() @Multiple() public a?: string;
+    @Property() @Multiple(false) public b?: string;
 }
 
 describe('Multiple decorator', function () 
@@ -16,15 +16,11 @@ describe('Multiple decorator', function ()
 
         const aPropertyMetadata = typeMetadata.propertyMetadataMap.get('a');
         const bPropertyMetadata = typeMetadata.propertyMetadataMap.get('b');
-        const cPropertyMetadata = typeMetadata.propertyMetadataMap.get('c');
 
         expect(aPropertyMetadata).toBeDefined();
-        expect(aPropertyMetadata?.multiple).toBeFalse();
+        expect(aPropertyMetadata?.propertyOptions.multiple).toBeTrue();
 
         expect(bPropertyMetadata).toBeDefined();
-        expect(bPropertyMetadata?.multiple).toBeTrue();
-
-        expect(cPropertyMetadata).toBeDefined();
-        expect(cPropertyMetadata?.multiple).toBeFalse();
+        expect(bPropertyMetadata?.propertyOptions.multiple).toBeFalse();
     });
 });

@@ -4,15 +4,15 @@ import { Type } from './../type';
 import { Property } from './../property';
 
 /**
- * Serializer decorator.
+ * Type serializer decorator.
  * 
- * Used to define custom serializer for type or property.
+ * Used to define custom type serializer for type or property.
  * 
  * @param {TypeSerializer} typeSerializer Type serializer.
  * 
  * @returns {ClassDecorator&PropertyDecorator} Class or property decorator.
  */
-export function Serializer(typeSerializer: TypeSerializer): ClassDecorator & PropertyDecorator
+export function TypeSerializer(typeSerializer: TypeSerializer): ClassDecorator & PropertyDecorator
 {
     return function (target: any, propertyName?: string | symbol): any
     {

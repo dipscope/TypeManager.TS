@@ -1,4 +1,5 @@
-import { Type, Alias, Property, TypeArtisan } from './../../src';
+import { Type, Property, TypeArtisan } from './../../src';
+import { Alias } from './../../src/helpers';
 
 @Type()
 @Alias('X:Alias')
@@ -13,7 +14,7 @@ describe('Alias decorator', function ()
     {
         const typeMetadata = TypeArtisan.extractTypeMetadata(X);
 
-        expect(typeMetadata.alias).toBe('X:Alias');
+        expect(typeMetadata.typeOptions.alias).toBe('X:Alias');
     });
 
     it('should register alias for a property', function ()
@@ -23,6 +24,6 @@ describe('Alias decorator', function ()
         const aPropertyMetadata = typeMetadata.propertyMetadataMap.get('a');
 
         expect(aPropertyMetadata).toBeDefined();
-        expect(aPropertyMetadata?.alias).toBe('b');
+        expect(aPropertyMetadata?.propertyOptions.alias).toBe('b');
     });
 });

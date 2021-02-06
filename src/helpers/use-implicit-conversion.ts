@@ -11,7 +11,7 @@ import { Property } from './../property';
  * 
  * @returns {ClassDecorator&PropertyDecorator} Class or property decorator.
  */
-export function UseImplicitConversion(useImplicitConversion?: boolean): ClassDecorator & PropertyDecorator
+export function UseImplicitConversion(useImplicitConversion: boolean = true): ClassDecorator & PropertyDecorator
 {
     return function (target: any, propertyName?: string | symbol): any
     {
@@ -19,9 +19,9 @@ export function UseImplicitConversion(useImplicitConversion?: boolean): ClassDec
 
         if (usedOnClass)
         {
-            return Type({ useImplicitConversion: useImplicitConversion ?? true })(target);
+            return Type({ useImplicitConversion: useImplicitConversion })(target);
         }
 
-        return Property({ useImplicitConversion: useImplicitConversion ?? true })(target, propertyName!);
+        return Property({ useImplicitConversion: useImplicitConversion })(target, propertyName!);
     }
 }
