@@ -15,9 +15,9 @@ import { CustomData } from './custom.data';
 /**
  * Main class used to describe a certain type.
  * 
- * @type {TypeMetadata}
+ * @type {TypeMetadata<TType>}
  */
-export class TypeMetadata
+export class TypeMetadata<TType>
 {
     /**
      * Constructor function name. 
@@ -31,66 +31,68 @@ export class TypeMetadata
     /**
      * Type constructor function.
      * 
-     * @type {TypeCtor}
+     * @type {TypeCtor<TType>}
      */
-    public readonly typeCtor: TypeCtor;
+    public readonly typeCtor: TypeCtor<TType>;
 
     /**
      * Type metadata resolver.
      * 
-     * @type {TypeMetadataResolver}
+     * @type {TypeMetadataResolver<any>}
      */
-    public readonly typeMetadataResolver: TypeMetadataResolver;
+    public readonly typeMetadataResolver: TypeMetadataResolver<any>;
 
     /**
      * Type options used by default.
      * 
-     * @type {TypeOptionsBase}
+     * @type {TypeOptionsBase<TType>}
      */
-    public readonly typeOptionsBase: TypeOptionsBase;
+    public readonly typeOptionsBase: TypeOptionsBase<TType>;
 
     /**
      * Type options.
      * 
-     * @type {TypeOptions}
+     * @type {TypeOptions<TType>}
      */
-    public readonly typeOptions: TypeOptions = {};
+    public readonly typeOptions: TypeOptions<TType>;
 
     /**
      * Properties defined for a type. Map key is a property name.
      * 
-     * @type {Map<string, PropertyMetadata>}
+     * @type {Map<string, PropertyMetadata<TType, any>>}
      */
-    public readonly propertyMetadataMap: Map<string, PropertyMetadata> = new Map<string, PropertyMetadata>();
+    public readonly propertyMetadataMap: Map<string, PropertyMetadata<TType, any>> = new Map<string, PropertyMetadata<TType, any>>();
 
     /**
      * Injections defined for a type. Map key is an injection index.
      * 
-     * @type {Map<number, InjectMetadata>}
+     * @type {Map<number, InjectMetadata<TType, any>>}
      */
-    public readonly injectMetadataMap: Map<number, InjectMetadata> = new Map<number, InjectMetadata>();
+    public readonly injectMetadataMap: Map<number, InjectMetadata<TType, any>> = new Map<number, InjectMetadata<TType, any>>();
 
     /**
      * Constructor.
      * 
-     * @param {TypeCtor} typeCtor Type constructor function.
-     * @param {TypeOptionsBase} typeOptionsBase Type options used by default.
-     * @param {TypeMetadataResolver} typeMetadataResolver Type declaration.
+     * @param {TypeCtor<TType>} typeCtor Type constructor function.
+     * @param {TypeMetadataResolver<any>} typeMetadataResolver Type declaration.
+     * @param {TypeOptionsBase<TType>} typeOptionsBase Type options used by default.
+     * @param {TypeOptions<TType>} typeOptions Type options.
      */
-    public constructor(typeCtor: TypeCtor, typeOptionsBase: TypeOptionsBase, typeMetadataResolver: TypeMetadataResolver)
+    public constructor(typeCtor: TypeCtor<TType>, typeMetadataResolver: TypeMetadataResolver<any>, typeOptionsBase: TypeOptionsBase<TType>, typeOptions: TypeOptions<TType>)
     {
-        const injectTypeCtors = (Fn.extractOwnReflectMetadata('design:paramtypes', typeCtor.prototype) ?? []) as TypeCtor[];
-
-        injectTypeCtors.forEach((injectTypeCtor, injectIndex) => 
-        {
-            this.configureInjectMetadata(injectIndex, { typeCtor: injectTypeCtor });
-        });
+        const injectTypeCtors = (Fn.extractOwnReflectMetadata('design:paramtypes', typeCtor) ?? []) as TypeCtor<any>[];
 
         this.name                 = Fn.nameOf(typeCtor);
         this.typeCtor             = typeCtor;
-        this.typeOptionsBase      = typeOptionsBase;
         this.typeMetadataResolver = typeMetadataResolver;
-        
+        this.typeOptionsBase      = typeOptionsBase;
+        this.typeOptions          = typeOptions;
+       
+        for (let injectIndex = 0; injectIndex < injectTypeCtors.length; injectIndex++)
+        {
+            this.configureInjectMetadata(injectIndex, { typeCtor: injectTypeCtors[injectIndex] });
+        }
+
         return;
     }
 
@@ -164,9 +166,9 @@ export class TypeMetadata
     /**
      * Gets current type factory.
      * 
-     * @returns {TypeFactory} Type factory.
+     * @returns {TypeFactory<TType>} Type factory.
      */
-    public get typeFactory(): TypeFactory
+    public get typeFactory(): TypeFactory<TType>
     {
         return this.typeOptions.typeFactory ?? this.typeOptionsBase.typeFactory;
     }
@@ -184,38 +186,26 @@ export class TypeMetadata
     /**
      * Gets current type serializer.
      * 
-     * @returns {TypeSerializer} Type serializer.
+     * @returns {TypeSerializer<TType>} Type serializer.
      */
-    public get typeSerializer(): TypeSerializer
+    public get typeSerializer(): TypeSerializer<TType>
     {
         return this.typeOptions.typeSerializer ?? this.typeOptionsBase.typeSerializer;
     }
 
     /**
-     * Resolves type metadata for provided type constructor.
-     * 
-     * @param {TypeCtor} typeCtor Type constructor function.
-     * 
-     * @returns {TypeMetadata} Resolved type metadata.
-     */
-    public resolveTypeMetadata(typeCtor: TypeCtor): TypeMetadata
-    {
-        return this.typeMetadataResolver(typeCtor);
-    }
-
-    /**
      * Clones current metadata instance.
      * 
-     * @returns {TypeMetadata} Clone of current metadata instance.
+     * @returns {TypeMetadata<TType>} Clone of current metadata instance.
      */
-    public clone(): TypeMetadata
+    public clone(): TypeMetadata<TType>
     {
-        const typeMetadata = new TypeMetadata(this.typeCtor, this.typeOptionsBase, this.typeMetadataResolver);
         const typeOptions  = Fn.assign({}, this.typeOptions);
-
+        const typeMetadata = new TypeMetadata(this.typeCtor, this.typeMetadataResolver, this.typeOptionsBase, typeOptions);
+        
         if (Fn.isNil(typeOptions.injectOptionsMap))
         {
-            typeOptions.injectOptionsMap = new Map<number, InjectOptions>();
+            typeOptions.injectOptionsMap = new Map<number, InjectOptions<TType>>();
         }
 
         for (const injectMetadata of this.injectMetadataMap.values())
@@ -227,7 +217,7 @@ export class TypeMetadata
 
         if (Fn.isNil(typeOptions.propertyOptionsMap))
         {
-            typeOptions.propertyOptionsMap = new Map<string, PropertyOptions>();
+            typeOptions.propertyOptionsMap = new Map<string, PropertyOptions<TType>>();
         }
 
         for (const propertyMetadata of this.propertyMetadataMap.values())
@@ -244,19 +234,21 @@ export class TypeMetadata
      * Configures certain property metadata.
      * 
      * @param {string} propertyName Property name. 
-     * @param {PropertyOptions} propertyOptions Property options.
+     * @param {PropertyOptions<TPropertyType>} propertyOptions Property options.
      * 
-     * @returns {PropertyMetadata} Configured property metadata.
+     * @returns {PropertyMetadata<TType, TPropertyType>} Configured property metadata.
      */
-    public configurePropertyMetadata(propertyName: string, propertyOptions: PropertyOptions): PropertyMetadata
+    public configurePropertyMetadata<TPropertyType>(propertyName: string, propertyOptions: PropertyOptions<TPropertyType>): PropertyMetadata<TType, TPropertyType>
     {
         let propertyMetadata = this.propertyMetadataMap.get(propertyName);
 
         if (Fn.isNil(propertyMetadata))
         {
-            propertyMetadata = new PropertyMetadata(this, propertyName);
+            propertyMetadata = new PropertyMetadata(this, propertyName, propertyOptions);
             
             this.propertyMetadataMap.set(propertyName, propertyMetadata);
+
+            return propertyMetadata;
         }
 
         return propertyMetadata.configure(propertyOptions);
@@ -266,19 +258,21 @@ export class TypeMetadata
      * Configures certain inject metadata.
      * 
      * @param {number} injectIndex Inject index. 
-     * @param {InjectOptions} injectOptions Inject options.
+     * @param {InjectOptions<TInjectType>} injectOptions Inject options.
      * 
-     * @returns {InjectMetadata} Configured inject metadata.
+     * @returns {InjectMetadata<TType, TInjectType>} Configured inject metadata.
      */
-    public configureInjectMetadata(injectIndex: number, injectOptions: InjectOptions): InjectMetadata
+    public configureInjectMetadata<TInjectType>(injectIndex: number, injectOptions: InjectOptions<TInjectType>): InjectMetadata<TType, TInjectType>
     {
         let injectMetadata = this.injectMetadataMap.get(injectIndex);
 
         if (Fn.isNil(injectMetadata))
         {
-            injectMetadata = new InjectMetadata(this, injectIndex);
+            injectMetadata = new InjectMetadata(this, injectIndex, injectOptions);
             
             this.injectMetadataMap.set(injectIndex, injectMetadata);
+
+            return injectMetadata;
         }
 
         return injectMetadata.configure(injectOptions);
@@ -287,11 +281,11 @@ export class TypeMetadata
     /**
      * Configures property metadata map.
      * 
-     * @param {Map<string, PropertyOptions>} propertyOptionsMap Property options map.
+     * @param {Map<string, PropertyOptions<TPropertyType>>} propertyOptionsMap Property options map.
      * 
-     * @returns {TypeMetadata} Current instance of type metadata.
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configurePropertyMetadataMap(propertyOptionsMap: Map<string, PropertyOptions>): TypeMetadata
+    public configurePropertyMetadataMap<TPropertyType>(propertyOptionsMap: Map<string, PropertyOptions<TPropertyType>>): TypeMetadata<TType>
     {
         propertyOptionsMap.forEach((propertyOptions, propertyName) =>
         {
@@ -304,11 +298,11 @@ export class TypeMetadata
     /**
      * Configures inject metadata map.
      * 
-     * @param {Map<number, InjectOptions>} injectOptionsMap Inject options map.
+     * @param {Map<number, InjectOptions<TInjectType>>} injectOptionsMap Inject options map.
      * 
-     * @returns {TypeMetadata} Current instance of type metadata.
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureInjectMetadataMap(injectOptionsMap: Map<number, InjectOptions>): TypeMetadata
+    public configureInjectMetadataMap<TInjectType>(injectOptionsMap: Map<number, InjectOptions<TInjectType>>): TypeMetadata<TType>
     {
         injectOptionsMap.forEach((injectOptions, injectIndex) =>
         {
@@ -323,9 +317,9 @@ export class TypeMetadata
      * 
      * @param {CustomData} customData Custom data.
      * 
-     * @returns {PropertyMetadata} Configured property metadata.
+     * @returns {TypeMetadata<TType>} Configured property metadata.
      */
-    public configureTypeOptionsCustomData(customData: CustomData): TypeMetadata
+    public configureTypeOptionsCustomData(customData: CustomData): TypeMetadata<TType>
     {
         if (Fn.isNil(this.typeOptions.customData))
         {
@@ -340,11 +334,11 @@ export class TypeMetadata
     /**
      * Configures type metadata based on provided options.
      * 
-     * @param {TypeOptions} typeOptions Type options.
+     * @param {TypeOptions<TType>} typeOptions Type options.
      * 
-     * @returns {TypeMetadata} Current instance of type metadata.
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configure(typeOptions: TypeOptions): TypeMetadata
+    public configure(typeOptions: TypeOptions<TType>): TypeMetadata<TType>
     {
         if (!Fn.isUndefined(typeOptions.alias)) 
         {

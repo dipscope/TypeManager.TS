@@ -4,27 +4,26 @@ import { SingletonInjector } from './../../src/injectors';
 
 @Type()
 @TypeInjector(new SingletonInjector())
-class X
+class User
 {
-    @Property() @TypeInjector(new SingletonInjector()) public a?: string;
+    @Property() @TypeInjector(new SingletonInjector()) public name?: string;
 }
 
 describe('Type injector decorator', function () 
 {
     it('should register custom injector for a type', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata = TypeArtisan.extractTypeMetadata(User);
 
-        expect(typeMetadata.typeOptions.typeInjector).toBeInstanceOf(SingletonInjector);
+        expect(userMetadata.typeOptions.typeInjector).toBeInstanceOf(SingletonInjector);
     });
 
     it('should register custom injector for a property', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata     = TypeArtisan.extractTypeMetadata(User);
+        const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
-        const aPropertyMetadata = typeMetadata.propertyMetadataMap.get('a');
-
-        expect(aPropertyMetadata).toBeDefined();
-        expect(aPropertyMetadata?.propertyOptions.typeInjector).toBeInstanceOf(SingletonInjector);
+        expect(userNameMetadata).toBeDefined();
+        expect(userNameMetadata?.propertyOptions.typeInjector).toBeInstanceOf(SingletonInjector);
     });
 });

@@ -6,16 +6,16 @@ import { InjectOptions } from './inject.options';
 /**
  * Main class used to describe an injection.
  * 
- * @type {InjectMetadata}
+ * @type {InjectMetadata<TDeclaringType, TType>}
  */
-export class InjectMetadata
+export class InjectMetadata<TDeclaringType, TType>
 {
     /**
      * Type metadata to which inject metadata belongs to.
      * 
-     * @type {TypeMetadata}
+     * @type {TypeMetadata<TDeclaringType>}
      */
-    public readonly declaringTypeMetadata: TypeMetadata;
+    public readonly declaringTypeMetadata: TypeMetadata<TDeclaringType>;
 
     /**
      * Index of injection within a type constructor function.
@@ -29,29 +29,31 @@ export class InjectMetadata
      * 
      * Used as a fallback when type constructor is not defined.
      * 
-     * @type {TypeCtor}
+     * @type {TypeCtor<TType>}
      */
-    public readonly reflectTypeCtor?: TypeCtor;
+    public readonly reflectTypeCtor?: TypeCtor<TType>;
 
     /**
      * Inject options.
      * 
-     * @type {InjectOptions}
+     * @type {InjectOptions<TType>}
      */
-    public readonly injectOptions: InjectOptions = {};
+    public readonly injectOptions: InjectOptions<TType>;
 
     /**
      * Constructor.
      * 
-     * @param {TypeMetadata} declaringTypeMetadata Type metadata to which inject metadata belongs to.
+     * @param {TypeMetadata<TDeclaringType>} declaringTypeMetadata Type metadata to which inject metadata belongs to.
      * @param {number} index Index of injection within a type constructor function.
+     * @param {InjectOptions<TType>} injectOptions Inject options.
      */
-    public constructor(declaringTypeMetadata: TypeMetadata, index: number)
+    public constructor(declaringTypeMetadata: TypeMetadata<TDeclaringType>, index: number, injectOptions: InjectOptions<TType>)
     {
-        const injectTypeCtors = Fn.extractOwnReflectMetadata('design:paramtypes', declaringTypeMetadata.typeCtor.prototype) ?? [];
+        const injectTypeCtors = Fn.extractOwnReflectMetadata('design:paramtypes', declaringTypeMetadata.typeCtor) ?? [];
 
         this.declaringTypeMetadata = declaringTypeMetadata;
         this.index                 = index;
+        this.injectOptions         = injectOptions;
         this.reflectTypeCtor       = injectTypeCtors[index];
 
         return;
@@ -70,9 +72,9 @@ export class InjectMetadata
     /**
      * Gets current type constructor.
      * 
-     * @returns {TypeCtor|undefined} Type constructor or undefined.
+     * @returns {TypeCtor<TType>|undefined} Type constructor or undefined.
      */
-    public get typeCtor(): TypeCtor | undefined
+    public get typeCtor(): TypeCtor<TType> | undefined
     {
         return this.injectOptions.typeCtor ?? this.reflectTypeCtor;
     }
@@ -80,15 +82,15 @@ export class InjectMetadata
     /**
      * Gets inject type metadata if it can be defined.
      * 
-     * @returns {TypeMetadata|undefined} Type metadata or undefined.
+     * @returns {TypeMetadata<TType>|undefined} Type metadata or undefined.
      */
-    public get typeMetadata(): TypeMetadata | undefined
+    public get typeMetadata(): TypeMetadata<TType> | undefined
     {
         const typeCtor = this.typeCtor;
 
         if (!Fn.isNil(typeCtor))
         {
-            return this.declaringTypeMetadata.resolveTypeMetadata(typeCtor);
+            return this.declaringTypeMetadata.typeMetadataResolver(typeCtor);
         }
 
         return undefined;
@@ -97,24 +99,24 @@ export class InjectMetadata
     /**
      * Clones current metadata instance.
      * 
-     * @returns {InjectMetadata} Clone of current metadata instance.
+     * @returns {InjectMetadata<TDeclaringType, TType>} Clone of current metadata instance.
      */
-    public clone(): InjectMetadata
+    public clone(): InjectMetadata<TDeclaringType, TType>
     {
-        const injectMetadata = new InjectMetadata(this.declaringTypeMetadata, this.index);
         const injectOptions  = Fn.assign({}, this.injectOptions);
-
-        return injectMetadata.configure(injectOptions);
+        const injectMetadata = new InjectMetadata<TDeclaringType, TType>(this.declaringTypeMetadata, this.index, injectOptions);
+        
+        return injectMetadata;
     }
 
     /**
      * Configures inject metadata based on provided options.
      * 
-     * @param {InjectOptions} injectOptions Inject options.
+     * @param {InjectOptions<TType>} injectOptions Inject options.
      * 
-     * @returns {InjectMetadata} Instance of inject metadata.
+     * @returns {InjectMetadata<TDeclaringType, TType>} Instance of inject metadata.
      */
-    public configure(injectOptions: InjectOptions): InjectMetadata
+    public configure(injectOptions: InjectOptions<TType>): InjectMetadata<TDeclaringType, TType>
     {
         if (!Fn.isUndefined(injectOptions.key))
         {

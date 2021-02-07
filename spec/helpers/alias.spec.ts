@@ -2,28 +2,27 @@ import { Type, Property, TypeArtisan } from './../../src';
 import { Alias } from './../../src/helpers';
 
 @Type()
-@Alias('X:Alias')
-class X
+@Alias('User:Alias')
+class User
 {
-    @Property() @Alias('b') public a?: string;
+    @Property() @Alias('username') public name?: string;
 }
 
 describe('Alias decorator', function () 
 {
     it('should register alias for a type', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata = TypeArtisan.extractTypeMetadata(User);
 
-        expect(typeMetadata.typeOptions.alias).toBe('X:Alias');
+        expect(userMetadata.typeOptions.alias).toBe('User:Alias');
     });
 
     it('should register alias for a property', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata     = TypeArtisan.extractTypeMetadata(User);
+        const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
-        const aPropertyMetadata = typeMetadata.propertyMetadataMap.get('a');
-
-        expect(aPropertyMetadata).toBeDefined();
-        expect(aPropertyMetadata?.propertyOptions.alias).toBe('b');
+        expect(userNameMetadata).toBeDefined();
+        expect(userNameMetadata?.propertyOptions.alias).toBe('username');
     });
 });

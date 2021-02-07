@@ -22,11 +22,11 @@ export class TypeArtisan
     public static readonly typeMetadataKey: string = '__TMTypeMetadata__';
     
     /**
-     * Global type options shared among all types.
+     * Global options of any type.
      * 
-     * @type {TypeOptionsBase}
+     * @type {TypeOptionsBase<any>}
      */
-    public static readonly typeOptionsBase: TypeOptionsBase = {
+    public static readonly typeOptionsBase: TypeOptionsBase<any> = {
         customData:            {},
         defaultValue:          undefined,
         useDefaultValue:       false,
@@ -41,9 +41,9 @@ export class TypeArtisan
      * 
      * Overrides global type options.
      * 
-     * @type {Map<TypeCtor, TypeOptions>}
+     * @type {Map<TypeCtor<any>, TypeOptions<any>>}
      */
-    public static readonly typeOptionsMap: Map<TypeCtor, TypeOptions> = new Map<TypeCtor, TypeOptions>([
+    public static readonly typeOptionsMap: Map<TypeCtor<any>, TypeOptions<any>> = new Map<TypeCtor<any>, TypeOptions<any>>([
         [String,  { alias: 'String',  typeSerializer: new StringSerializer(),  defaultValue: null             }],
         [Number,  { alias: 'Number',  typeSerializer: new NumberSerializer(),  defaultValue: 0                }],
         [Boolean, { alias: 'Boolean', typeSerializer: new BooleanSerializer(), defaultValue: false            }],
@@ -53,18 +53,18 @@ export class TypeArtisan
     /**
      * Type constructor map for types with aliases.
      * 
-     * @type {Map<string, TypeCtor>}
+     * @type {Map<string, TypeCtor<any>>}
      */
-    public static readonly typeCtorMap: Map<string, TypeCtor> = new Map<string, TypeCtor>();
+    public static readonly typeCtorMap: Map<string, TypeCtor<any>> = new Map<string, TypeCtor<any>>();
     
     /**
      * Configures global type options.
      * 
-     * @param {Partial<TypeOptionsBase>} typeOptionsBase Type options base.
+     * @param {Partial<TypeOptionsBase<TType>>} typeOptionsBase Type options base.
      * 
      * @returns {void}
      */
-    public static configureTypeOptionsBase(typeOptionsBase: Partial<TypeOptionsBase>): void
+    public static configureTypeOptionsBase<TType>(typeOptionsBase: Partial<TypeOptionsBase<TType>>): void
     {
         Fn.assign(this.typeOptionsBase, typeOptionsBase);
 
@@ -109,12 +109,12 @@ export class TypeArtisan
     /**
      * Configures type options.
      * 
-     * @param {TypeCtor} typeCtor Type constructor function.
-     * @param {TypeOptions} typeOptions Type options.
+     * @param {TypeCtor<TType>} typeCtor Type constructor function.
+     * @param {TypeOptions<TType>} typeOptions Type options.
      * 
      * @returns {void}
      */
-    public static configureTypeOptions(typeCtor: TypeCtor, typeOptions: TypeOptions): void
+    public static configureTypeOptions<TType>(typeCtor: TypeCtor<TType>, typeOptions: TypeOptions<TType>): void
     {
         let definedTypeOptions = this.typeOptionsMap.get(typeCtor);
 
@@ -135,11 +135,11 @@ export class TypeArtisan
     /**
      * Configures type options per type.
      * 
-     * @param {Map<TypeCtor, TypeOptions>} typeOptionsMap Type options map.
+     * @param {Map<TypeCtor<TType>, TypeOptions<TType>>} typeOptionsMap Type options map.
      * 
      * @returns {void}
      */
-    public static configureTypeOptionsMap(typeOptionsMap: Map<TypeCtor, TypeOptions>): void
+    public static configureTypeOptionsMap<TType>(typeOptionsMap: Map<TypeCtor<TType>, TypeOptions<TType>>): void
     {
         typeOptionsMap.forEach((typeOptions, typeCtor) => 
         {
@@ -152,18 +152,16 @@ export class TypeArtisan
     /**
      * Declares type metadata for provided type constructor based on general configuration.
      * 
-     * @param {TypeCtor} typeCtor Type constructor function.
+     * @param {TypeCtor<TType>} typeCtor Type constructor function.
      * 
-     * @returns {TypeMetadata} Type metadata.
+     * @returns {TypeMetadata<TType>} Type metadata.
      */
-    public static declareTypeMetadata(typeCtor: TypeCtor): TypeMetadata
+    public static declareTypeMetadata<TType>(typeCtor: TypeCtor<TType>): TypeMetadata<TType>
     {
         const typeOptionsBase      = this.typeOptionsBase;
         const typeOptions          = this.typeOptionsMap.get(typeCtor);
         const typeMetadataResolver = this.extractTypeMetadata.bind(this);
-        const typeMetadata         = new TypeMetadata(typeCtor, typeOptionsBase, typeMetadataResolver);
-
-        typeMetadata.configure(typeOptions ?? {});
+        const typeMetadata         = new TypeMetadata(typeCtor, typeMetadataResolver, typeOptionsBase, typeOptions ?? {});
 
         if (!Fn.isNil(typeMetadata.alias))
         {
@@ -176,21 +174,21 @@ export class TypeArtisan
     /**
      * Defines type metadata for the type prototype.
      * 
-     * @param {TypeCtor} typeCtor Type constructor function.
-     * @param {TypeOptions} typeOptions Type options.
+     * @param {TypeCtor<TType>} typeCtor Type constructor function.
+     * @param {TypeOptions<TType>} typeOptions Type options.
      * 
-     * @returns {TypeMetadata} Type metadata for provided type constructor.
+     * @returns {TypeMetadata<TType>} Type metadata for provided type constructor.
      */
-    public static defineTypeMetadata(typeCtor: TypeCtor, typeOptions: TypeOptions = {}): TypeMetadata
+    public static defineTypeMetadata<TType>(typeCtor: TypeCtor<TType>, typeOptions: TypeOptions<TType> = {}): TypeMetadata<TType>
     {
         const prototype       = typeCtor.prototype;
         const metadataKey     = this.typeMetadataKey;
         const metadataDefined = prototype.hasOwnProperty(metadataKey);
-        const typeMetadata    = metadataDefined ? prototype[metadataKey] as TypeMetadata : this.declareTypeMetadata(typeCtor);
+        const typeMetadata    = metadataDefined ? prototype[metadataKey] as TypeMetadata<TType> : this.declareTypeMetadata(typeCtor);
 
         if (!metadataDefined)
         {
-            const typeMetadataParent = prototype[metadataKey] as TypeMetadata;
+            const typeMetadataParent = prototype[metadataKey] as TypeMetadata<any>;
 
             if (typeMetadataParent)
             {
@@ -219,16 +217,16 @@ export class TypeArtisan
     /**
      * Extracts type metadata from provided type constructor.
      * 
-     * @param {TypeCtor} typeCtor Type constructor function.
+     * @param {TypeCtor<TType>} typeCtor Type constructor function.
      * 
-     * @returns {TypeMetadata} Type metadata for provided type constructor.
+     * @returns {TypeMetadata<TType>} Type metadata for provided type constructor.
      */
-    public static extractTypeMetadata(typeCtor: TypeCtor): TypeMetadata
+    public static extractTypeMetadata<TType>(typeCtor: TypeCtor<TType>): TypeMetadata<TType>
     {
         const prototype       = typeCtor.prototype;
         const metadataKey     = this.typeMetadataKey;
         const metadataDefined = prototype.hasOwnProperty(metadataKey);
-        const typeMetadata    = metadataDefined ? prototype[metadataKey] as TypeMetadata : this.defineTypeMetadata(typeCtor);
+        const typeMetadata    = metadataDefined ? prototype[metadataKey] as TypeMetadata<TType> : this.defineTypeMetadata(typeCtor);
 
         return typeMetadata;
     }

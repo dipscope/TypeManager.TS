@@ -2,42 +2,29 @@ import { Type, Property, TypeArtisan } from './../../src';
 import { DefaultValue } from './../../src/helpers';
 
 @Type()
-@DefaultValue('X')
-class X
+@DefaultValue(() => new User())
+class User
 {
-    @Property() @DefaultValue('a') public a?: string;
-}
-
-@Type()
-@DefaultValue('Y')
-class Y
-{
-    @Property() @DefaultValue('b') public b?: string;
+    @Property() @DefaultValue('BestName') public name?: string;
 }
 
 describe('Default value decorator', function () 
 {
     it('should register default value for a type', function ()
     {
-        const xTypeMetadata = TypeArtisan.extractTypeMetadata(X);
-        const yTypeMetadata = TypeArtisan.extractTypeMetadata(Y);
+        const userMetadata = TypeArtisan.extractTypeMetadata(User);
 
-        expect(xTypeMetadata.typeOptions.defaultValue).toBe('X');
-        expect(yTypeMetadata.typeOptions.defaultValue).toBe('Y');
+        expect(userMetadata.typeOptions.defaultValue).toBeDefined();
+        expect(userMetadata.typeOptions.defaultValue()).toBeInstanceOf(User);
     });
 
     it('should register default value for a property', function ()
     {
-        const xTypeMetadata = TypeArtisan.extractTypeMetadata(X);
-        const yTypeMetadata = TypeArtisan.extractTypeMetadata(Y);
+        const userMetadata     = TypeArtisan.extractTypeMetadata(User);
+        const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
-        const aPropertyMetadata = xTypeMetadata.propertyMetadataMap.get('a');
-        const bPropertyMetadata = yTypeMetadata.propertyMetadataMap.get('b');
-
-        expect(aPropertyMetadata).toBeDefined();
-        expect(aPropertyMetadata?.propertyOptions?.defaultValue).toBe('a');
-
-        expect(bPropertyMetadata).toBeDefined();
-        expect(bPropertyMetadata?.propertyOptions?.defaultValue).toBe('b');
+        expect(userNameMetadata).toBeDefined();
+        expect(userNameMetadata?.propertyOptions.defaultValue).toBeDefined();
+        expect(userNameMetadata?.propertyOptions.defaultValue).toBe('BestName');
     });
 });

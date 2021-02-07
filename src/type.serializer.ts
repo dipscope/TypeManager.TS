@@ -4,29 +4,29 @@ import { PropertyMetadata } from './property.metadata';
 /**
  * Type serializer.
  * 
- * @type {TypeSerializer}
+ * @type {TypeSerializer<TType>}
  */
-export interface TypeSerializer
+export interface TypeSerializer<TType>
 {
     /**
      * Serializes provided value.
      * 
-     * @param {any} x Some value.
-     * @param {TypeMetadata} typeMetadata Type metadata when it is known.
-     * @param {PropertyMetadata} propertyMetadata Property metadata when serialization is performed on a property level.
+     * @param {TType|undefined} x Some value.
+     * @param {TypeMetadata<TType>} typeMetadata Type metadata when it is known.
+     * @param {PropertyMetadata<any, TType>} propertyMetadata Property metadata when serialization is performed on a property level.
      * 
-     * @returns {any} Serialized value.
+     * @returns {any|undefined} Serialized value.
      */
-    serialize(x: any, typeMetadata?: TypeMetadata, propertyMetadata?: PropertyMetadata): any;
+    serialize(x: TType | undefined, typeMetadata?: TypeMetadata<TType>, propertyMetadata?: PropertyMetadata<any, TType>): any | undefined;
 
     /**
      * Deserializes provided value.
      * 
-     * @param {any} x Some value.
-     * @param {TypeMetadata} typeMetadata Type metadata when it is known.
-     * @param {PropertyMetadata} propertyMetadata Property metadata when serialization is performed on a property level.
+     * @param {any|undefined} x Some value.
+     * @param {TypeMetadata<TType>} typeMetadata Type metadata when it is known.
+     * @param {PropertyMetadata<any, TType>} propertyMetadata Property metadata when serialization is performed on a property level.
      * 
-     * @returns {any} Deserialized value.
+     * @returns {TType|undefined} Deserialized value.
      */
-    deserialize(x: any, typeMetadata?: TypeMetadata, propertyMetadata?: PropertyMetadata): any;
+    deserialize(x: any | undefined, typeMetadata?: TypeMetadata<TType>, propertyMetadata?: PropertyMetadata<any, TType>): TType | undefined;
 }

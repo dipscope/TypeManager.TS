@@ -10,16 +10,16 @@ import { CustomData } from './custom.data';
 /**
  * Main class used to describe certain property.
  * 
- * @type {PropertyMetadata}
+ * @type {PropertyMetadata<TDeclaringType, TType>}
  */
-export class PropertyMetadata
+export class PropertyMetadata<TDeclaringType, TType>
 {
     /**
      * Type metadata to which property metadata belongs to.
      * 
-     * @type {TypeMetadata}
+     * @type {TypeMetadata<TDeclaringType>}
      */
-    public readonly declaringTypeMetadata: TypeMetadata;
+    public readonly declaringTypeMetadata: TypeMetadata<TDeclaringType>;
 
     /**
      * Property name as declared in type.
@@ -33,29 +33,31 @@ export class PropertyMetadata
      * 
      * Used as a fallback when type resolver is not defined.
      * 
-     * @type {TypeResolver}
+     * @type {TypeResolver<TType>}
      */
-    public readonly reflectTypeResolver: TypeResolver;
+    public readonly reflectTypeResolver: TypeResolver<TType>;
 
     /**
      * Property options.
      * 
-     * @type {PropertyOptions}
+     * @type {PropertyOptions<TType>}
      */
-    public readonly propertyOptions: PropertyOptions = {};
+    public readonly propertyOptions: PropertyOptions<TType>;
 
     /**
      * Constructor.
      * 
-     * @param {TypeMetadata} declaringTypeMetadata Type metadata to which property metadata belongs to.
+     * @param {TypeMetadata<TDeclaringType>} declaringTypeMetadata Type metadata to which property metadata belongs to.
      * @param {string} name Property name.
+     * @param {PropertyOptions<TType>} propertyOptions Property options.
      */
-    public constructor(declaringTypeMetadata: TypeMetadata, name: string)
+    public constructor(declaringTypeMetadata: TypeMetadata<TDeclaringType>, name: string, propertyOptions: PropertyOptions<TType>)
     {
         const propertyTypeCtor = Fn.extractReflectMetadata('design:type', declaringTypeMetadata.typeCtor.prototype, name);
 
         this.declaringTypeMetadata    = declaringTypeMetadata;
         this.name                     = name;
+        this.propertyOptions          = propertyOptions;
         this.reflectTypeResolver      = () => propertyTypeCtor;
         this.propertyOptions.multiple = propertyTypeCtor === Array;
 
@@ -172,9 +174,9 @@ export class PropertyMetadata
     /**
      * Gets current type factory.
      * 
-     * @returns {TypeFactory|undefined} Type factory or undefined.
+     * @returns {TypeFactory<TType>|undefined} Type factory or undefined.
      */
-    public get typeFactory(): TypeFactory | undefined
+    public get typeFactory(): TypeFactory<TType> | undefined
     {
         return this.propertyOptions.typeFactory ?? this.typeMetadata?.typeFactory;
     }
@@ -192,15 +194,15 @@ export class PropertyMetadata
     /**
      * Gets property type metadata if it can be defined.
      * 
-     * @returns {TypeMetadata|undefined} Type metadata or undefined.
+     * @returns {TypeMetadata<TType>|undefined} Type metadata or undefined.
      */
-    public get typeMetadata(): TypeMetadata | undefined
+    public get typeMetadata(): TypeMetadata<TType> | undefined
     {
         const typeCtor = this.typeResolver();
 
         if (!Fn.isNil(typeCtor))
         {
-            return this.declaringTypeMetadata.resolveTypeMetadata(typeCtor);
+            return this.declaringTypeMetadata.typeMetadataResolver(typeCtor);
         }
 
         return undefined;
@@ -209,9 +211,9 @@ export class PropertyMetadata
     /**
      * Gets current type resolver.
      * 
-     * @type {TypeResolver} Type resolver or undefined.
+     * @type {TypeResolver<TType>} Type resolver or undefined.
      */
-    public get typeResolver(): TypeResolver 
+    public get typeResolver(): TypeResolver<TType> 
     {
         return this.propertyOptions.typeResolver ?? this.reflectTypeResolver;
     }
@@ -219,9 +221,9 @@ export class PropertyMetadata
     /**
      * Gets current type serializer.
      * 
-     * @returns {TypeSerializer|undefined} Type serializer or undefined.
+     * @returns {TypeSerializer<TType>|undefined} Type serializer or undefined.
      */
-    public get typeSerializer(): TypeSerializer | undefined
+    public get typeSerializer(): TypeSerializer<TType> | undefined
     {
         return this.propertyOptions.typeSerializer ?? this.typeMetadata?.typeSerializer;
     }
@@ -229,14 +231,14 @@ export class PropertyMetadata
     /**
      * Clones current metadata instance.
      * 
-     * @returns {PropertyMetadata} Clone of current metadata instance.
+     * @returns {PropertyMetadata<TDeclaringType, TType>} Clone of current metadata instance.
      */
-    public clone(): PropertyMetadata
+    public clone(): PropertyMetadata<TDeclaringType, TType>
     {
-        const propertyMetadata = new PropertyMetadata(this.declaringTypeMetadata, this.name);
         const propertyOptions  = Fn.assign({}, this.propertyOptions);
-
-        return propertyMetadata.configure(propertyOptions);
+        const propertyMetadata = new PropertyMetadata<TDeclaringType, TType>(this.declaringTypeMetadata, this.name, propertyOptions);
+        
+        return propertyMetadata;
     }
 
     /**
@@ -244,9 +246,9 @@ export class PropertyMetadata
      * 
      * @param {CustomData} customData Custom data.
      * 
-     * @returns {PropertyMetadata} Configured property metadata.
+     * @returns {PropertyMetadata<TDeclaringType, TType>} Configured property metadata.
      */
-    public configurePropertyOptionsCustomData(customData: CustomData): PropertyMetadata
+    public configurePropertyOptionsCustomData(customData: CustomData): PropertyMetadata<TDeclaringType, TType>
     {
         if (Fn.isNil(this.propertyOptions.customData))
         {
@@ -261,11 +263,11 @@ export class PropertyMetadata
     /**
      * Configures property metadata based on provided options.
      * 
-     * @param {PropertyOptions} propertyOptions Property options.
+     * @param {PropertyOptions<TType>} propertyOptions Property options.
      * 
-     * @returns {PropertyMetadata} Instance of property metadata.
+     * @returns {PropertyMetadata<TDeclaringType, TType>} Instance of property metadata.
      */
-    public configure(propertyOptions: PropertyOptions): PropertyMetadata
+    public configure(propertyOptions: PropertyOptions<TType>): PropertyMetadata<TDeclaringType, TType>
     {
         if (!Fn.isUndefined(propertyOptions.alias))
         {

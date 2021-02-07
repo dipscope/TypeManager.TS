@@ -3,9 +3,9 @@ import { TypeCtor } from './type.ctor';
 /**
  * Inject options.
  * 
- * @type {InjectOptions}
+ * @type {InjectOptions<TType>}
  */
-export interface InjectOptions
+export interface InjectOptions<TType>
 {
     /**
      * Parameter key to inject within a type context. If specified
@@ -21,5 +21,5 @@ export interface InjectOptions
      * 
      * @type {TypeCtor}
      */
-    typeCtor?: TypeCtor;
+    typeCtor?: TypeCtor<TType>;
 }

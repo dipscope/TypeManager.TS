@@ -4,9 +4,9 @@ import { ObjectSerializer } from './../src/serializers';
 import { Type, TypeArtisan } from './../src';
 
 @Type({
-    alias: 'X:Type',
-    customData: { data: 1 },
-    defaultValue: () => new X(),
+    alias: 'User:Type',
+    customData: { rank: 1 },
+    defaultValue: () => new User(),
     useDefaultValue: true,
     useImplicitConversion: false,
     injectable: true,
@@ -14,30 +14,31 @@ import { Type, TypeArtisan } from './../src';
     typeInjector: new SingletonInjector(),
     typeSerializer: new ObjectSerializer()
 })
-class X
+class User
 {
-    public a?: string;
+    public name?: string;
 }
 
 describe('Type decorator', function () 
 {
     it('should register type metadata', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
-        const typeCtor     = TypeArtisan.typeCtorMap.get('X:Type');
+        const userMetadata = TypeArtisan.extractTypeMetadata(User);
+        const typeCtor     = TypeArtisan.typeCtorMap.get('User:Type');
 
-        expect(typeMetadata.typeOptions.alias).toBe('X:Type');
-        expect(typeMetadata.typeOptions.customData).toBeDefined();
-        expect(typeMetadata.typeOptions.customData?.data).toBe(1);
-        expect(typeMetadata.typeOptions.defaultValue).toBeDefined();
-        expect(typeMetadata.typeOptions.defaultValue()).toBeInstanceOf(X);
-        expect(typeMetadata.typeOptions.useDefaultValue).toBeTrue();
-        expect(typeMetadata.typeOptions.useImplicitConversion).toBeFalse();
-        expect(typeMetadata.typeOptions.injectable).toBeTrue();
-        expect(typeMetadata.typeOptions.typeFactory).toBeInstanceOf(ObjectFactory);
-        expect(typeMetadata.typeOptions.typeInjector).toBeInstanceOf(SingletonInjector);
-        expect(typeMetadata.typeOptions.typeSerializer).toBeInstanceOf(ObjectSerializer);
+        expect(userMetadata.typeOptions.alias).toBe('User:Type');
+        expect(userMetadata.typeOptions.customData).toBeDefined();
+        expect(userMetadata.typeOptions.customData?.rank).toBe(1);
+        expect(userMetadata.typeOptions.defaultValue).toBeDefined();
+        expect(userMetadata.typeOptions.defaultValue()).toBeInstanceOf(User);
+        expect(userMetadata.typeOptions.useDefaultValue).toBeTrue();
+        expect(userMetadata.typeOptions.useImplicitConversion).toBeFalse();
+        expect(userMetadata.typeOptions.injectable).toBeTrue();
+        expect(userMetadata.typeOptions.typeFactory).toBeInstanceOf(ObjectFactory);
+        expect(userMetadata.typeOptions.typeInjector).toBeInstanceOf(SingletonInjector);
+        expect(userMetadata.typeOptions.typeSerializer).toBeInstanceOf(ObjectSerializer);
 
         expect(typeCtor).toBeDefined();
+        expect(typeCtor).toBe(userMetadata.typeCtor);
     });
 });

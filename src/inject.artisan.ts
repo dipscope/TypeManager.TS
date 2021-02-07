@@ -13,13 +13,17 @@ export class InjectArtisan
     /**
      * Defines inject metadata for a certain type constructor.
      * 
-     * @param {TypeCtor} declaringTypeCtor Declaring type constructor function.
+     * @param {TypeCtor<TDeclaringType>} declaringTypeCtor Declaring type constructor function.
      * @param {number} injectIndex Inject index.
-     * @param {InjectOptions} injectOptions Inject options.
+     * @param {InjectOptions<TType>} injectOptions Inject options.
      * 
-     * @returns {InjectMetadata} Inject metadata for provided type constructor.
+     * @returns {InjectMetadata<TDeclaringType, TType>} Inject metadata for provided type constructor.
      */
-    public static defineInjectMetadata(declaringTypeCtor: TypeCtor, injectIndex: number, injectOptions: InjectOptions): InjectMetadata
+    public static defineInjectMetadata<TDeclaringType, TType>(
+        declaringTypeCtor: TypeCtor<TDeclaringType>, 
+        injectIndex: number, 
+        injectOptions: InjectOptions<TType>
+    ): InjectMetadata<TDeclaringType, TType>
     {
         const typeMetadata   = TypeArtisan.defineTypeMetadata(declaringTypeCtor);
         const injectMetadata = typeMetadata.configureInjectMetadata(injectIndex, injectOptions);

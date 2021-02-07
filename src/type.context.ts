@@ -3,16 +3,16 @@ import { TypeContextEntry } from './type.context.entry';
 /**
  * Type context class to encapsulate type values before populating an object.
  * 
- * @type {TypeContext}
+ * @type { TypeContext<TDeclaringType>}
  */
-export class TypeContext
+export class TypeContext<TDeclaringType>
 {
     /**
      * Type context entry map.
      * 
-     * @type {Map<string, TypeContextEntry>}
+     * @type {Map<string, TypeContextEntry<TDeclaringType, any>>}
      */
-    private readonly typeContextEntryMap: Map<string, TypeContextEntry> = new Map<string, TypeContextEntry>();
+    private readonly typeContextEntryMap: Map<string, TypeContextEntry<TDeclaringType, any>> = new Map<string, TypeContextEntry<TDeclaringType, any>>();
 
     /**
      * Checks if type context has a key.
@@ -31,9 +31,9 @@ export class TypeContext
      * 
      * @param {string} key Key.
      *  
-     * @returns {TypeContextEntry} Type context entry or undefined.
+     * @returns {TypeContextEntry<TDeclaringType, any>} Type context entry or undefined.
      */
-    public get(key: string): TypeContextEntry | undefined
+    public get(key: string): TypeContextEntry<TDeclaringType, any> | undefined
     {
         return this.typeContextEntryMap.get(key);
     }
@@ -42,11 +42,11 @@ export class TypeContext
      * Sets value for key.
      * 
      * @param {string} key Key.
-     * @param {TypeContextEntry} value Value.
+     * @param {TypeContextEntry<TDeclaringType, any>} value Value.
      *  
      * @returns {TypeContext} Current type context.
      */
-    public set(key: string, value: TypeContextEntry): TypeContext
+    public set(key: string, value: TypeContextEntry<TDeclaringType, any>): TypeContext<TDeclaringType>
     {
         this.typeContextEntryMap.set(key, value);
 
@@ -58,7 +58,7 @@ export class TypeContext
      * 
      * @returns {IterableIterator<TypeContextEntry>} Iterable for values inside the context.
      */
-    public values(): IterableIterator<TypeContextEntry>
+    public values(): IterableIterator<TypeContextEntry<TDeclaringType, any>>
     {
         return this.typeContextEntryMap.values();
     }

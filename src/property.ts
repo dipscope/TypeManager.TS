@@ -6,15 +6,15 @@ import { PropertyOptions } from './property.options';
 /**
  * Property decorator.
  * 
- * @param {TypeResolver|PropertyOptions|string} x Type resolver, type options or type alias.
- * @param {PropertyOptions} y Property options if first argument is a type resolver.
+ * @param {TypeResolver<TType>|PropertyOptions<TType>|string} x Type resolver, type options or type alias.
+ * @param {PropertyOptions<TType>} y Property options if first argument is a type resolver.
  * 
  * @returns {PropertyDecorator} Property decorator.
  */
-export function Property(x?: TypeResolver | PropertyOptions | string, y?: PropertyOptions): PropertyDecorator
+export function Property<TType>(x?: TypeResolver<TType> | PropertyOptions<TType> | string, y?: PropertyOptions<TType>): PropertyDecorator
 {
-    const typeResolver    = Fn.isFunction(x) ? x : (Fn.isString(x) ? PropertyArtisan.buildTypeResolverForAlias(x) : undefined) as TypeResolver;
-    const propertyOptions = Fn.isObject(y) ? y : (Fn.isObject(x) ? x : {}) as PropertyOptions;
+    const typeResolver    = Fn.isFunction(x) ? x : (Fn.isString(x) ? PropertyArtisan.buildTypeResolverForAlias(x) : undefined) as TypeResolver<TType>;
+    const propertyOptions = Fn.isObject(y) ? y : (Fn.isObject(x) ? x : {}) as PropertyOptions<TType>;
     
     if (Fn.isUndefined(propertyOptions.typeResolver))
     {

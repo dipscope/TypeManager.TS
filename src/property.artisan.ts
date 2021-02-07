@@ -14,13 +14,17 @@ export class PropertyArtisan
     /**
      * Defines property metadata for a certain type constructor.
      * 
-     * @param {TypeCtor} declaringTypeCtor Declaring type constructor function.
+     * @param {TypeCtor<TDeclaringType>} declaringTypeCtor Declaring type constructor function.
      * @param {string} propertyName Property name.
-     * @param {PropertyOptions} propertyOptions Property options.
+     * @param {PropertyOptions<TType>} propertyOptions Property options.
      * 
-     * @returns {PropertyMetadata} Property metadata for provided type constructor.
+     * @returns {PropertyMetadata<TDeclaringType, TType>} Property metadata for provided type constructor.
      */
-    public static definePropertyMetadata(declaringTypeCtor: TypeCtor, propertyName: string, propertyOptions: PropertyOptions): PropertyMetadata
+    public static definePropertyMetadata<TDeclaringType, TType>(
+        declaringTypeCtor: TypeCtor<TDeclaringType>, 
+        propertyName: string, 
+        propertyOptions: PropertyOptions<TType>
+    ): PropertyMetadata<TDeclaringType, TType>
     {
         const typeMetadata     = TypeArtisan.defineTypeMetadata(declaringTypeCtor);
         const propertyMetadata = typeMetadata.configurePropertyMetadata(propertyName, propertyOptions);
@@ -33,9 +37,9 @@ export class PropertyArtisan
      * 
      * @param {string} typeAlias Type alias.
      * 
-     * @returns {TypeResolver} Configured type resolver.
+     * @returns {TypeResolver<any>} Configured type resolver.
      */
-    public static buildTypeResolverForAlias(typeAlias: string): TypeResolver
+    public static buildTypeResolverForAlias(typeAlias: string): TypeResolver<any>
     {
         const typeResolver = () => TypeArtisan.typeCtorMap.get(typeAlias);
 

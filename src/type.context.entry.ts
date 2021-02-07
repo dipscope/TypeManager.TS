@@ -3,9 +3,9 @@ import { PropertyMetadata } from './property.metadata';
 /**
  * Represents a data entry defined within a scope of a type.
  * 
- * @type {TypeContextEntry}
+ * @type {TypeContextEntry<TDeclaringType, TType>}
  */
-export class TypeContextEntry
+export class TypeContextEntry<TDeclaringType, TType>
 {
     /**
      * Unique key.
@@ -26,18 +26,18 @@ export class TypeContextEntry
     /**
      * Property metadata behind a key.
      * 
-     * @type {PropertyMetadata}
+     * @type {PropertyMetadata<TDeclaringType, TType>}
      */
-    public readonly propertyMetadata?: PropertyMetadata;
+    public readonly propertyMetadata?: PropertyMetadata<TDeclaringType, TType>;
 
     /**
      * Constructor.
      * 
      * @param {string} key Unique key.  
      * @param {any} value Value behind a key.
-     * @param {PropertyMetadata} propertyMetadata Property metadata behind a key.
+     * @param {PropertyMetadata<TDeclaringType, TType>} propertyMetadata Property metadata behind a key.
      */
-    public constructor(key: string, value: any, propertyMetadata?: PropertyMetadata)
+    public constructor(key: string, value: any, propertyMetadata?: PropertyMetadata<TDeclaringType, TType>)
     {
         this.key              = key;
         this.value            = value;

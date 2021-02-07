@@ -8,7 +8,7 @@ import { CustomData } from './custom.data';
  * 
  * @type {TypeOptionsBase}
  */
-export interface TypeOptionsBase
+export interface TypeOptionsBase<TType>
 {
     /**
      * Custom developer data.
@@ -44,9 +44,9 @@ export interface TypeOptionsBase
     /**
      * Type factory used to build instances of type.
      * 
-     * @type {TypeFactory}
+     * @type {TypeFactory<TType>}
      */
-    typeFactory: TypeFactory;
+    typeFactory: TypeFactory<TType>;
 
     /**
      * Type injector used to resolve types.
@@ -60,5 +60,5 @@ export interface TypeOptionsBase
      * 
      * @type {TypeSerializer}
      */
-    typeSerializer: TypeSerializer;
+    typeSerializer: TypeSerializer<TType>;
 }

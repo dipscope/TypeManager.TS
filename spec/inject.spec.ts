@@ -1,11 +1,11 @@
 import { Inject, TypeArtisan } from './../src';
 
-class X
+class User
 {
     public constructor(
-        @Inject('a') public a: string, 
-        @Inject(String) public b: string,
-        @Inject({ typeCtor: String, key: 'c' }) public c: string
+        @Inject('name') public name: string, 
+        @Inject(String) public email: string,
+        @Inject({ typeCtor: String, key: 'group' }) public group: string
     )
     {
         return;
@@ -16,32 +16,31 @@ describe('Inject decorator', function ()
 {
     it('should register type metadata', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata = TypeArtisan.extractTypeMetadata(User);
 
-        expect(typeMetadata).toBeDefined();
+        expect(userMetadata).toBeDefined();
     });
 
     it('should register inject metadata', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata      = TypeArtisan.extractTypeMetadata(User);
+        const userNameMetadata  = userMetadata.injectMetadataMap.get(0);
+        const userEmailMetadata = userMetadata.injectMetadataMap.get(1);
+        const userGroupMetadata = userMetadata.injectMetadataMap.get(2);
 
-        const aInjectMetadata = typeMetadata.injectMetadataMap.get(0);
-        const bInjectMetadata = typeMetadata.injectMetadataMap.get(1);
-        const cInjectMetadata = typeMetadata.injectMetadataMap.get(2);
+        expect(userNameMetadata).toBeDefined();
+        expect(userNameMetadata?.index).toBe(0);
+        expect(userNameMetadata?.injectOptions.key).toBe('name');
+        expect(userNameMetadata?.injectOptions.typeCtor).toBeUndefined();
 
-        expect(aInjectMetadata).toBeDefined();
-        expect(aInjectMetadata?.index).toBe(0);
-        expect(aInjectMetadata?.injectOptions.key).toBe('a');
-        expect(aInjectMetadata?.injectOptions.typeCtor).toBeUndefined();
+        expect(userEmailMetadata).toBeDefined();
+        expect(userEmailMetadata?.index).toBe(1);
+        expect(userEmailMetadata?.injectOptions.key).toBeUndefined();
+        expect(userEmailMetadata?.injectOptions.typeCtor).toBeDefined();
 
-        expect(bInjectMetadata).toBeDefined();
-        expect(bInjectMetadata?.index).toBe(1);
-        expect(bInjectMetadata?.injectOptions.key).toBeUndefined();
-        expect(bInjectMetadata?.injectOptions.typeCtor).toBeDefined();
-
-        expect(cInjectMetadata).toBeDefined();
-        expect(cInjectMetadata?.index).toBe(2);
-        expect(cInjectMetadata?.injectOptions.key).toBe('c');
-        expect(cInjectMetadata?.injectOptions.typeCtor).toBeDefined();
+        expect(userGroupMetadata).toBeDefined();
+        expect(userGroupMetadata?.index).toBe(2);
+        expect(userGroupMetadata?.injectOptions.key).toBe('group');
+        expect(userGroupMetadata?.injectOptions.typeCtor).toBeDefined();
     });
 });

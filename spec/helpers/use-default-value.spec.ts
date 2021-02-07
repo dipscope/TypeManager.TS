@@ -3,27 +3,26 @@ import { UseDefaultValue } from './../../src/helpers';
 
 @Type()
 @UseDefaultValue()
-class X
+class User
 {
-    @Property() @UseDefaultValue() public a?: string;
+    @Property() @UseDefaultValue() public name?: string;
 }
 
 describe('Use default value decorator', function () 
 {
     it('should enable use of default value for a type', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata = TypeArtisan.extractTypeMetadata(User);
 
-        expect(typeMetadata.typeOptions.useDefaultValue).toBeTrue();
+        expect(userMetadata.typeOptions.useDefaultValue).toBeTrue();
     });
 
     it('should enable use of default value for a property', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata     = TypeArtisan.extractTypeMetadata(User);
+        const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
-        const aPropertyMetadata = typeMetadata.propertyMetadataMap.get('a');
-
-        expect(aPropertyMetadata).toBeDefined();
-        expect(aPropertyMetadata?.propertyOptions.useDefaultValue).toBeTrue();
+        expect(userNameMetadata).toBeDefined();
+        expect(userNameMetadata?.propertyOptions.useDefaultValue).toBeTrue();
     });
 });

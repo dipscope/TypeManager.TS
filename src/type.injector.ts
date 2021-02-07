@@ -10,9 +10,9 @@ export interface TypeInjector
     /**
      * Method to get instance described by type metadata.
      * 
-     * @param {TypeMetadata} typeMetadata Type metadata.
+     * @param {TypeMetadata<TType>} typeMetadata Type metadata.
      * 
-     * @returns {any} Instance of type described by type metadata or undefined.
+     * @returns {TType|undefined} Instance of type described by type metadata or undefined.
      */
-    get(typeMetadata: TypeMetadata): any | undefined;
+    get<TType>(typeMetadata: TypeMetadata<TType>): TType | undefined;
 }

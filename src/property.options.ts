@@ -4,9 +4,9 @@ import { TypeOptionsBase } from './type.options.base';
 /**
  * Property options.
  * 
- * @type {PropertyOptions}
+ * @type {PropertyOptions<TType>}
  */
-export interface PropertyOptions extends Partial<TypeOptionsBase>
+export interface PropertyOptions<TType> extends Partial<TypeOptionsBase<TType>>
 {
     /**
      * Property alias.
@@ -48,7 +48,7 @@ export interface PropertyOptions extends Partial<TypeOptionsBase>
     /**
      * Type resolver to get a property type.
      * 
-     * @type {TypeResolver}
+     * @type {TypeResolver<TType>}
      */
-    typeResolver?: TypeResolver;
+    typeResolver?: TypeResolver<TType>;
 }

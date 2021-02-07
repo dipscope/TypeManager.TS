@@ -2,29 +2,28 @@ import { Type, TypeArtisan, Property } from './../../src';
 import { Deserializable } from './../../src/helpers';
 
 @Type()
-class X
+class User
 {
-    @Property() @Deserializable() public a?: string;
-    @Property() @Deserializable(false) public b?: string;
+    @Property() @Deserializable() public name?: string;
+    @Property() @Deserializable(false) public email?: string;
 }
 
 describe('Deserializable decorator', function () 
 {
     it('should register property as deserializable', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata      = TypeArtisan.extractTypeMetadata(User);
+        const userNameMetadata  = userMetadata.propertyMetadataMap.get('name');
+        const userEmailMetadata = userMetadata.propertyMetadataMap.get('email');
 
-        const aPropertyMetadata = typeMetadata.propertyMetadataMap.get('a');
-        const bPropertyMetadata = typeMetadata.propertyMetadataMap.get('b');
+        expect(userNameMetadata).toBeDefined();
+        expect(userNameMetadata?.serializationConfigured).toBeTrue();
+        expect(userNameMetadata?.propertyOptions.deserializable).toBeTrue();
+        expect(userNameMetadata?.propertyOptions.serializable).toBeUndefined();
 
-        expect(aPropertyMetadata).toBeDefined();
-        expect(aPropertyMetadata?.serializationConfigured).toBeTrue();
-        expect(aPropertyMetadata?.propertyOptions.deserializable).toBeTrue();
-        expect(aPropertyMetadata?.propertyOptions.serializable).toBeUndefined();
-
-        expect(bPropertyMetadata).toBeDefined();
-        expect(bPropertyMetadata?.serializationConfigured).toBeTrue();
-        expect(bPropertyMetadata?.propertyOptions.deserializable).toBeFalse();
-        expect(bPropertyMetadata?.propertyOptions.serializable).toBeUndefined();
+        expect(userEmailMetadata).toBeDefined();
+        expect(userEmailMetadata?.serializationConfigured).toBeTrue();
+        expect(userEmailMetadata?.propertyOptions.deserializable).toBeFalse();
+        expect(userEmailMetadata?.propertyOptions.serializable).toBeUndefined();
     });
 });

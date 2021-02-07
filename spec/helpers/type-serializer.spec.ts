@@ -4,27 +4,26 @@ import { TypeSerializer } from './../../src/helpers';
 
 @Type()
 @TypeSerializer(new ObjectSerializer())
-class X
+class User
 {
-    @Property() @TypeSerializer(new StringSerializer()) public a?: string;
+    @Property() @TypeSerializer(new StringSerializer()) public name?: string;
 }
 
 describe('Type serializer decorator', function () 
 {
     it('should register custom serializer for a type', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata = TypeArtisan.extractTypeMetadata(User);
 
-        expect(typeMetadata.typeOptions.typeSerializer).toBeInstanceOf(ObjectSerializer);
+        expect(userMetadata.typeOptions.typeSerializer).toBeInstanceOf(ObjectSerializer);
     });
 
     it('should register custom serializer for a property', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata     = TypeArtisan.extractTypeMetadata(User);
+        const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
-        const aPropertyMetadata = typeMetadata.propertyMetadataMap.get('a');
-
-        expect(aPropertyMetadata).toBeDefined();
-        expect(aPropertyMetadata?.propertyOptions.typeSerializer).toBeInstanceOf(StringSerializer);
+        expect(userNameMetadata).toBeDefined();
+        expect(userNameMetadata?.propertyOptions.typeSerializer).toBeInstanceOf(StringSerializer);
     });
 });

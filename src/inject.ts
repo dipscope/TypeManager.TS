@@ -10,9 +10,9 @@ import { InjectOptions } from './inject.options';
  * 
  * @returns {ParameterDecorator} Parameter decorator.
  */
-export function Inject(x: TypeCtor | InjectOptions | string): ParameterDecorator
+export function Inject<TType>(x: TypeCtor<TType> | InjectOptions<TType> | string): ParameterDecorator
 {
-    const injectOptions = (Fn.isObject(x) ? x : {}) as InjectOptions;
+    const injectOptions = (Fn.isObject(x) ? x : {}) as InjectOptions<TType>;
 
     if (Fn.isUndefined(injectOptions.key) && Fn.isString(x))
     {
@@ -21,7 +21,7 @@ export function Inject(x: TypeCtor | InjectOptions | string): ParameterDecorator
 
     if (Fn.isUndefined(injectOptions.typeCtor) && Fn.isFunction(x))
     {
-        injectOptions.typeCtor = x as TypeCtor;
+        injectOptions.typeCtor = x as TypeCtor<TType>;
     }
 
     return function (target: any, propertyName: string | symbol, injectIndex: number): void

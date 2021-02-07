@@ -20,16 +20,16 @@ export interface TypeManagerOptions
     /**
      * Global type options shared among all types.
      * 
-     * @type {Partial<TypeOptionsBase>}
+     * @type {Partial<TypeOptionsBase<any>>}
      */
-    typeOptionsBase?: Partial<TypeOptionsBase>;
+    typeOptionsBase?: Partial<TypeOptionsBase<any>>;
 
     /**
      * Type options per type. 
      * 
      * Overrides global type options.
      * 
-     * @type {Map<TypeCtor, TypeOptions>}
+     * @type {Map<TypeCtor<any>, TypeOptions<any>>}
      */
-    typeOptionsMap?: Map<TypeCtor, TypeOptions>;
+    typeOptionsMap?: Map<TypeCtor<any>, TypeOptions<any>>;
 }

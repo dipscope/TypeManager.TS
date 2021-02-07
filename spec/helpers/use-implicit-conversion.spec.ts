@@ -3,27 +3,26 @@ import { UseImplicitConversion } from './../../src/helpers';
 
 @Type()
 @UseImplicitConversion()
-class X
+class User
 {
-    @Property() @UseImplicitConversion() public a?: string;
+    @Property() @UseImplicitConversion() public name?: string;
 }
 
 describe('Use implicit conversion decorator', function () 
 {
     it('should enable use of implicit conversion for a type', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata = TypeArtisan.extractTypeMetadata(User);
 
-        expect(typeMetadata.typeOptions.useImplicitConversion).toBeTrue();
+        expect(userMetadata.typeOptions.useImplicitConversion).toBeTrue();
     });
 
     it('should enable use of implicit conversion for a property', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata     = TypeArtisan.extractTypeMetadata(User);
+        const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
-        const aPropertyMetadata = typeMetadata.propertyMetadataMap.get('a');
-
-        expect(aPropertyMetadata).toBeDefined();
-        expect(aPropertyMetadata?.propertyOptions.useImplicitConversion).toBeTrue();
+        expect(userNameMetadata).toBeDefined();
+        expect(userNameMetadata?.propertyOptions.useImplicitConversion).toBeTrue();
     });
 });

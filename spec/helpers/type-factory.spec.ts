@@ -4,27 +4,26 @@ import { TypeFactory } from './../../src/helpers';
 
 @Type()
 @TypeFactory(new ObjectFactory())
-class X
+class User
 {
-    @Property() @TypeFactory(new ObjectFactory()) public a?: string;
+    @Property() @TypeFactory(new ObjectFactory()) public name?: string;
 }
 
 describe('Type factory decorator', function () 
 {
     it('should register custom factory for a type', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata = TypeArtisan.extractTypeMetadata(User);
 
-        expect(typeMetadata.typeOptions.typeFactory).toBeInstanceOf(ObjectFactory);
+        expect(userMetadata.typeOptions.typeFactory).toBeInstanceOf(ObjectFactory);
     });
 
     it('should register custom factory for a property', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata     = TypeArtisan.extractTypeMetadata(User);
+        const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
-        const aPropertyMetadata = typeMetadata.propertyMetadataMap.get('a');
-
-        expect(aPropertyMetadata).toBeDefined();
-        expect(aPropertyMetadata?.propertyOptions.typeFactory).toBeInstanceOf(ObjectFactory);
+        expect(userNameMetadata).toBeDefined();
+        expect(userNameMetadata?.propertyOptions.typeFactory).toBeInstanceOf(ObjectFactory);
     });
 });

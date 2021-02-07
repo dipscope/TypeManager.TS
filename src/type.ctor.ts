@@ -3,4 +3,4 @@
  * 
  * @type {TypeCtor}
  */
-export type TypeCtor = new (...args: any[]) => any;
+export type TypeCtor<TType> = new (...args: any[]) => TType;

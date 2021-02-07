@@ -1,26 +1,26 @@
-import { TypeArtisan } from '../../src';
-import { Injectable } from '../../src/helpers';
+import { TypeArtisan } from './../../src';
+import { Injectable } from './../../src/helpers';
 
 @Injectable()
-class X
+class UserService
 {
-    public a?: string;
+    public prop?: string;
 }
 
 @Injectable(false)
-class Y
+class EmailService
 {
-    public a?: string;
+    public prop?: string;
 }
 
 describe('Injectable decorator', function () 
 {
     it('should register a type as injectable', function ()
     {
-        const xTypeMetadata = TypeArtisan.extractTypeMetadata(X);
-        const yTypeMetadata = TypeArtisan.extractTypeMetadata(Y);
+        const userServiceMetadata  = TypeArtisan.extractTypeMetadata(UserService);
+        const emailServiceMetadata = TypeArtisan.extractTypeMetadata(EmailService);
 
-        expect(xTypeMetadata.typeOptions.injectable).toBeTrue();
-        expect(yTypeMetadata.typeOptions.injectable).toBeFalse();
+        expect(userServiceMetadata.typeOptions.injectable).toBeTrue();
+        expect(emailServiceMetadata.typeOptions.injectable).toBeFalse();
     });
 });

@@ -4,6 +4,6 @@ import { TypeMetadata } from './type.metadata';
 /**
  * Type metadata resolver.
  * 
- * @type {TypeMetadataResolver}
+ * @type {TypeMetadataResolver<TType>}
  */
-export type TypeMetadataResolver = (typeCtor: TypeCtor) => TypeMetadata;
+export type TypeMetadataResolver<TType> = (typeCtor: TypeCtor<TType>) => TypeMetadata<TType>;

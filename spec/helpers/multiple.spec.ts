@@ -1,26 +1,25 @@
-import { Type, TypeArtisan, Property } from '../../src';
-import { Multiple } from '../../src/helpers';
+import { Type, TypeArtisan, Property } from './../../src';
+import { Multiple } from './../../src/helpers';
 
 @Type()
-class X
+class User
 {
-    @Property() @Multiple() public a?: string;
-    @Property() @Multiple(false) public b?: string;
+    @Property() @Multiple(false) public name?: string;
+    @Property() @Multiple() public groups?: string[];
 }
 
 describe('Multiple decorator', function () 
 {
     it('should register property as multiple', function ()
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(X);
+        const userMetadata       = TypeArtisan.extractTypeMetadata(User);
+        const userNameMetadata   = userMetadata.propertyMetadataMap.get('name');
+        const userGroupsMetadata = userMetadata.propertyMetadataMap.get('groups');
 
-        const aPropertyMetadata = typeMetadata.propertyMetadataMap.get('a');
-        const bPropertyMetadata = typeMetadata.propertyMetadataMap.get('b');
+        expect(userNameMetadata).toBeDefined();
+        expect(userNameMetadata?.propertyOptions.multiple).toBeFalse();
 
-        expect(aPropertyMetadata).toBeDefined();
-        expect(aPropertyMetadata?.propertyOptions.multiple).toBeTrue();
-
-        expect(bPropertyMetadata).toBeDefined();
-        expect(bPropertyMetadata?.propertyOptions.multiple).toBeFalse();
+        expect(userGroupsMetadata).toBeDefined();
+        expect(userGroupsMetadata?.propertyOptions.multiple).toBeTrue();
     });
 });
