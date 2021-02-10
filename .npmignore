@@ -1,5 +1,6 @@
 # VS files
 .vs
+.vscode
 .editorconfig
 .gitattributes
 .gitignore
