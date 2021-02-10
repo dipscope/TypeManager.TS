@@ -12,24 +12,24 @@ export class SingletonInjector implements TypeInjector
     /**
      * Map with resolved types.
      * 
-     * @type {WeakMap<TypeMetadata, any>}
+     * @type {WeakMap<TypeMetadata<any>, any>}
      */
-    private readonly instanceMap: WeakMap<TypeMetadata, any> = new WeakMap<TypeMetadata, any>();
+    private readonly instanceMap: WeakMap<TypeMetadata<any>, any> = new WeakMap<TypeMetadata<any>, any>();
 
     /**
      * Method to get instance described by type metadata.
      * 
-     * @param {TypeMetadata} typeMetadata Type metadata.
+     * @param {TypeMetadata<TType>} typeMetadata Type metadata.
      * 
-     * @returns {any} Instance of type described by type metadata or undefined.
+     * @returns {TType} Instance of type described by type metadata or undefined.
      */
-    public get(typeMetadata: TypeMetadata): any | undefined
+    public get<TType>(typeMetadata: TypeMetadata<TType>): TType | undefined
     {
         if (!typeMetadata.injectable)
         {
             if (Log.errorEnabled)
             {
-                Log.error(`${Fn.nameOf(typeMetadata.typeCtor)}: cannot resolve type! Have you registered it as injectable?`);
+                Log.error(`${typeMetadata.path}: cannot resolve type! Have you registered it as injectable?`);
             }
 
             return undefined;
@@ -48,11 +48,11 @@ export class SingletonInjector implements TypeInjector
     /**
      * Creates instance described by type metadata.
      * 
-     * @param {TypeMetadata} typeMetadata Type metadata.
+     * @param {TypeMetadata<TType>} typeMetadata Type metadata.
      * 
-     * @returns {any} Type instance described by type metadata.
+     * @returns {TType} Type instance described by type metadata.
      */
-    private init(typeMetadata: TypeMetadata): any
+    private init<TType>(typeMetadata: TypeMetadata<TType>): TType
     {
         const args: any[] = [];
 

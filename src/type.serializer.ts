@@ -1,5 +1,5 @@
-import { TypeMetadata } from './type.metadata';
-import { PropertyMetadata } from './property.metadata';
+import { TypeLike } from './type.like';
+import { TypeSerializerContext } from './type.serializer.context';
 
 /**
  * Type serializer.
@@ -11,22 +11,20 @@ export interface TypeSerializer<TType>
     /**
      * Serializes provided value.
      * 
-     * @param {TType|undefined} x Some value.
-     * @param {TypeMetadata<TType>} typeMetadata Type metadata when it is known.
-     * @param {PropertyMetadata<any, TType>} propertyMetadata Property metadata when serialization is performed on a property level.
+     * @param {TypeLike<TType>} x Some value.
+     * @param {TypeSerializerContext<TType>} typeSerializerContext Type serializer context.
      * 
-     * @returns {any|undefined} Serialized value.
+     * @returns {TypeLike<any>} Serialized value.
      */
-    serialize(x: TType | undefined, typeMetadata?: TypeMetadata<TType>, propertyMetadata?: PropertyMetadata<any, TType>): any | undefined;
+    serialize(x: TypeLike<TType>, typeSerializerContext: TypeSerializerContext<TType>): TypeLike<any>;
 
     /**
      * Deserializes provided value.
      * 
-     * @param {any|undefined} x Some value.
-     * @param {TypeMetadata<TType>} typeMetadata Type metadata when it is known.
-     * @param {PropertyMetadata<any, TType>} propertyMetadata Property metadata when serialization is performed on a property level.
+     * @param {TypeLike<any>} x Some value.
+     * @param {TypeSerializerContext<TType>} typeSerializerContext Type serializer context.
      * 
-     * @returns {TType|undefined} Deserialized value.
+     * @returns {TypeLike<TType>} Deserialized value.
      */
-    deserialize(x: any | undefined, typeMetadata?: TypeMetadata<TType>, propertyMetadata?: PropertyMetadata<any, TType>): TType | undefined;
+    deserialize(x: TypeLike<any>, typeSerializerContext: TypeSerializerContext<TType>): TypeLike<TType>;
 }

@@ -5,6 +5,7 @@ import { TypeCtor } from './type.ctor';
 import { TypeArtisan } from './type.artisan';
 import { TypeOptionsBase } from './type.options.base';
 import { TypeOptions } from './type.options';
+import { TypeLike } from './type.like';
 
 /**
  * Type manager class for external usage.
@@ -52,11 +53,11 @@ export class TypeManager<TType>
     /**
      * Configures global type options.
      * 
-     * @param {Partial<TypeOptionsBase<TType>>} typeOptionsBase Type options base.
+     * @param {Partial<TypeOptionsBase<any>>} typeOptionsBase Type options base.
      * 
      * @returns {void}
      */
-    public static configureTypeOptionsBase<TType>(typeOptionsBase: Partial<TypeOptionsBase<TType>>): void
+    public static configureTypeOptionsBase(typeOptionsBase: Partial<TypeOptionsBase<any>>): void
     {
         TypeArtisan.configureTypeOptionsBase(typeOptionsBase);
 
@@ -66,12 +67,12 @@ export class TypeManager<TType>
     /**
      * Configures type options.
      * 
-     * @param {TypeCtor<TType>} typeCtor Type constructor function.
-     * @param {TypeOptions<TType>} typeOptions Type options.
+     * @param {TypeCtor<any>} typeCtor Type constructor function.
+     * @param {TypeOptions<any>} typeOptions Type options.
      * 
      * @returns {void}
      */
-    public static configureTypeOptions<TType>(typeCtor: TypeCtor<TType>, typeOptions: TypeOptions<TType>): void 
+    public static configureTypeOptions(typeCtor: TypeCtor<any>, typeOptions: TypeOptions<any>): void 
     {
         TypeArtisan.configureTypeOptions(typeCtor, typeOptions);
 
@@ -81,11 +82,11 @@ export class TypeManager<TType>
     /**
      * Configures type options per type.
      * 
-     * @param {Map<TypeCtor<TType>, TypeOptions<TType>>} typeOptionsMap Type options map.
+     * @param {Map<TypeCtor<any>, TypeOptions<any>>} typeOptionsMap Type options map.
      * 
      * @returns {void}
      */
-    public static configureTypeOptionsMap<TType>(typeOptionsMap: Map<TypeCtor<TType>, TypeOptions<TType>>): void
+    public static configureTypeOptionsMap(typeOptionsMap: Map<TypeCtor<any>, TypeOptions<any>>): void
     {
         TypeArtisan.configureTypeOptionsMap(typeOptionsMap);
 
@@ -123,11 +124,15 @@ export class TypeManager<TType>
      * Serializes provided value based on the type constructor function.
      * 
      * @param {TypeCtor<TType>} typeCtor Type constructor function.
-     * @param {any} x Input value.
+     * @param {TypeLike<TType>} x Input value.
      * 
-     * @returns {any} Object created from provided input value. 
+     * @returns {TypeLike<any>} Object created from provided input value or undefined. 
      */
-    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: any): any 
+    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: undefined): undefined;
+    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: null): null;
+    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: TType[]): any[];
+    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: TType): any;
+    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: TypeLike<TType>): TypeLike<any>
     {
         const typeMetadata = TypeArtisan.extractTypeMetadata(typeCtor);
 
@@ -138,11 +143,15 @@ export class TypeManager<TType>
      * Deserializes provided value based on the type constructor function.
      * 
      * @param {TypeCtor<TType>} typeCtor Type constructor function.
-     * @param {any} x Input value.
+     * @param {TypeLike<any>} x Input value.
      * 
-     * @returns {any} Type created from provided input value. 
+     * @returns {TypeLike<TType>} Type created from provided input value or undefined.
      */
-    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: any): TType | undefined
+    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: undefined): undefined;
+    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: null): null;
+    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: any[]): TType[];
+    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: any): TType;
+    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: TypeLike<any>): TypeLike<TType>
     {
         const typeMetadata = TypeArtisan.extractTypeMetadata(typeCtor);
 
@@ -168,12 +177,12 @@ export class TypeManager<TType>
      * Converts a JavaScript Object Notation (JSON) string into a type.
      * 
      * @param {TypeCtor<TType>} typeCtor Type constructor function.
-     * @param {any} x A valid JSON string.
+     * @param {string} x A valid JSON string.
      * @param {Function} reviver A function that transforms the results. This function is called for each member of the object.
      * 
-     * @returns {TType} Type created from provided input value.
+     * @returns {TypeLike<TType>} Type created from provided input value or undefined.
      */
-    public static parse<TType>(typeCtor: TypeCtor<TType>, x: string, reviver?: (this: any, key: string, value: any) => any): TType | undefined
+    public static parse<TType>(typeCtor: TypeCtor<TType>, x: string, reviver?: (this: any, key: string, value: any) => any): TypeLike<TType>
     {
         return this.deserialize(typeCtor, JSON.parse(x, reviver));
     }
@@ -181,11 +190,15 @@ export class TypeManager<TType>
     /**
      * Serializes provided value.
      * 
-     * @param {any} x Input value.
+     *  @param {TypeLike<TType>} x Input value.
      * 
-     * @returns {any} Object created from provided input value. 
+     * @returns {TypeLike<any>} Object created from provided input value or undefined. 
      */
-    public serialize(x: any): any 
+    public serialize(x: undefined): undefined;
+    public serialize(x: null): null;
+    public serialize(x: TType[]): any[];
+    public serialize(x: TType): any;
+    public serialize(x: TypeLike<TType>): TypeLike<any>
     {
         return this.typeMetadata.typeSerializer.serialize(x, this.typeMetadata);
     }
@@ -193,11 +206,15 @@ export class TypeManager<TType>
     /**
      * Deserializes provided value.
      * 
-     * @param {any} x Input value.
+     * @param {TypeLike<any>} x Input value.
      * 
-     * @returns {any} Type created from provided input value. 
+     * @returns {TypeLike<TType>} Type created from provided input value or undefined.
      */
-    public deserialize(x: any): TType | undefined
+    public deserialize(x: undefined): undefined;
+    public deserialize(x: null): null;
+    public deserialize(x: any[]): TType[];
+    public deserialize(x: any): TType;
+    public deserialize(x: TypeLike<any>): TypeLike<TType>
     {
         return this.typeMetadata.typeSerializer.deserialize(x, this.typeMetadata);
     }
@@ -219,12 +236,12 @@ export class TypeManager<TType>
     /**
      * Converts a JavaScript Object Notation (JSON) string into a type.
      * 
-     * @param {any} x A valid JSON string.
+     * @param {string} x A valid JSON string.
      * @param {Function} reviver A function that transforms the results. This function is called for each member of the object.
      * 
-     * @returns {any} Type created from provided input value.
+     * @returns {TypeLike<TType>} Type created from provided input value or undefined.
      */
-    public parse(x: string, reviver?: (this: any, key: string, value: any) => any): any
+    public parse(x: string, reviver?: (this: any, key: string, value: any) => any): TypeLike<TType>
     {
         return this.deserialize(JSON.parse(x, reviver));
     }

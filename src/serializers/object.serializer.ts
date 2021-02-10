@@ -1,32 +1,36 @@
 import { Fn, Log } from './../utils';
+import { TypeLike } from './../type.like';
 import { TypeSerializer } from './../type.serializer';
-import { TypeMetadata } from './../type.metadata';
-import { PropertyMetadata } from './../property.metadata';
+import { TypeSerializerContext } from './../type.serializer.context';
 import { TypeContextEntry } from './../type.context.entry';
 import { TypeContext } from './../type.context';
+import { PropertyMetadata } from './../property.metadata';
 
 /**
  * Object serializer.
  * 
  * @type {ObjectSerializer}
  */
-export class ObjectSerializer implements TypeSerializer
+export class ObjectSerializer implements TypeSerializer<Record<string, any>>
 {
     /**
      * Serializes provided value.
      * 
-     * @param {any} x Some value.
-     * @param {TypeMetadata} typeMetadata Type metadata when it is known.
-     * @param {PropertyMetadata} propertyMetadata Property metadata when serialization is performed on a property level.
-     * @param {WeakMap<any, any>} objectMap Object map to handle circular references.
+     * @param {TypeLike<Record<string, any>>} x Some value.
+     * @param {TypeSerializerContext<Record<string, any>>} typeSerializerContext Type serializer context.
+     * @param {WeakMap<any, any>} objectMap Map to track object references.
      * 
-     * @returns {any} Serialized value.
+     * @returns {TypeLike<any>} Serialized value or undefined.
      */
-    public serialize(x: any, typeMetadata?: TypeMetadata, propertyMetadata?: PropertyMetadata, objectMap: WeakMap<any, any> = new WeakMap<any, any>()): any
+    public serialize(
+        x: TypeLike<Record<string, any>>, 
+        typeSerializerContext: TypeSerializerContext<Record<string, any>>, 
+        objectMap: WeakMap<any, any> = new WeakMap<any, any>()
+    ): TypeLike<any>
     {
         if (Fn.isUndefined(x))
         {
-            return propertyMetadata?.defaultValue ?? typeMetadata?.defaultValue;
+            return typeSerializerContext.defaultValue;
         }
 
         if (Fn.isNull(x))
@@ -36,13 +40,22 @@ export class ObjectSerializer implements TypeSerializer
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.serialize(v, typeMetadata, propertyMetadata, objectMap));
+            return x.map(v => this.serialize(v, typeSerializerContext, objectMap));
         }
 
-        if (Fn.isObject(x) && !Fn.isNil(typeMetadata))
+        if (Fn.isObject(x))
         {
+            const typeMetadata = typeSerializerContext instanceof PropertyMetadata ? typeSerializerContext.typeMetadata : typeSerializerContext;
+
+            if (Fn.isNil(typeMetadata))
+            {
+                Log.error(`${typeSerializerContext.path}: Cannot define type metadata during serializing value as object!`, x);
+
+                return undefined;
+            }
+
             const type   = x;
-            const object = {} as any;
+            const object = {} as Record<string, any>;
 
             for (const propertyMetadata of typeMetadata.propertyMetadataMap.values())
             {
@@ -69,15 +82,13 @@ export class ObjectSerializer implements TypeSerializer
                     continue;
                 }
 
-                const propertyTypeMetadata = propertyMetadata.typeMetadata;
-
                 if (Fn.isObject(propertyValue) && propertyTypeSerializer instanceof ObjectSerializer)
                 {
                     let value = objectMap.get(propertyValue);
 
                     if (Fn.isUndefined(value))
                     {
-                        value = propertyTypeSerializer.serialize(propertyValue, propertyTypeMetadata, propertyMetadata, objectMap);
+                        value = propertyTypeSerializer.serialize(propertyValue, propertyMetadata, objectMap);
 
                         objectMap.set(propertyValue, value);
                     }
@@ -87,7 +98,7 @@ export class ObjectSerializer implements TypeSerializer
                     continue;
                 }
 
-                object[propertyName] = propertyTypeSerializer.serialize(propertyValue, propertyTypeMetadata, propertyMetadata);
+                object[propertyName] = propertyTypeSerializer.serialize(propertyValue, propertyMetadata);
             }
 
             return object;
@@ -95,7 +106,7 @@ export class ObjectSerializer implements TypeSerializer
 
         if (Log.errorEnabled)
         {
-            Log.error('Cannot serialize value as object!', x);
+            Log.error(`${typeSerializerContext.path}: Cannot serialize value as object!`, x);
         }
 
         return undefined;
@@ -104,18 +115,21 @@ export class ObjectSerializer implements TypeSerializer
     /**
      * Deserializes provided value.
      * 
-     * @param {any} x Some value.
-     * @param {TypeMetadata} typeMetadata Type metadata when it is known.
-     * @param {PropertyMetadata} propertyMetadata Property metadata when serialization is performed on a property level.
-     * @param {WeakMap<any, any>} objectMap Object map to handle circular references.
+     * @param {TypeLike<any>} x Some value.
+     * @param {TypeSerializerContext<Record<string, any>>} typeSerializerContext Type serializer context.
+     * @param {WeakMap<any, any>} objectMap Map to track object references.
      * 
-     * @returns {any} Deserialized value.
+     * @returns {TypeLike<Record<string, any>>} Deserialized value.
      */
-    public deserialize(x: any, typeMetadata?: TypeMetadata, propertyMetadata?: PropertyMetadata, objectMap: WeakMap<any, any> = new WeakMap<any, any>()): any
+    public deserialize(
+        x: TypeLike<any>, 
+        typeSerializerContext: TypeSerializerContext<Record<string, any>>, 
+        objectMap: WeakMap<any, any> = new WeakMap<any, any>()
+    ): TypeLike<Record<string, any>>
     {
         if (Fn.isUndefined(x))
         {
-            return propertyMetadata?.defaultValue ?? typeMetadata?.defaultValue;
+            return typeSerializerContext.defaultValue;
         }
 
         if (Fn.isNull(x))
@@ -125,14 +139,22 @@ export class ObjectSerializer implements TypeSerializer
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.deserialize(v, typeMetadata, propertyMetadata, objectMap));
+            return x.map(v => this.deserialize(v, typeSerializerContext, objectMap));
         }
 
-        if (Fn.isObject(x) && !Fn.isNil(typeMetadata))
+        if (Fn.isObject(x))
         {
-            const object                 = x;
-            const parentPropertyMetadata = propertyMetadata;
-            const typeContext            = new TypeContext();
+            const typeMetadata = typeSerializerContext instanceof PropertyMetadata ? typeSerializerContext.typeMetadata : typeSerializerContext;
+            
+            if (Fn.isNil(typeMetadata))
+            {
+                Log.error(`${typeSerializerContext.path}: Cannot define type metadata during deserializing value as object!`, x);
+
+                return undefined;
+            }
+
+            const object      = x;
+            const typeContext = new TypeContext(typeMetadata);
 
             for (const propertyMetadata of typeMetadata.propertyMetadataMap.values())
             {
@@ -162,15 +184,13 @@ export class ObjectSerializer implements TypeSerializer
                     continue;
                 }
 
-                const propertyTypeMetadata = propertyMetadata.typeMetadata;
-
                 if (Fn.isObject(propertyValue) && propertyTypeSerializer instanceof ObjectSerializer)
                 {
                     let value = objectMap.get(propertyValue);
 
                     if (Fn.isUndefined(value))
                     {
-                        value = propertyTypeSerializer.deserialize(propertyValue, propertyTypeMetadata, propertyMetadata, objectMap);
+                        value = propertyTypeSerializer.deserialize(propertyValue, propertyMetadata, objectMap);
 
                         objectMap.set(propertyValue, value);
                     }
@@ -182,7 +202,7 @@ export class ObjectSerializer implements TypeSerializer
 
                 typeContext.set(propertyName, new TypeContextEntry(
                     propertyName,
-                    propertyTypeSerializer.deserialize(propertyValue, propertyTypeMetadata, propertyMetadata), 
+                    propertyTypeSerializer.deserialize(propertyValue, propertyMetadata), 
                     propertyMetadata
                 ));
             }
@@ -195,9 +215,9 @@ export class ObjectSerializer implements TypeSerializer
                 }
             }
 
-            const typeFactory  = parentPropertyMetadata?.typeFactory ?? typeMetadata.typeFactory;
-            const typeInjector = parentPropertyMetadata?.typeInjector ?? typeMetadata.typeInjector;
-            const type         = typeFactory.build(typeMetadata, typeContext, typeInjector);
+            const typeFactory  = typeSerializerContext?.typeFactory ?? typeMetadata.typeFactory;
+            const typeInjector = typeSerializerContext?.typeInjector ?? typeMetadata.typeInjector;
+            const type         = typeFactory.build(typeContext, typeInjector);
 
             for (const typeContextEntry of typeContext.values())
             {
@@ -212,7 +232,7 @@ export class ObjectSerializer implements TypeSerializer
         
         if (Log.errorEnabled)
         {
-            Log.error('Cannot deserialize value as object!', x);
+            Log.error(`${typeSerializerContext.path}: Cannot deserialize value as object!`, x);
         }
 
         return undefined;

@@ -1,29 +1,28 @@
 import { Fn } from './../utils';
-import { TypeMetadata } from './../type.metadata';
-import { TypeContext } from './../type.context';
 import { TypeFactory } from './../type.factory';
+import { TypeContext } from './../type.context';
 import { TypeInjector } from './../type.injector';
 
 /**
- * Default type factory.
+ * Default object type factory.
  * 
  * @type {ObjectFactory}
  */
-export class ObjectFactory implements TypeFactory
+export class ObjectFactory implements TypeFactory<Record<string, any>>
 {
     /**
      * Builds type described by provided type metadata.
      * 
-     * @param {TypeMetadata} typeMetadata Type metadata.
-     * @param {TypeContext} typeContext Type context.
+     * @param {TypeContext<Record<string, any>>} typeContext Type context.
      * @param {TypeInjector} typeInjector Type injector.
      * 
-     * @returns {any} Type instance described by provided type metadata.
+     * @returns {Record<string, any>} Type instance described by provided type metadata.
      */
-    public build(typeMetadata: TypeMetadata, typeContext: TypeContext, typeInjector: TypeInjector): any
+    public build(typeContext: TypeContext<Record<string, any>>, typeInjector: TypeInjector): Record<string, any>
     {
-        const typeCtor = typeMetadata.typeCtor;
-        const args     = new Array<any>(typeCtor.length).fill(undefined);
+        const typeMetadata = typeContext.typeMetadata;
+        const typeCtor     = typeMetadata.typeCtor;
+        const args         = new Array<any>(typeCtor.length).fill(undefined);
 
         for (const injectMetadata of typeMetadata.injectMetadataMap.values())
         {

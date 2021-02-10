@@ -19,7 +19,7 @@ export interface InjectOptions<TType>
      * Type of injection. Used if key is not specified. Will be resolved using 
      * type injector.
      * 
-     * @type {TypeCtor}
+     * @type {TypeCtor<TType>}
      */
     typeCtor?: TypeCtor<TType>;
 }

@@ -1,29 +1,28 @@
 import { Fn, Log } from './../utils';
+import { TypeLike } from './../type.like';
 import { TypeSerializer } from './../type.serializer';
-import { TypeMetadata } from './../type.metadata';
-import { PropertyMetadata } from './../property.metadata';
+import { TypeSerializerContext } from './../type.serializer.context';
 
 /**
  * Boolean serializer.
  * 
  * @type {BooleanSerializer}
  */
-export class BooleanSerializer implements TypeSerializer
+export class BooleanSerializer implements TypeSerializer<boolean>
 {
     /**
      * Serializes provided value.
      * 
-     * @param {any} x Some value.
-     * @param {TypeMetadata} typeMetadata Type metadata when it is known.
-     * @param {PropertyMetadata} propertyMetadata Property metadata when serialization is performed on a property level.
+     * @param {TypeLike<boolean>} x Some value.
+     * @param {TypeSerializerContext<boolean>} typeSerializerContext Type serializer context.
      * 
-     * @returns {any} Serialized value.
+     * @returns {TypeLike<any>} Serialized value or undefined.
      */
-    public serialize(x: any, typeMetadata?: TypeMetadata, propertyMetadata?: PropertyMetadata): any
+    public serialize(x: TypeLike<boolean>, typeSerializerContext: TypeSerializerContext<boolean>): TypeLike<any>
     {
         if (Fn.isUndefined(x))
         {
-            return propertyMetadata?.defaultValue ?? typeMetadata?.defaultValue;
+            return typeSerializerContext.defaultValue;
         }
 
         if (Fn.isNull(x) || Fn.isBoolean(x))
@@ -33,17 +32,17 @@ export class BooleanSerializer implements TypeSerializer
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.serialize(v, typeMetadata, propertyMetadata));
+            return x.map((v: any) => this.serialize(v, typeSerializerContext));
         }
 
-        if (propertyMetadata?.useImplicitConversion ?? typeMetadata?.useImplicitConversion) 
+        if (typeSerializerContext.useImplicitConversion) 
         {
-            return this.convert(x);
+            return this.convert(x, typeSerializerContext);
         }
 
         if (Log.errorEnabled) 
         {
-            Log.error('Cannot serialize value as boolean!', x);
+            Log.error(`${typeSerializerContext.path}: Cannot serialize value as boolean!`, x);
         }
 
         return undefined;
@@ -52,17 +51,16 @@ export class BooleanSerializer implements TypeSerializer
     /**
      * Deserializes provided value.
      * 
-     * @param {any} x Some value.
-     * @param {TypeMetadata} typeMetadata Type metadata when it is known.
-     * @param {PropertyMetadata} propertyMetadata Property metadata when serialization is performed on a property level.
+     * @param {TypeLike<any>} x Some value.
+     * @param {TypeSerializerContext<boolean>} typeSerializerContext Type serializer context.
      * 
-     * @returns {any} Deserialized value.
+     * @returns {TypeLike<boolean>} Deserialized value.
      */
-    public deserialize(x: any, typeMetadata?: TypeMetadata, propertyMetadata?: PropertyMetadata): any
+    public deserialize(x: TypeLike<any>, typeSerializerContext: TypeSerializerContext<boolean>): TypeLike<boolean>
     {
         if (Fn.isUndefined(x))
         {
-            return propertyMetadata?.defaultValue ?? typeMetadata?.defaultValue;
+            return typeSerializerContext.defaultValue;
         }
 
         if (Fn.isNull(x) || Fn.isBoolean(x))
@@ -72,17 +70,17 @@ export class BooleanSerializer implements TypeSerializer
         
         if (Fn.isArray(x))
         {
-            return x.map(v => this.deserialize(v, typeMetadata, propertyMetadata));
+            return x.map((v: any) => this.deserialize(v, typeSerializerContext));
         }
 
-        if (propertyMetadata?.useImplicitConversion ?? typeMetadata?.useImplicitConversion) 
+        if (typeSerializerContext.useImplicitConversion) 
         {
-            return this.convert(x);
+            return this.convert(x, typeSerializerContext);
         }
 
         if (Log.errorEnabled) 
         {
-            Log.error('Cannot deserialize value as boolean!', x);
+            Log.error(`${typeSerializerContext.path}: Cannot deserialize value as boolean!`, x);
         }
 
         return undefined;
@@ -92,10 +90,11 @@ export class BooleanSerializer implements TypeSerializer
      * Converts provided value to the target type value.
      * 
      * @param {any} x Some value.
+     * @param {TypeSerializerContext<boolean>} typeSerializerContext Type serializer context.
      * 
-     * @returns {any} Converted value or undefined.
+     * @returns {boolean|undefined} Converted value or undefined.
      */
-    private convert(x: any): any
+    private convert(x: any, typeSerializerContext: TypeSerializerContext<boolean>): boolean | undefined
     {
         if (Fn.isString(x) || Fn.isNumber(x)) 
         {
@@ -104,7 +103,7 @@ export class BooleanSerializer implements TypeSerializer
 
         if (Log.errorEnabled) 
         {
-            Log.error('Cannot convert value to a boolean!', x);
+            Log.error(`${typeSerializerContext.path}: Cannot convert value to a boolean!`, x);
         }
 
         return undefined;

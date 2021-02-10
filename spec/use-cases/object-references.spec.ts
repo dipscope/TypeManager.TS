@@ -28,7 +28,7 @@ describe('Object references', function ()
         const managedCompany = companyManager.deserialize(companyManager.serialize(company));
 
         expect(managedCompany).toBeInstanceOf(Company);
-        expect(managedCompany.creatorUser).toBe(managedCompany.ownerUser);
+        expect(managedCompany?.creatorUser).toBe(managedCompany?.ownerUser);
     });
 
     it('should be preserved during circular serialization and deserialization', function ()
@@ -44,6 +44,6 @@ describe('Object references', function ()
         // const managedCompany = companyManager.deserialize(companyManager.serialize(company));
 
         // expect(managedCompany).toBeInstanceOf(Company);
-        // expect(managedCompany.user).toBe(managedCompany.ownerUser.company);
+        // expect(managedCompany?.user).toBe(managedCompany?.ownerUser?.company);
     });
 });

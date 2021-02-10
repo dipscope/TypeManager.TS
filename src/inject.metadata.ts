@@ -49,12 +49,14 @@ export class InjectMetadata<TDeclaringType, TType>
      */
     public constructor(declaringTypeMetadata: TypeMetadata<TDeclaringType>, index: number, injectOptions: InjectOptions<TType>)
     {
-        const injectTypeCtors = Fn.extractOwnReflectMetadata('design:paramtypes', declaringTypeMetadata.typeCtor) ?? [];
+        const injectTypeCtors = (Fn.extractOwnReflectMetadata('design:paramtypes', declaringTypeMetadata.typeCtor) ?? []) as TypeCtor<any>[];
 
         this.declaringTypeMetadata = declaringTypeMetadata;
         this.index                 = index;
-        this.injectOptions         = injectOptions;
         this.reflectTypeCtor       = injectTypeCtors[index];
+        this.injectOptions         = {};
+
+        this.configure(injectOptions);
 
         return;
     }
@@ -103,8 +105,8 @@ export class InjectMetadata<TDeclaringType, TType>
      */
     public clone(): InjectMetadata<TDeclaringType, TType>
     {
-        const injectOptions  = Fn.assign({}, this.injectOptions);
-        const injectMetadata = new InjectMetadata<TDeclaringType, TType>(this.declaringTypeMetadata, this.index, injectOptions);
+        const injectOptions  = Fn.assign({}, this.injectOptions) as InjectOptions<TType>;
+        const injectMetadata = new InjectMetadata(this.declaringTypeMetadata, this.index, injectOptions);
         
         return injectMetadata;
     }

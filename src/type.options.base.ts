@@ -6,7 +6,7 @@ import { CustomData } from './custom.data';
 /**
  * Type options base interface.
  * 
- * @type {TypeOptionsBase}
+ * @type {TypeOptionsBase<TType>}
  */
 export interface TypeOptionsBase<TType>
 {
@@ -27,21 +27,6 @@ export interface TypeOptionsBase<TType>
     defaultValue?: any;
 
     /**
-     * Use default value assignment for undefined values?
-     * 
-     * @type {boolean}
-     */
-    useDefaultValue: boolean;
-
-    /**
-     * Use implicit conversion when provided value can be converted
-     * to the target one?
-     * 
-     * @type {boolean}
-     */
-    useImplicitConversion: boolean;
-
-    /**
      * Type factory used to build instances of type.
      * 
      * @type {TypeFactory<TType>}
@@ -58,7 +43,22 @@ export interface TypeOptionsBase<TType>
     /**
      * Serializer used to serialize and deserialize a type.
      * 
-     * @type {TypeSerializer}
+     * @type {TypeSerializer<TType>}
      */
     typeSerializer: TypeSerializer<TType>;
+
+    /**
+     * Use default value assignment for undefined values?
+     * 
+     * @type {boolean}
+     */
+    useDefaultValue: boolean;
+
+    /**
+     * Use implicit conversion when provided value can be converted
+     * to the target one?
+     * 
+     * @type {boolean}
+     */
+    useImplicitConversion: boolean;
 }

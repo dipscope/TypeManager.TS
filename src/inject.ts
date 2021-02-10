@@ -6,7 +6,7 @@ import { InjectOptions } from './inject.options';
 /**
  * Inject decorator.
  * 
- * @param {TypeCtor|InjectOptions|string} x Type constructor, inject options or parameter key from type context.
+ * @param {TypeCtor<TType>|InjectOptions<TType>|string} x Type constructor, inject options or parameter key from type context.
  * 
  * @returns {ParameterDecorator} Parameter decorator.
  */
@@ -30,7 +30,7 @@ export function Inject<TType>(x: TypeCtor<TType> | InjectOptions<TType> | string
         {
             if (Log.errorEnabled) 
             {
-                Log.error(`${Fn.nameOf(target.constructor)}: inject decorator cannot be applied to a method!`);
+                Log.error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: inject decorator cannot be applied to a method!`);
             }
             
             return;
@@ -40,7 +40,7 @@ export function Inject<TType>(x: TypeCtor<TType> | InjectOptions<TType> | string
         {
             if (Log.errorEnabled)
             {
-                Log.error(`${Fn.nameOf(target)}: inject decorator cannot be applied to a property!`);
+                Log.error(`${Fn.nameOf(target)}.${String(propertyName)}: inject decorator cannot be applied to a property!`);
             }
             
             return;

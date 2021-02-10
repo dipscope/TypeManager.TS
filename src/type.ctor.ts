@@ -1,6 +1,6 @@
 /**
  * Type constructor.
  * 
- * @type {TypeCtor}
+ * @type {TypeCtor<TType>}
  */
 export type TypeCtor<TType> = new (...args: any[]) => TType;

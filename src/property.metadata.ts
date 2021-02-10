@@ -1,4 +1,5 @@
 import { Fn } from './utils';
+import { TypeCtor } from './type.ctor';
 import { TypeResolver } from './type.resolver';
 import { TypeSerializer } from './type.serializer';
 import { TypeInjector } from './type.injector';
@@ -53,13 +54,19 @@ export class PropertyMetadata<TDeclaringType, TType>
      */
     public constructor(declaringTypeMetadata: TypeMetadata<TDeclaringType>, name: string, propertyOptions: PropertyOptions<TType>)
     {
-        const propertyTypeCtor = Fn.extractReflectMetadata('design:type', declaringTypeMetadata.typeCtor.prototype, name);
+        const propertyTypeCtor = Fn.extractReflectMetadata('design:type', declaringTypeMetadata.typeCtor.prototype, name) as TypeCtor<any>;
 
-        this.declaringTypeMetadata    = declaringTypeMetadata;
-        this.name                     = name;
-        this.propertyOptions          = propertyOptions;
-        this.reflectTypeResolver      = () => propertyTypeCtor;
-        this.propertyOptions.multiple = propertyTypeCtor === Array;
+        this.declaringTypeMetadata = declaringTypeMetadata;
+        this.name                  = name;
+        this.reflectTypeResolver   = () => propertyTypeCtor;
+        this.propertyOptions       = {};
+        
+        this.configure(propertyOptions);
+
+        if (Fn.isUndefined(this.propertyOptions.multiple))
+        {
+            this.propertyOptions.multiple = propertyTypeCtor === Array;
+        }
 
         return;
     }
@@ -81,7 +88,9 @@ export class PropertyMetadata<TDeclaringType, TType>
      */
     public get customData(): CustomData
     {
-        return this.propertyOptions.customData ?? this.typeMetadata?.customData ?? {};
+        const customData = Fn.assign({}, this.typeMetadata?.customData ?? {});
+
+        return Fn.assign(customData, this.propertyOptions.customData ?? {});
     }
 
     /**
@@ -122,23 +131,13 @@ export class PropertyMetadata<TDeclaringType, TType>
     }
 
     /**
-     * Gets indicator if default value should be used.
+     * Gets metadata path for logging.
      * 
-     * @returns {boolean} True when property should use default value. False otherwise.
+     * @returns {string}
      */
-    public get useDefaultValue(): boolean | undefined
+    public get path(): string
     {
-        return this.propertyOptions.useDefaultValue ?? this.typeMetadata?.useDefaultValue;
-    }
-
-    /**
-     * Gets indicator if implicit conversion should be used.
-     * 
-     * @returns {boolean} True when property should use implicit conversion. False otherwise.
-     */
-    public get useImplicitConversion(): boolean | undefined
-    {
-        return this.propertyOptions.useImplicitConversion ?? this.typeMetadata?.useImplicitConversion;
+        return `${this.declaringTypeMetadata.name}.${this.name}`;
     }
 
     /**
@@ -229,14 +228,34 @@ export class PropertyMetadata<TDeclaringType, TType>
     }
 
     /**
+     * Gets indicator if default value should be used.
+     * 
+     * @returns {boolean} True when property should use default value. False otherwise.
+     */
+    public get useDefaultValue(): boolean | undefined
+    {
+        return this.propertyOptions.useDefaultValue ?? this.typeMetadata?.useDefaultValue;
+    }
+
+    /**
+     * Gets indicator if implicit conversion should be used.
+     * 
+     * @returns {boolean} True when property should use implicit conversion. False otherwise.
+     */
+    public get useImplicitConversion(): boolean | undefined
+    {
+        return this.propertyOptions.useImplicitConversion ?? this.typeMetadata?.useImplicitConversion;
+    }
+
+    /**
      * Clones current metadata instance.
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Clone of current metadata instance.
      */
     public clone(): PropertyMetadata<TDeclaringType, TType>
     {
-        const propertyOptions  = Fn.assign({}, this.propertyOptions);
-        const propertyMetadata = new PropertyMetadata<TDeclaringType, TType>(this.declaringTypeMetadata, this.name, propertyOptions);
+        const propertyOptions  = Fn.assign({}, this.propertyOptions) as PropertyOptions<TType>;
+        const propertyMetadata = new PropertyMetadata(this.declaringTypeMetadata, this.name, propertyOptions);
         
         return propertyMetadata;
     }

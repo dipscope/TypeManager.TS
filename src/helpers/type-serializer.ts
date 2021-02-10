@@ -8,11 +8,11 @@ import { Property } from './../property';
  * 
  * Used to define custom type serializer for type or property.
  * 
- * @param {TypeSerializer} typeSerializer Type serializer.
+ * @param {TypeSerializer<TType>} typeSerializer Type serializer.
  * 
  * @returns {ClassDecorator&PropertyDecorator} Class or property decorator.
  */
-export function TypeSerializer(typeSerializer: TypeSerializer): ClassDecorator & PropertyDecorator
+export function TypeSerializer<TType>(typeSerializer: TypeSerializer<TType>): ClassDecorator & PropertyDecorator
 {
     return function (target: any, propertyName?: string | symbol): any
     {

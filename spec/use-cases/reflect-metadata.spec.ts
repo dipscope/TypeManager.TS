@@ -44,8 +44,8 @@ describe('Reflect metadata', function ()
         expect(user).toBeInstanceOf(User);
         expect(user.name).toBe('Dmitry');
         expect(user.userStatus).toBeInstanceOf(UserStatus);
-        expect(user.userStatus.name).toBe('Active');
-        expect(user.userStatus.title).toBe('Active user status');
+        expect(user.userStatus?.name).toBe('Active');
+        expect(user.userStatus?.title).toBe('Active user status');
         expect(user.userService).toBeInstanceOf(UserService);
     });
 });

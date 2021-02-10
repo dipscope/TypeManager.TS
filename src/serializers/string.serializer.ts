@@ -1,29 +1,28 @@
 import { Fn, Log } from './../utils';
+import { TypeLike } from './../type.like';
 import { TypeSerializer } from './../type.serializer';
-import { TypeMetadata } from './../type.metadata';
-import { PropertyMetadata } from './../property.metadata';
+import { TypeSerializerContext } from './../type.serializer.context';
 
 /**
  * String serializer.
  * 
  * @type {StringSerializer}
  */
-export class StringSerializer implements TypeSerializer
+export class StringSerializer implements TypeSerializer<string>
 {
     /**
      * Serializes provided value.
      * 
-     * @param {any} x Some value.
-     * @param {TypeMetadata} typeMetadata Type metadata when it is known.
-     * @param {PropertyMetadata} propertyMetadata Property metadata when serialization is performed on a property level.
+     * @param {TypeLike<string>} x Some value.
+     * @param {TypeSerializerContext<string>} typeSerializerContext Type serializer context.
      * 
-     * @returns {any} Serialized value.
+     * @returns {TypeLike<any>} Serialized value or undefined.
      */
-    public serialize(x: any, typeMetadata?: TypeMetadata, propertyMetadata?: PropertyMetadata): any
+    public serialize(x: TypeLike<string>, typeSerializerContext: TypeSerializerContext<string>): TypeLike<any>
     {
         if (Fn.isUndefined(x))
         {
-            return propertyMetadata?.defaultValue ?? typeMetadata?.defaultValue;
+            return typeSerializerContext.defaultValue;
         }
 
         if (Fn.isNull(x) || Fn.isString(x))
@@ -33,17 +32,17 @@ export class StringSerializer implements TypeSerializer
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.serialize(v, typeMetadata, propertyMetadata));
+            return x.map(v => this.serialize(v, typeSerializerContext));
         }
 
-        if (propertyMetadata?.useImplicitConversion ?? typeMetadata?.useImplicitConversion) 
+        if (typeSerializerContext.useImplicitConversion) 
         {
-            return this.convert(x);
+            return this.convert(x, typeSerializerContext);
         }
 
         if (Log.errorEnabled) 
         {
-            Log.error('Cannot serialize value as string!', x);
+            Log.error(`${typeSerializerContext.path}: Cannot serialize value as string!`, x);
         }
 
         return undefined;
@@ -52,17 +51,16 @@ export class StringSerializer implements TypeSerializer
     /**
      * Deserializes provided value.
      * 
-     * @param {any} x Some value.
-     * @param {TypeMetadata} typeMetadata Type metadata when it is known.
-     * @param {PropertyMetadata} propertyMetadata Property metadata when serialization is performed on a property level.
+     * @param {TypeLike<any>} x Some value.
+     * @param {TypeSerializerContext<string>} typeSerializerContext Type serializer context.
      * 
-     * @returns {any} Deserialized value.
+     * @returns {TypeLike<string>} Deserialized value.
      */
-    public deserialize(x: any, typeMetadata?: TypeMetadata, propertyMetadata?: PropertyMetadata): any
+    public deserialize(x: TypeLike<any>, typeSerializerContext: TypeSerializerContext<string>): TypeLike<string>
     {
         if (Fn.isUndefined(x))
         {
-            return propertyMetadata?.defaultValue ?? typeMetadata?.defaultValue;
+            return typeSerializerContext.defaultValue;
         }
 
         if (Fn.isNull(x) || Fn.isString(x))
@@ -72,17 +70,17 @@ export class StringSerializer implements TypeSerializer
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.deserialize(v, typeMetadata, propertyMetadata));
+            return x.map(v => this.deserialize(v, typeSerializerContext));
         }
 
-        if (propertyMetadata?.useImplicitConversion ?? typeMetadata?.useImplicitConversion) 
+        if (typeSerializerContext.useImplicitConversion) 
         {
-            return this.convert(x);
+            return this.convert(x, typeSerializerContext);
         }
 
         if (Log.errorEnabled) 
         {
-            Log.error('Cannot deserialize value as string!', x);
+            Log.error(`${typeSerializerContext.path}: Cannot deserialize value as string!`, x);
         }
 
         return undefined;
@@ -92,10 +90,11 @@ export class StringSerializer implements TypeSerializer
      * Converts provided value to the target type value.
      * 
      * @param {any} x Some value.
+     * @param {TypeSerializerContext<string>} typeSerializerContext Type serializer context.
      * 
-     * @returns {any} Converted value or original value.
+     * @returns {string|undefined} Converted value or original value.
      */
-    private convert(x: any): any
+    private convert(x: any, typeSerializerContext: TypeSerializerContext<string>): string | undefined
     {
         if (Fn.isNumber(x) || Fn.isBoolean(x)) 
         {
@@ -114,7 +113,7 @@ export class StringSerializer implements TypeSerializer
 
         if (Log.errorEnabled) 
         {
-            Log.error('Cannot convert value to a string!', x);
+            Log.error(`${typeSerializerContext.path}: Cannot convert value to a string!`, x);
         }
         
         return undefined;

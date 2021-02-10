@@ -1,18 +1,38 @@
 import { TypeContextEntry } from './type.context.entry';
+import { TypeMetadata } from './type.metadata';
 
 /**
- * Type context class to encapsulate type values before populating an object.
+ * Type context class to encapsulate type values before building an object.
  * 
- * @type { TypeContext<TDeclaringType>}
+ * @type {TypeContext<TType>}
  */
-export class TypeContext<TDeclaringType>
+export class TypeContext<TType>
 {
+    /**
+     * Type metadata.
+     * 
+     * @type {TypeMetadata<TType>}
+     */
+    public readonly typeMetadata: TypeMetadata<TType>;
+
     /**
      * Type context entry map.
      * 
-     * @type {Map<string, TypeContextEntry<TDeclaringType, any>>}
+     * @type {Map<string, TypeContextEntry<TType, any>>}
      */
-    private readonly typeContextEntryMap: Map<string, TypeContextEntry<TDeclaringType, any>> = new Map<string, TypeContextEntry<TDeclaringType, any>>();
+    public readonly typeContextEntryMap: Map<string, TypeContextEntry<TType, any>> = new Map<string, TypeContextEntry<TType, any>>();
+
+    /**
+     * Constructor.
+     * 
+     * @param {TypeMetadata<TType>} typeMetadata Type metadata.
+     */
+    public constructor(typeMetadata: TypeMetadata<TType>)
+    {
+        this.typeMetadata = typeMetadata;
+
+        return;
+    }
 
     /**
      * Checks if type context has a key.
@@ -31,9 +51,9 @@ export class TypeContext<TDeclaringType>
      * 
      * @param {string} key Key.
      *  
-     * @returns {TypeContextEntry<TDeclaringType, any>} Type context entry or undefined.
+     * @returns {TypeContextEntry<TType, any>} Type context entry or undefined.
      */
-    public get(key: string): TypeContextEntry<TDeclaringType, any> | undefined
+    public get(key: string): TypeContextEntry<TType, any> | undefined
     {
         return this.typeContextEntryMap.get(key);
     }
@@ -42,11 +62,11 @@ export class TypeContext<TDeclaringType>
      * Sets value for key.
      * 
      * @param {string} key Key.
-     * @param {TypeContextEntry<TDeclaringType, any>} value Value.
+     * @param {TypeContextEntry<TType, any>} value Value.
      *  
-     * @returns {TypeContext} Current type context.
+     * @returns {TypeContext<TType>} Current type context.
      */
-    public set(key: string, value: TypeContextEntry<TDeclaringType, any>): TypeContext<TDeclaringType>
+    public set(key: string, value: TypeContextEntry<TType, any>): TypeContext<TType>
     {
         this.typeContextEntryMap.set(key, value);
 
@@ -56,9 +76,9 @@ export class TypeContext<TDeclaringType>
     /**
      * Gets iterable for values inside the context.
      * 
-     * @returns {IterableIterator<TypeContextEntry>} Iterable for values inside the context.
+     * @returns {IterableIterator<TypeContextEntry<TType, any>>} Iterable for values inside the context.
      */
-    public values(): IterableIterator<TypeContextEntry<TDeclaringType, any>>
+    public values(): IterableIterator<TypeContextEntry<TType, any>>
     {
         return this.typeContextEntryMap.values();
     }

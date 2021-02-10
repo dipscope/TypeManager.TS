@@ -1,29 +1,28 @@
 import { Fn, Log } from './../utils';
+import { TypeLike } from './../type.like';
 import { TypeSerializer } from './../type.serializer';
-import { TypeMetadata } from './../type.metadata';
-import { PropertyMetadata } from './../property.metadata';
+import { TypeSerializerContext } from './../type.serializer.context';
 
 /**
  * Number serializer.
  * 
  * @type {NumberSerializer}
  */
-export class NumberSerializer implements TypeSerializer
+export class NumberSerializer implements TypeSerializer<number>
 {
     /**
      * Serializes provided value.
      * 
-     * @param {any} x Some value.
-     * @param {TypeMetadata} typeMetadata Type metadata when it is known.
-     * @param {PropertyMetadata} propertyMetadata Property metadata when serialization is performed on a property level.
+     * @param {TypeLike<number>} x Some value.
+     * @param {TypeSerializerContext<number>} typeSerializerContext Type serializer context.
      * 
-     * @returns {any} Serialized value.
+     * @returns {TypeLike<any>} Serialized value or undefined.
      */
-    public serialize(x: any, typeMetadata?: TypeMetadata, propertyMetadata?: PropertyMetadata): any
+    public serialize(x: TypeLike<number>, typeSerializerContext: TypeSerializerContext<number>): TypeLike<any>
     {
         if (Fn.isUndefined(x))
         {
-            return propertyMetadata?.defaultValue ?? typeMetadata?.defaultValue;
+            return typeSerializerContext.defaultValue;
         }
 
         if (Fn.isNull(x) || Fn.isNumber(x))
@@ -33,17 +32,17 @@ export class NumberSerializer implements TypeSerializer
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.serialize(v, typeMetadata, propertyMetadata));
+            return x.map(v => this.serialize(v, typeSerializerContext));
         }
 
-        if (propertyMetadata?.useImplicitConversion ?? typeMetadata?.useImplicitConversion) 
+        if (typeSerializerContext.useImplicitConversion) 
         {
-            return this.convert(x);
+            return this.convert(x, typeSerializerContext);
         }
 
         if (Log.errorEnabled) 
         {
-            Log.error('Cannot serialize value as number!', x);
+            Log.error(`${typeSerializerContext.path}: Cannot serialize value as number!`, x);
         }
 
         return undefined;
@@ -52,17 +51,16 @@ export class NumberSerializer implements TypeSerializer
     /**
      * Deserializes provided value.
      * 
-     * @param {any} x Some value.
-     * @param {TypeMetadata} typeMetadata Type metadata when it is known.
-     * @param {PropertyMetadata} propertyMetadata Property metadata when serialization is performed on a property level.
+     * @param {TypeLike<any>} x Some value.
+     * @param {TypeSerializerContext<number>} typeSerializerContext Type serializer context.
      * 
-     * @returns {any} Deserialized value.
+     * @returns {TypeLike<number>} Deserialized value.
      */
-    public deserialize(x: any, typeMetadata?: TypeMetadata, propertyMetadata?: PropertyMetadata): any
+    public deserialize(x: TypeLike<any>, typeSerializerContext: TypeSerializerContext<number>): TypeLike<number>
     {
         if (Fn.isUndefined(x))
         {
-            return propertyMetadata?.defaultValue ?? typeMetadata?.defaultValue;
+            return typeSerializerContext.defaultValue;
         }
 
         if (Fn.isNull(x) || Fn.isNumber(x))
@@ -72,17 +70,17 @@ export class NumberSerializer implements TypeSerializer
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.deserialize(v, typeMetadata, propertyMetadata));
+            return x.map(v => this.deserialize(v, typeSerializerContext));
         }
 
-        if (propertyMetadata?.useImplicitConversion ?? typeMetadata?.useImplicitConversion) 
+        if (typeSerializerContext.useImplicitConversion) 
         {
-            return this.convert(x);
+            return this.convert(x, typeSerializerContext);
         }
 
         if (Log.errorEnabled) 
         {
-            Log.error('Cannot deserialize value as number!', x);
+            Log.error(`${typeSerializerContext.path}: Cannot deserialize value as number!`, x);
         }
 
         return undefined;
@@ -92,10 +90,11 @@ export class NumberSerializer implements TypeSerializer
      * Converts provided value to the target type value.
      * 
      * @param {any} x Some value.
+     * @param {TypeSerializerContext<number>} typeSerializerContext Type serializer context.
      * 
-     * @returns {any} Converted value or undefined.
+     * @returns {number|undefined} Converted value or undefined.
      */
-    private convert(x: any): any
+    private convert(x: any, typeSerializerContext: TypeSerializerContext<number>): number | undefined
     {
         if (Fn.isString(x) || Fn.isBoolean(x))
         {
@@ -104,7 +103,7 @@ export class NumberSerializer implements TypeSerializer
         
         if (Log.errorEnabled) 
         {
-            Log.error('Cannot convert value to a number!', x);
+            Log.error(`${typeSerializerContext.path}: Cannot convert value to a number!`, x);
         }
 
         return undefined;

@@ -3,4 +3,4 @@
  * 
  * @type {CustomData}
  */
-export type CustomData = { [key: string]: any };
+export type CustomData = Record<string, any>;

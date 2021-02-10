@@ -8,11 +8,11 @@ import { Property } from './../property';
  * 
  * Used to define custom type factory for type or property.
  * 
- * @param {TypeFactory} typeFactory Type factory.
+ * @param {TypeFactory<TType>} typeFactory Type factory.
  * 
  * @returns {ClassDecorator&PropertyDecorator} Class or property decorator.
  */
-export function TypeFactory(typeFactory: TypeFactory): ClassDecorator & PropertyDecorator
+export function TypeFactory<TType>(typeFactory: TypeFactory<TType>): ClassDecorator & PropertyDecorator
 {
     return function (target: any, propertyName?: string | symbol): any
     {

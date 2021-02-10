@@ -86,8 +86,10 @@ export class TypeMetadata<TType>
         this.typeCtor             = typeCtor;
         this.typeMetadataResolver = typeMetadataResolver;
         this.typeOptionsBase      = typeOptionsBase;
-        this.typeOptions          = typeOptions;
-       
+        this.typeOptions          = {};
+
+        this.configure(typeOptions);
+
         for (let injectIndex = 0; injectIndex < injectTypeCtors.length; injectIndex++)
         {
             this.configureInjectMetadata(injectIndex, { typeCtor: injectTypeCtors[injectIndex] });
@@ -113,7 +115,9 @@ export class TypeMetadata<TType>
      */
     public get customData(): CustomData
     {
-        return this.typeOptions.customData ?? this.typeOptionsBase.customData;
+        const customData = Fn.assign({}, this.typeOptionsBase.customData);
+
+        return Fn.assign(customData, this.typeOptions.customData ?? {});
     }
 
     /**
@@ -144,23 +148,13 @@ export class TypeMetadata<TType>
     }
 
     /**
-     * Gets indicator if default value should be used.
+     * Gets metadata path for logging.
      * 
-     * @returns {boolean} True when type should use default value. False otherwise.
+     * @returns {string}
      */
-    public get useDefaultValue(): boolean
+    public get path(): string
     {
-        return this.typeOptions.useDefaultValue ?? this.typeOptionsBase.useDefaultValue;
-    }
-
-    /**
-     * Gets indicator if implicit conversion should be used.
-     * 
-     * @returns {boolean} True when type should use implicit conversion. False otherwise.
-     */
-    public get useImplicitConversion(): boolean
-    {
-        return this.typeOptions.useImplicitConversion ?? this.typeOptionsBase.useImplicitConversion;
+        return this.name;
     }
 
     /**
@@ -193,6 +187,26 @@ export class TypeMetadata<TType>
         return this.typeOptions.typeSerializer ?? this.typeOptionsBase.typeSerializer;
     }
 
+     /**
+     * Gets indicator if default value should be used.
+     * 
+     * @returns {boolean} True when type should use default value. False otherwise.
+     */
+    public get useDefaultValue(): boolean
+    {
+        return this.typeOptions.useDefaultValue ?? this.typeOptionsBase.useDefaultValue;
+    }
+
+    /**
+     * Gets indicator if implicit conversion should be used.
+     * 
+     * @returns {boolean} True when type should use implicit conversion. False otherwise.
+     */
+    public get useImplicitConversion(): boolean
+    {
+        return this.typeOptions.useImplicitConversion ?? this.typeOptionsBase.useImplicitConversion;
+    }
+
     /**
      * Clones current metadata instance.
      * 
@@ -200,29 +214,29 @@ export class TypeMetadata<TType>
      */
     public clone(): TypeMetadata<TType>
     {
-        const typeOptions  = Fn.assign({}, this.typeOptions);
+        const typeOptions  = Fn.assign({}, this.typeOptions) as TypeOptions<TType>;
         const typeMetadata = new TypeMetadata(this.typeCtor, this.typeMetadataResolver, this.typeOptionsBase, typeOptions);
         
         if (Fn.isNil(typeOptions.injectOptionsMap))
         {
-            typeOptions.injectOptionsMap = new Map<number, InjectOptions<TType>>();
+            typeOptions.injectOptionsMap = new Map<number, InjectOptions<any>>();
         }
 
         for (const injectMetadata of this.injectMetadataMap.values())
         {
-            const injectOptions = Fn.assign({}, injectMetadata.injectOptions);
+            const injectOptions = Fn.assign({}, injectMetadata.injectOptions) as InjectOptions<any>;
 
             typeOptions.injectOptionsMap.set(injectMetadata.index, injectOptions);
         }
 
         if (Fn.isNil(typeOptions.propertyOptionsMap))
         {
-            typeOptions.propertyOptionsMap = new Map<string, PropertyOptions<TType>>();
+            typeOptions.propertyOptionsMap = new Map<string, PropertyOptions<any>>();
         }
 
         for (const propertyMetadata of this.propertyMetadataMap.values())
         {
-            const propertyOptions = Fn.assign({}, propertyMetadata.propertyOptions);
+            const propertyOptions = Fn.assign({}, propertyMetadata.propertyOptions) as PropertyOptions<any>;
 
             typeOptions.propertyOptionsMap.set(propertyMetadata.name, propertyOptions);
         }
