@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2021-02-10
+
+### Added
+
+- Dependency injection support.
+- Immutable types support.
+- Type hint support.
+- Custom data support.
+
+### Changed
+
+- Type serializer now an inteface.
+- Some helper decorators renamed to match option names.
+- Helper decorators moved to their own namespace.
+
+### Migrating from previous version
+
+- Replace extension with implementation for custom type serializers.
+- If your custom serializers uses implicit conversion make it part of the serialize and deserialize methods. You can check if it should be used based on newly introduced serializer context.
+- If you are using `Serializer` helper decorator then rename it to `TypeSerializer`.
+- For all helper decorators change imports to `@dipscope/type-manager/helpers`. Now they are located in their own namespace.
+
 ## [1.3.0] - 2021-01-20
 
 ### Added
