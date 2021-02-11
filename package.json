@@ -30,18 +30,19 @@
     "manager"
   ],
   "license": "Apache-2.0",
-  "main": "dist/bundle.js",
+  "main": "bundle.js",
   "name": "@dipscope/type-manager",
   "repository": {
     "type": "git",
     "url": "https://github.com/dipscope/TypeManager.TS.git"
   },
   "scripts": {
-    "build": "npm run clean && npx webpack --config=webpack.config.js",
+    "build": "npm run clean && npx webpack --config=webpack.config.js && npm run copy",
     "clean": "shx rm -rf dist",
+    "copy": "shx cp CHANGELOG.md dist && shx cp LICENSE.txt dist && shx cp package.json dist && shx cp README.md dist",
     "test": "jasmine-ts --config=jasmine.json",
     "lint": "eslint . --ext .ts"
   },
-  "types": "dist/index.d.ts",
+  "types": "index.d.ts",
   "version": "2.0.0"
 }

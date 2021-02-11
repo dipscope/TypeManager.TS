@@ -8,6 +8,7 @@
 .eslintrc
 
 # Project files
+dist
 node_modules
 spec
 src

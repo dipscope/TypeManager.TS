@@ -215,8 +215,8 @@ export class ObjectSerializer implements TypeSerializer<Record<string, any>>
                 }
             }
 
-            const typeFactory  = typeSerializerContext?.typeFactory ?? typeMetadata.typeFactory;
-            const typeInjector = typeSerializerContext?.typeInjector ?? typeMetadata.typeInjector;
+            const typeFactory  = typeSerializerContext.typeFactory ?? typeMetadata.typeFactory;
+            const typeInjector = typeSerializerContext.typeInjector ?? typeMetadata.typeInjector;
             const type         = typeFactory.build(typeContext, typeInjector);
 
             for (const typeContextEntry of typeContext.values())
