@@ -30,7 +30,7 @@
     "manager"
   ],
   "license": "Apache-2.0",
-  "main": "bundle.js",
+  "main": "index.js",
   "name": "@dipscope/type-manager",
   "repository": {
     "type": "git",
