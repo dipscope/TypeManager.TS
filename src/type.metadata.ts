@@ -1,5 +1,6 @@
 import { Fn } from './utils';
 import { TypeSerializer } from './type.serializer';
+import { TypeSerializerContext } from './type.serializer.context';
 import { TypeOptions } from './type.options';
 import { TypeCtor } from './type.ctor';
 import { TypeFactory } from './type.factory';
@@ -17,7 +18,7 @@ import { CustomData } from './custom.data';
  * 
  * @type {TypeMetadata<TType>}
  */
-export class TypeMetadata<TType>
+export class TypeMetadata<TType> implements TypeSerializerContext<TType>
 {
     /**
      * Constructor function name. 
@@ -155,6 +156,26 @@ export class TypeMetadata<TType>
     public get path(): string
     {
         return this.name;
+    }
+
+    /**
+     * Gets context property metadata.
+     * 
+     * @returns {PropertyMetadata<any, TType> | undefined}
+     */
+    public get propertyMetadata(): PropertyMetadata<any, TType> | undefined
+    {
+        return undefined;
+    }
+
+    /**
+     * Gets context type metadata.
+     * 
+     * @type {TypeMetadata<TType>}
+     */
+    public get typeMetadata(): TypeMetadata<TType>
+    {
+        return this;
     }
 
     /**

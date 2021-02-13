@@ -4,7 +4,6 @@ import { TypeSerializer } from './../type.serializer';
 import { TypeSerializerContext } from './../type.serializer.context';
 import { TypeContextEntry } from './../type.context.entry';
 import { TypeContext } from './../type.context';
-import { PropertyMetadata } from './../property.metadata';
 
 /**
  * Object serializer.
@@ -45,7 +44,7 @@ export class ObjectSerializer implements TypeSerializer<Record<string, any>>
 
         if (Fn.isObject(x))
         {
-            const typeMetadata = typeSerializerContext instanceof PropertyMetadata ? typeSerializerContext.typeMetadata : typeSerializerContext;
+            const typeMetadata = typeSerializerContext.typeMetadata;
 
             if (Fn.isNil(typeMetadata))
             {
@@ -144,7 +143,7 @@ export class ObjectSerializer implements TypeSerializer<Record<string, any>>
 
         if (Fn.isObject(x))
         {
-            const typeMetadata = typeSerializerContext instanceof PropertyMetadata ? typeSerializerContext.typeMetadata : typeSerializerContext;
+            const typeMetadata = typeSerializerContext.typeMetadata;
             
             if (Fn.isNil(typeMetadata))
             {

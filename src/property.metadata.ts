@@ -2,6 +2,7 @@ import { Fn } from './utils';
 import { TypeCtor } from './type.ctor';
 import { TypeResolver } from './type.resolver';
 import { TypeSerializer } from './type.serializer';
+import { TypeSerializerContext } from './type.serializer.context';
 import { TypeInjector } from './type.injector';
 import { TypeFactory } from './type.factory';
 import { TypeMetadata } from './type.metadata';
@@ -13,7 +14,7 @@ import { CustomData } from './custom.data';
  * 
  * @type {PropertyMetadata<TDeclaringType, TType>}
  */
-export class PropertyMetadata<TDeclaringType, TType>
+export class PropertyMetadata<TDeclaringType, TType> implements TypeSerializerContext<TType>
 {
     /**
      * Type metadata to which property metadata belongs to.
@@ -138,6 +139,16 @@ export class PropertyMetadata<TDeclaringType, TType>
     public get path(): string
     {
         return `${this.declaringTypeMetadata.name}.${this.name}`;
+    }
+
+    /**
+     * Gets context property metadata.
+     * 
+     * @returns {PropertyMetadata<TDeclaringType, TType> | undefined}
+     */
+    public get propertyMetadata(): PropertyMetadata<TDeclaringType, TType> | undefined
+    {
+        return this;
     }
 
     /**
