@@ -1,3 +1,7 @@
+export * from './factories';
+export * from './injectors';
+export * from './serializers';
+export * from './utils';
 export * from './custom.data';
 export * from './inject.artisan';
 export * from './inject.metadata';

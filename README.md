@@ -734,8 +734,7 @@ for (const propertyMetadata of userMetadata.propertyMetadataMap.values())
 You can create your own serializer or replace built in one. First you have to implement `TypeSerializer` interface. It declares `serialize` and `deserialize` methods. Serialize method is called during conversion of JS object instance into plain JSON object. Deserialize method is called during backward conversion. Here is an example of possible definition for custom `DateTime` class.
 
 ```typescript
-import { TypeSerializer, TypeLike, TypeSerializerContext } from '@dipscope/type-manager';
-import { Fn, Log } from '@dipscope/type-manager/utils';
+import { TypeSerializer, TypeLike, TypeSerializerContext, Fn, Log } from '@dipscope/type-manager';
 
 export class DateTimeSerializer implements TypeSerializer<DateTime>
 {
@@ -930,8 +929,7 @@ export class CustomObjectFactory implements TypeFactory<Record<string, any>>
 Resolving constructor arguments and building instance are required steps. However you can do whatever you want. If controlling of injection steps are not required above example can be rewritten as following.
 
 ```typescript
-import { TypeContext, TypeInjector } from '@dipscope/type-manager';
-import { ObjectFactory } from '@dipscope/type-manager/factories';
+import { TypeContext, TypeInjector, ObjectFactory } from '@dipscope/type-manager';
 
 export class CustomObjectFactory extends ObjectFactory
 {

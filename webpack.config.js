@@ -4,29 +4,14 @@ const CircularDependencyPlugin = require('circular-dependency-plugin');
 module.exports = {
     mode: 'production',
     entry: {
-        index: { 
+        index: {
             import: './src/index.ts',
             filename: 'index.js'
         },
-        factories: { 
-            import: './src/factories/index.ts', 
-            filename: 'factories/index.js'
-        },
         helpers: { 
             import: './src/helpers/index.ts', 
-            filename: 'helpers/index.js'
-        },
-        injectors: { 
-            import: './src/injectors/index.ts', 
-            filename: 'injectors/index.js'
-        },
-        serializers: { 
-            import: './src/serializers/index.ts', 
-            filename: 'serializers/index.js'
-        },
-        utils: { 
-            import: './src/utils/index.ts', 
-            filename: 'utils/index.js'
+            filename: 'helpers/index.js',
+            dependOn: ['index']
         }
     },
     devtool: 'inline-source-map',
@@ -63,7 +48,7 @@ module.exports = {
     },
     output: {
         path: Path.resolve(__dirname, 'dist'),
-        library: ["typeManager", "[name]"],
+        library: ['typeManager', '[name]'],
         libraryTarget: 'umd'
     }
 };
