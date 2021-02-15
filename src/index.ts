@@ -8,6 +8,7 @@ export * from './inject';
 export * from './injectable';
 export * from './injector';
 export * from './multiple';
+export * from './naming-convention';
 export * from './property-artisan';
 export * from './property';
 export * from './serializable';
