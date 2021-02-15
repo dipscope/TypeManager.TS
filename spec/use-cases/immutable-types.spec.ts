@@ -1,5 +1,4 @@
-import { Property, Type, Inject, TypeManager } from './../../src';
-import { Alias } from './../../src/helpers';
+import { Property, Type, Inject, TypeManager, Alias } from './../../src';
 
 @Type()
 class UserStatus

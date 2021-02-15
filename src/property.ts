@@ -1,7 +1,7 @@
-import { Fn, Log } from './utils';
-import { TypeResolver } from './type.resolver';
-import { PropertyArtisan } from './property.artisan';
-import { PropertyOptions } from './property.options';
+import { Fn } from './core/fn';
+import { TypeResolver } from './core/type-resolver';
+import { PropertyOptions } from './core/property-options';
+import { PropertyArtisan } from './property-artisan';
 
 /**
  * Property decorator.
@@ -25,32 +25,17 @@ export function Property<TType>(x?: TypeResolver<TType> | PropertyOptions<TType>
     {
         if (Fn.isCtor(target))
         {
-            if (Log.errorEnabled) 
-            {
-                Log.error(`${Fn.nameOf(target)}.${String(propertyName)}: property decorator cannot be applied to a static property!`);
-            }
-            
-            return;
+            throw new Error(`${Fn.nameOf(target)}.${String(propertyName)}: property decorator cannot be applied to a static property!`);
         }
 
         if (Fn.isSymbol(propertyName))
         {
-            if (Log.errorEnabled) 
-            {
-                Log.error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a symbol!`);
-            }
-
-            return;
+            throw new Error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a symbol!`);
         }
 
         if (Fn.isFunction(target[propertyName])) 
         {
-            if (Log.errorEnabled)
-            {
-                Log.error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a method property!`);
-            }
-            
-            return;
+            throw new Error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a method property!`);
         }
 
         PropertyArtisan.definePropertyMetadata(target.constructor, propertyName, propertyOptions);

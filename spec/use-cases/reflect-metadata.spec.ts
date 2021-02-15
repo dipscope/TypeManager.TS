@@ -1,6 +1,6 @@
 import 'reflect-metadata';
-import { Type, TypeManager, Property } from './../../src';
-import { Injectable } from './../../src/helpers';
+import { Type, TypeManager, Property, Injectable } from './../../src';
+import { Fn } from './../../src/core';
 
 @Injectable()
 class UserService
@@ -33,7 +33,7 @@ describe('Reflect metadata', function ()
     {
         const userManager  = new TypeManager(User);
         const userMetadata = userManager.typeMetadata;
-
+        
         expect(userMetadata.propertyMetadataMap.get('name')!.typeResolver()).toBe(String);
         expect(userMetadata.propertyMetadataMap.get('userStatus')!.typeResolver()).toBe(UserStatus);
         expect(userMetadata.injectMetadataMap.get(0)!.typeCtor).toBe(UserService);

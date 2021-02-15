@@ -1,35 +1,35 @@
-import { Fn, Log } from './../utils';
-import { TypeLike } from './../type.like';
-import { TypeSerializer } from './../type.serializer';
-import { TypeSerializerContext } from './../type.serializer.context';
-import { TypeContextEntry } from './../type.context.entry';
-import { TypeContext } from './../type.context';
+import { Fn } from './../core/fn';
+import { TypeLike } from './../core/type-like';
+import { TypeContext } from './../core/type-context';
+import { TypeContextEntry } from './../core/type-context-entry';
+import { Serializer } from './../core/serializer';
+import { SerializerContext } from './../core/serializer-context';
 
 /**
  * Object serializer.
  * 
  * @type {ObjectSerializer}
  */
-export class ObjectSerializer implements TypeSerializer<Record<string, any>>
+export class ObjectSerializer implements Serializer<Record<string, any>>
 {
     /**
      * Serializes provided value.
      * 
      * @param {TypeLike<Record<string, any>>} x Some value.
-     * @param {TypeSerializerContext<Record<string, any>>} typeSerializerContext Type serializer context.
+     * @param {SerializerContext<Record<string, any>>} serializerContext Type serializer context.
      * @param {WeakMap<any, any>} objectMap Map to track object references.
      * 
      * @returns {TypeLike<any>} Serialized value or undefined.
      */
     public serialize(
         x: TypeLike<Record<string, any>>, 
-        typeSerializerContext: TypeSerializerContext<Record<string, any>>, 
+        serializerContext: SerializerContext<Record<string, any>>, 
         objectMap: WeakMap<any, any> = new WeakMap<any, any>()
     ): TypeLike<any>
     {
         if (Fn.isUndefined(x))
         {
-            return typeSerializerContext.defaultValue;
+            return serializerContext.defaultValue;
         }
 
         if (Fn.isNull(x))
@@ -39,16 +39,19 @@ export class ObjectSerializer implements TypeSerializer<Record<string, any>>
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.serialize(v, typeSerializerContext, objectMap));
+            return x.map(v => this.serialize(v, serializerContext, objectMap));
         }
 
         if (Fn.isObject(x))
         {
-            const typeMetadata = typeSerializerContext.typeMetadata;
+            const typeMetadata = serializerContext.typeMetadata;
 
             if (Fn.isNil(typeMetadata))
             {
-                Log.error(`${typeSerializerContext.path}: Cannot define type metadata during serializing value as object!`, x);
+                if (serializerContext.log.errorEnabled)
+                {
+                    serializerContext.log.error(`${serializerContext.path}: Cannot define type metadata during serializing value as object!`, x);
+                }
 
                 return undefined;
             }
@@ -63,11 +66,13 @@ export class ObjectSerializer implements TypeSerializer<Record<string, any>>
                     continue;
                 }
 
-                const propertyName           = propertyMetadata.alias ?? propertyMetadata.name;
-                const propertyValue          = type[propertyMetadata.name];
-                const propertyTypeSerializer = propertyMetadata.typeSerializer;
+                const namingConvention         = propertyMetadata.namingConvention ?? typeMetadata.namingConvention;
+                const propertyNameByConvention = namingConvention ? namingConvention.convert(propertyMetadata.name) : propertyMetadata.name;
+                const propertyName             = propertyMetadata.alias ?? propertyNameByConvention;
+                const propertyValue            = type[propertyMetadata.name];
+                const propertySerializer       = propertyMetadata.serializer;
 
-                if (Fn.isNil(propertyTypeSerializer))
+                if (Fn.isNil(propertySerializer))
                 {
                     let value = propertyValue;
 
@@ -81,13 +86,13 @@ export class ObjectSerializer implements TypeSerializer<Record<string, any>>
                     continue;
                 }
 
-                if (Fn.isObject(propertyValue) && propertyTypeSerializer instanceof ObjectSerializer)
+                if (Fn.isObject(propertyValue) && propertySerializer instanceof ObjectSerializer)
                 {
                     let value = objectMap.get(propertyValue);
 
                     if (Fn.isUndefined(value))
                     {
-                        value = propertyTypeSerializer.serialize(propertyValue, propertyMetadata, objectMap);
+                        value = propertySerializer.serialize(propertyValue, propertyMetadata, objectMap);
 
                         objectMap.set(propertyValue, value);
                     }
@@ -97,15 +102,15 @@ export class ObjectSerializer implements TypeSerializer<Record<string, any>>
                     continue;
                 }
 
-                object[propertyName] = propertyTypeSerializer.serialize(propertyValue, propertyMetadata);
+                object[propertyName] = propertySerializer.serialize(propertyValue, propertyMetadata);
             }
 
             return object;
         }
 
-        if (Log.errorEnabled)
+        if (serializerContext.log.errorEnabled)
         {
-            Log.error(`${typeSerializerContext.path}: Cannot serialize value as object!`, x);
+            serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as object!`, x);
         }
 
         return undefined;
@@ -115,20 +120,20 @@ export class ObjectSerializer implements TypeSerializer<Record<string, any>>
      * Deserializes provided value.
      * 
      * @param {TypeLike<any>} x Some value.
-     * @param {TypeSerializerContext<Record<string, any>>} typeSerializerContext Type serializer context.
+     * @param {SerializerContext<Record<string, any>>} serializerContext Serializer context.
      * @param {WeakMap<any, any>} objectMap Map to track object references.
      * 
      * @returns {TypeLike<Record<string, any>>} Deserialized value.
      */
     public deserialize(
         x: TypeLike<any>, 
-        typeSerializerContext: TypeSerializerContext<Record<string, any>>, 
+        serializerContext: SerializerContext<Record<string, any>>, 
         objectMap: WeakMap<any, any> = new WeakMap<any, any>()
     ): TypeLike<Record<string, any>>
     {
         if (Fn.isUndefined(x))
         {
-            return typeSerializerContext.defaultValue;
+            return serializerContext.defaultValue;
         }
 
         if (Fn.isNull(x))
@@ -138,16 +143,19 @@ export class ObjectSerializer implements TypeSerializer<Record<string, any>>
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.deserialize(v, typeSerializerContext, objectMap));
+            return x.map(v => this.deserialize(v, serializerContext, objectMap));
         }
 
         if (Fn.isObject(x))
         {
-            const typeMetadata = typeSerializerContext.typeMetadata;
+            const typeMetadata = serializerContext.typeMetadata;
             
             if (Fn.isNil(typeMetadata))
             {
-                Log.error(`${typeSerializerContext.path}: Cannot define type metadata during deserializing value as object!`, x);
+                if (serializerContext.log.errorEnabled)
+                {
+                    serializerContext.log.error(`${serializerContext.path}: Cannot define type metadata during deserializing value as object!`, x);
+                }
 
                 return undefined;
             }
@@ -157,8 +165,10 @@ export class ObjectSerializer implements TypeSerializer<Record<string, any>>
 
             for (const propertyMetadata of typeMetadata.propertyMetadataMap.values())
             {
-                const propertyName  = propertyMetadata.alias ?? propertyMetadata.name;
-                const propertyValue = object[propertyName];
+                const namingConvention         = propertyMetadata.namingConvention ?? typeMetadata.namingConvention;
+                const propertyNameByConvention = namingConvention ? namingConvention.convert(propertyMetadata.name) : propertyMetadata.name;
+                const propertyName             = propertyMetadata.alias ?? propertyNameByConvention;
+                const propertyValue            = object[propertyName];
 
                 if (propertyMetadata.serializationConfigured && !propertyMetadata.deserializable)
                 {
@@ -167,9 +177,9 @@ export class ObjectSerializer implements TypeSerializer<Record<string, any>>
                     continue;
                 }
 
-                const propertyTypeSerializer = propertyMetadata.typeSerializer;
+                const propertySerializer = propertyMetadata.serializer;
 
-                if (Fn.isNil(propertyTypeSerializer))
+                if (Fn.isNil(propertySerializer))
                 {
                     let value = propertyValue;
 
@@ -183,13 +193,13 @@ export class ObjectSerializer implements TypeSerializer<Record<string, any>>
                     continue;
                 }
 
-                if (Fn.isObject(propertyValue) && propertyTypeSerializer instanceof ObjectSerializer)
+                if (Fn.isObject(propertyValue) && propertySerializer instanceof ObjectSerializer)
                 {
                     let value = objectMap.get(propertyValue);
 
                     if (Fn.isUndefined(value))
                     {
-                        value = propertyTypeSerializer.deserialize(propertyValue, propertyMetadata, objectMap);
+                        value = propertySerializer.deserialize(propertyValue, propertyMetadata, objectMap);
 
                         objectMap.set(propertyValue, value);
                     }
@@ -201,7 +211,7 @@ export class ObjectSerializer implements TypeSerializer<Record<string, any>>
 
                 typeContext.set(propertyName, new TypeContextEntry(
                     propertyName,
-                    propertyTypeSerializer.deserialize(propertyValue, propertyMetadata), 
+                    propertySerializer.deserialize(propertyValue, propertyMetadata), 
                     propertyMetadata
                 ));
             }
@@ -214,9 +224,9 @@ export class ObjectSerializer implements TypeSerializer<Record<string, any>>
                 }
             }
 
-            const typeFactory  = typeSerializerContext.typeFactory ?? typeMetadata.typeFactory;
-            const typeInjector = typeSerializerContext.typeInjector ?? typeMetadata.typeInjector;
-            const type         = typeFactory.build(typeContext, typeInjector);
+            const factory  = serializerContext.factory ?? typeMetadata.factory;
+            const injector = serializerContext.injector ?? typeMetadata.injector;
+            const type     = factory.build(typeContext, injector);
 
             for (const typeContextEntry of typeContext.values())
             {
@@ -229,9 +239,9 @@ export class ObjectSerializer implements TypeSerializer<Record<string, any>>
             return type;
         }
         
-        if (Log.errorEnabled)
+        if (serializerContext.log.errorEnabled)
         {
-            Log.error(`${typeSerializerContext.path}: Cannot deserialize value as object!`, x);
+            serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as object!`, x);
         }
 
         return undefined;

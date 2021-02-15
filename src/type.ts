@@ -1,5 +1,5 @@
-import { TypeArtisan } from './type.artisan';
-import { TypeOptions } from './type.options';
+import { TypeOptions } from './core/type-options';
+import { TypeArtisan } from './type-artisan';
 
 /**
  * Type decorator.
@@ -12,7 +12,7 @@ export function Type<TType>(typeOptions?: TypeOptions<TType>): ClassDecorator
 {
     return function (target: any): any
     {
-        TypeArtisan.defineTypeMetadata(target, typeOptions ?? {});
+        TypeArtisan.defineTypeMetadata(target, typeOptions ?? {}).defineInjectMetadata();
 
         return target;
     };

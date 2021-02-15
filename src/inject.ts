@@ -1,7 +1,7 @@
-import { Fn, Log } from './utils';
-import { TypeCtor } from './type.ctor';
-import { InjectArtisan } from './inject.artisan';
-import { InjectOptions } from './inject.options';
+import { Fn } from './core/fn';
+import { TypeCtor } from './core/type-ctor';
+import { InjectOptions } from './core/inject-options';
+import { InjectArtisan } from './inject-artisan';
 
 /**
  * Inject decorator.
@@ -28,22 +28,12 @@ export function Inject<TType>(x: TypeCtor<TType> | InjectOptions<TType> | string
     {
         if (!Fn.isCtor(target))
         {
-            if (Log.errorEnabled) 
-            {
-                Log.error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: inject decorator cannot be applied to a method!`);
-            }
-            
-            return;
+            throw new Error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: inject decorator cannot be applied to a method!`);
         }
 
         if (!Fn.isNumber(injectIndex))
         {
-            if (Log.errorEnabled)
-            {
-                Log.error(`${Fn.nameOf(target)}.${String(propertyName)}: inject decorator cannot be applied to a property!`);
-            }
-            
-            return;
+            throw new Error(`${Fn.nameOf(target)}.${String(propertyName)}: inject decorator cannot be applied to a property!`);
         }
 
         InjectArtisan.defineInjectMetadata(target, injectIndex, injectOptions);

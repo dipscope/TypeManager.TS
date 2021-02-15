@@ -1,13 +1,13 @@
-import { Fn, Log } from './../utils';
-import { TypeMetadata } from './../type.metadata';
-import { TypeInjector } from './../type.injector';
+import { Fn } from './../core/fn';
+import { TypeMetadata } from './../core/type-metadata';
+import { Injector } from './../core/injector';
 
 /**
  * Singleton injector.
  * 
  * @type {SingletonInjector}
  */
-export class SingletonInjector implements TypeInjector
+export class SingletonInjector implements Injector
 {
     /**
      * Map with resolved types.
@@ -27,9 +27,9 @@ export class SingletonInjector implements TypeInjector
     {
         if (!typeMetadata.injectable)
         {
-            if (Log.errorEnabled)
+            if (typeMetadata.log.errorEnabled)
             {
-                Log.error(`${typeMetadata.path}: cannot resolve type! Have you registered it as injectable?`);
+                typeMetadata.log.error(`${typeMetadata.path}: cannot resolve type! Have you registered it as injectable?`);
             }
 
             return undefined;

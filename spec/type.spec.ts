@@ -10,9 +10,9 @@ import { Type, TypeArtisan } from './../src';
     useDefaultValue: true,
     useImplicitConversion: false,
     injectable: true,
-    typeFactory: new ObjectFactory(),
-    typeInjector: new SingletonInjector(),
-    typeSerializer: new ObjectSerializer()
+    factory: new ObjectFactory(),
+    injector: new SingletonInjector(),
+    serializer: new ObjectSerializer()
 })
 class User
 {
@@ -34,9 +34,9 @@ describe('Type decorator', function ()
         expect(userMetadata.typeOptions.useDefaultValue).toBeTrue();
         expect(userMetadata.typeOptions.useImplicitConversion).toBeFalse();
         expect(userMetadata.typeOptions.injectable).toBeTrue();
-        expect(userMetadata.typeOptions.typeFactory).toBeInstanceOf(ObjectFactory);
-        expect(userMetadata.typeOptions.typeInjector).toBeInstanceOf(SingletonInjector);
-        expect(userMetadata.typeOptions.typeSerializer).toBeInstanceOf(ObjectSerializer);
+        expect(userMetadata.typeOptions.factory).toBeInstanceOf(ObjectFactory);
+        expect(userMetadata.typeOptions.injector).toBeInstanceOf(SingletonInjector);
+        expect(userMetadata.typeOptions.serializer).toBeInstanceOf(ObjectSerializer);
 
         expect(typeCtor).toBeDefined();
         expect(typeCtor).toBe(userMetadata.typeCtor);

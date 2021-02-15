@@ -1,5 +1,4 @@
-import { Type, Inject, TypeManager } from './../../src';
-import { Injectable } from './../../src/helpers';
+import { Type, Inject, TypeManager, Injectable } from './../../src';
 
 @Injectable()
 class UserService

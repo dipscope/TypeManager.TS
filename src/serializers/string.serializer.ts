@@ -1,28 +1,28 @@
-import { Fn, Log } from './../utils';
-import { TypeLike } from './../type.like';
-import { TypeSerializer } from './../type.serializer';
-import { TypeSerializerContext } from './../type.serializer.context';
+import { Fn } from './../core/fn';
+import { TypeLike } from './../core/type-like';
+import { Serializer } from './../core/serializer';
+import { SerializerContext } from './../core/serializer-context';
 
 /**
  * String serializer.
  * 
  * @type {StringSerializer}
  */
-export class StringSerializer implements TypeSerializer<string>
+export class StringSerializer implements Serializer<string>
 {
     /**
      * Serializes provided value.
      * 
      * @param {TypeLike<string>} x Some value.
-     * @param {TypeSerializerContext<string>} typeSerializerContext Type serializer context.
+     * @param {SerializerContext<string>} serializerContext Serializer context.
      * 
      * @returns {TypeLike<any>} Serialized value or undefined.
      */
-    public serialize(x: TypeLike<string>, typeSerializerContext: TypeSerializerContext<string>): TypeLike<any>
+    public serialize(x: TypeLike<string>, serializerContext: SerializerContext<string>): TypeLike<any>
     {
         if (Fn.isUndefined(x))
         {
-            return typeSerializerContext.defaultValue;
+            return serializerContext.defaultValue;
         }
 
         if (Fn.isNull(x) || Fn.isString(x))
@@ -32,17 +32,17 @@ export class StringSerializer implements TypeSerializer<string>
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.serialize(v, typeSerializerContext));
+            return x.map(v => this.serialize(v, serializerContext));
         }
 
-        if (typeSerializerContext.useImplicitConversion) 
+        if (serializerContext.useImplicitConversion) 
         {
-            return this.convert(x, typeSerializerContext);
+            return this.convert(x, serializerContext);
         }
 
-        if (Log.errorEnabled) 
+        if (serializerContext.log.errorEnabled) 
         {
-            Log.error(`${typeSerializerContext.path}: Cannot serialize value as string!`, x);
+            serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as string!`, x);
         }
 
         return undefined;
@@ -52,15 +52,15 @@ export class StringSerializer implements TypeSerializer<string>
      * Deserializes provided value.
      * 
      * @param {TypeLike<any>} x Some value.
-     * @param {TypeSerializerContext<string>} typeSerializerContext Type serializer context.
+     * @param {SerializerContext<string>} serializerContext Serializer context.
      * 
      * @returns {TypeLike<string>} Deserialized value.
      */
-    public deserialize(x: TypeLike<any>, typeSerializerContext: TypeSerializerContext<string>): TypeLike<string>
+    public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<string>): TypeLike<string>
     {
         if (Fn.isUndefined(x))
         {
-            return typeSerializerContext.defaultValue;
+            return serializerContext.defaultValue;
         }
 
         if (Fn.isNull(x) || Fn.isString(x))
@@ -70,17 +70,17 @@ export class StringSerializer implements TypeSerializer<string>
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.deserialize(v, typeSerializerContext));
+            return x.map(v => this.deserialize(v, serializerContext));
         }
 
-        if (typeSerializerContext.useImplicitConversion) 
+        if (serializerContext.useImplicitConversion) 
         {
-            return this.convert(x, typeSerializerContext);
+            return this.convert(x, serializerContext);
         }
 
-        if (Log.errorEnabled) 
+        if (serializerContext.log.errorEnabled) 
         {
-            Log.error(`${typeSerializerContext.path}: Cannot deserialize value as string!`, x);
+            serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as string!`, x);
         }
 
         return undefined;
@@ -90,11 +90,11 @@ export class StringSerializer implements TypeSerializer<string>
      * Converts provided value to the target type value.
      * 
      * @param {any} x Some value.
-     * @param {TypeSerializerContext<string>} typeSerializerContext Type serializer context.
+     * @param {SerializerContext<string>} serializerContext Type serializer context.
      * 
      * @returns {string|undefined} Converted value or original value.
      */
-    private convert(x: any, typeSerializerContext: TypeSerializerContext<string>): string | undefined
+    private convert(x: any, serializerContext: SerializerContext<string>): string | undefined
     {
         if (Fn.isNumber(x) || Fn.isBoolean(x)) 
         {
@@ -111,9 +111,9 @@ export class StringSerializer implements TypeSerializer<string>
             return JSON.stringify(x);
         }
 
-        if (Log.errorEnabled) 
+        if (serializerContext.log.errorEnabled) 
         {
-            Log.error(`${typeSerializerContext.path}: Cannot convert value to a string!`, x);
+            serializerContext.log.error(`${serializerContext.path}: Cannot convert value to a string!`, x);
         }
         
         return undefined;

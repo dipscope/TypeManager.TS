@@ -1,28 +1,28 @@
-import { Fn, Log } from './../utils';
-import { TypeLike } from './../type.like';
-import { TypeSerializer } from './../type.serializer';
-import { TypeSerializerContext } from './../type.serializer.context';
+import { Fn } from './../core/fn';
+import { TypeLike } from './../core/type-like';
+import { Serializer } from './../core/serializer';
+import { SerializerContext } from './../core/serializer-context';
 
 /**
  * Date serializer.
  * 
  * @type {DateSerializer}
  */
-export class DateSerializer implements TypeSerializer<Date>
+export class DateSerializer implements Serializer<Date>
 {
     /**
      * Serializes provided value.
      * 
      * @param {TypeLike<Date>} x Some value.
-     * @param {TypeSerializerContext<Date>} typeSerializerContext Type serializer context.
+     * @param {SerializerContext<Date>} serializerContext Serializer context.
      * 
      * @returns {TypeLike<any>} Serialized value or undefined.
      */
-    public serialize(x: TypeLike<Date>, typeSerializerContext: TypeSerializerContext<Date>): TypeLike<any>
+    public serialize(x: TypeLike<Date>, serializerContext: SerializerContext<Date>): TypeLike<any>
     {
         if (Fn.isUndefined(x))
         {
-            return typeSerializerContext.defaultValue;
+            return serializerContext.defaultValue;
         }
 
         if (Fn.isNull(x))
@@ -37,12 +37,12 @@ export class DateSerializer implements TypeSerializer<Date>
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.serialize(v, typeSerializerContext));
+            return x.map(v => this.serialize(v, serializerContext));
         }
 
-        if (Log.errorEnabled) 
+        if (serializerContext.log.errorEnabled) 
         {
-            Log.error(`${typeSerializerContext.path}: Cannot serialize value as date!`, x);
+            serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as date!`, x);
         }
 
         return undefined;
@@ -52,15 +52,15 @@ export class DateSerializer implements TypeSerializer<Date>
      * Deserializes provided value.
      * 
      * @param {TypeLike<any>} x Some value.
-     * @param {TypeSerializerContext<Date>} typeSerializerContext Type serializer context.
+     * @param {SerializerContext<Date>} serializerContext Serializer context.
      * 
      * @returns {TypeLike<Date>} Deserialized value.
      */
-    public deserialize(x: TypeLike<any>, typeSerializerContext: TypeSerializerContext<Date>): TypeLike<Date>
+    public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Date>): TypeLike<Date>
     {
         if (Fn.isUndefined(x))
         {
-            return typeSerializerContext.defaultValue;
+            return serializerContext.defaultValue;
         }
 
         if (Fn.isNull(x))
@@ -75,12 +75,12 @@ export class DateSerializer implements TypeSerializer<Date>
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.deserialize(v, typeSerializerContext));
+            return x.map(v => this.deserialize(v, serializerContext));
         }
 
-        if (Log.errorEnabled) 
+        if (serializerContext.log.errorEnabled) 
         {
-            Log.error(`${typeSerializerContext.path}: Cannot deserialize value as date!`, x);
+            serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as date!`, x);
         }
 
         return undefined;

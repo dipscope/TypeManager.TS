@@ -1,24 +1,24 @@
-import { Fn } from './../utils';
-import { TypeFactory } from './../type.factory';
-import { TypeContext } from './../type.context';
-import { TypeInjector } from './../type.injector';
+import { Fn } from './../core/fn';
+import { Factory } from './../core/factory';
+import { TypeContext } from './../core/type-context';
+import { Injector } from './../core/injector';
 
 /**
- * Default object type factory.
+ * Object factory.
  * 
  * @type {ObjectFactory}
  */
-export class ObjectFactory implements TypeFactory<Record<string, any>>
+export class ObjectFactory implements Factory<Record<string, any>>
 {
     /**
      * Builds type described by provided type metadata.
      * 
      * @param {TypeContext<Record<string, any>>} typeContext Type context.
-     * @param {TypeInjector} typeInjector Type injector.
+     * @param {Injector} injector Injector.
      * 
      * @returns {Record<string, any>} Type instance described by provided type metadata.
      */
-    public build(typeContext: TypeContext<Record<string, any>>, typeInjector: TypeInjector): Record<string, any>
+    public build(typeContext: TypeContext<Record<string, any>>, injector: Injector): Record<string, any>
     {
         const typeMetadata = typeContext.typeMetadata;
         const typeCtor     = typeMetadata.typeCtor;
@@ -39,7 +39,7 @@ export class ObjectFactory implements TypeFactory<Record<string, any>>
 
             if (!Fn.isNil(argTypeMetadata))
             {
-                args[injectMetadata.index] = typeInjector.get(argTypeMetadata);
+                args[injectMetadata.index] = injector.get(argTypeMetadata);
 
                 continue;
             }
