@@ -6,25 +6,37 @@ import { Serializer } from './../core/serializer';
 import { SerializerContext } from './../core/serializer-context';
 
 /**
- * Object serializer.
+ * Default object serializer.
  * 
  * @type {ObjectSerializer}
  */
 export class ObjectSerializer implements Serializer<Record<string, any>>
 {
     /**
+     * Object serializer accepts special arguments to handle object references. 
+     * This key is required to separate instances after code minification and module separation.
+     * 
+     * @type {string}
+     */
+    public readonly serializerKey: string = '__TMObjectSerializer__';
+
+    /**
      * Serializes provided value.
      * 
      * @param {TypeLike<Record<string, any>>} x Some value.
-     * @param {SerializerContext<Record<string, any>>} serializerContext Type serializer context.
-     * @param {WeakMap<any, any>} objectMap Map to track object references.
+     * @param {SerializerContext<Record<string, any>>} serializerContext Serializer context.
+     * @param {WeakMap<any, any>} referenceMap Map to track object references.
+     * @param {WeakMap<any, (() => void)[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
+     * @param {string} path JSON path for provided value. $ means a root.
      * 
      * @returns {TypeLike<any>} Serialized value or undefined.
      */
     public serialize(
         x: TypeLike<Record<string, any>>, 
-        serializerContext: SerializerContext<Record<string, any>>, 
-        objectMap: WeakMap<any, any> = new WeakMap<any, any>()
+        serializerContext: SerializerContext<Record<string, any>>,
+        referenceMap: WeakMap<any, any> = new WeakMap<any, any>(),
+        callbackMap: WeakMap<any, (() => void)[]> = new WeakMap<any, (() => void)[]>(),
+        path: string = '$'
     ): TypeLike<any>
     {
         if (Fn.isUndefined(x))
@@ -39,7 +51,31 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.serialize(v, serializerContext, objectMap));
+            const typeArray = x;
+
+            return this.defineReference(typeArray, referenceMap, callbackMap, path, () =>
+            {
+                const objectArray = [] as TypeLike<Record<string, any>>[];
+
+                for (let i = 0; i < typeArray.length; i++)
+                {
+                    const value = this.serialize(typeArray[i], serializerContext, referenceMap, callbackMap, `${path}[${i}]`);
+
+                    if (Fn.isFunction(value))
+                    {
+                        this.pushCallback(typeArray[i], callbackMap, () => 
+                        {
+                            objectArray[i] = value();
+                        });
+
+                        continue;
+                    }
+
+                    objectArray[i] = value;
+                }
+
+                return objectArray;
+            });
         }
 
         if (Fn.isObject(x))
@@ -56,56 +92,68 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
                 return undefined;
             }
 
-            const type   = x;
-            const object = {} as Record<string, any>;
+            const type = x;
 
-            for (const propertyMetadata of typeMetadata.propertyMetadataMap.values())
+            return this.defineReference(type, referenceMap, callbackMap, path, () => 
             {
-                if (propertyMetadata.serializationConfigured && !propertyMetadata.serializable)
+                const object = {} as Record<string, any>;
+    
+                for (const propertyMetadata of typeMetadata.propertyMetadataMap.values())
                 {
-                    continue;
-                }
-
-                const namingConvention         = propertyMetadata.namingConvention ?? typeMetadata.namingConvention;
-                const propertyNameByConvention = namingConvention ? namingConvention.convert(propertyMetadata.name) : propertyMetadata.name;
-                const propertyName             = propertyMetadata.alias ?? propertyNameByConvention;
-                const propertyValue            = type[propertyMetadata.name];
-                const propertySerializer       = propertyMetadata.serializer;
-
-                if (Fn.isNil(propertySerializer))
-                {
-                    let value = propertyValue;
-
-                    if (Fn.isUndefined(value))
+                    if (propertyMetadata.serializationConfigured && !propertyMetadata.serializable)
                     {
-                        value = propertyMetadata.defaultValue;
+                        continue;
                     }
-
-                    object[propertyName] = value;
-
-                    continue;
-                }
-
-                if (Fn.isObject(propertyValue) && propertySerializer instanceof ObjectSerializer)
-                {
-                    let value = objectMap.get(propertyValue);
-
-                    if (Fn.isUndefined(value))
+    
+                    const namingConvention         = propertyMetadata.namingConvention ?? typeMetadata.namingConvention;
+                    const propertyNameByConvention = namingConvention ? namingConvention.convert(propertyMetadata.name) : propertyMetadata.name;
+                    const propertyName             = propertyMetadata.alias ?? propertyNameByConvention;
+                    const propertyValue            = type[propertyMetadata.name];
+                    const propertySerializer       = propertyMetadata.serializer;
+    
+                    if (Fn.isNil(propertySerializer))
                     {
-                        value = propertySerializer.serialize(propertyValue, propertyMetadata, objectMap);
-
-                        objectMap.set(propertyValue, value);
+                        let value = propertyValue;
+    
+                        if (Fn.isUndefined(value))
+                        {
+                            value = propertyMetadata.defaultValue;
+                        }
+    
+                        object[propertyName] = value;
+    
+                        continue;
                     }
+    
+                    if (Fn.isObject(propertyValue) && this.isObjectSerializer(propertySerializer))
+                    {
+                        const value = propertySerializer.serialize(propertyValue, propertyMetadata, referenceMap, callbackMap, `${path}['${propertyName}']`);
 
-                    object[propertyName] = value;
+                        if (Fn.isFunction(value))
+                        {
+                            this.pushCallback(propertyValue, callbackMap, () =>
+                            {
+                                const referenceObject = referenceMap.get(type);
 
-                    continue;
+                                if (!Fn.isNil(referenceObject))
+                                {
+                                    referenceObject[propertyName] = value();
+                                }
+                            });
+
+                            continue;
+                        }
+
+                        object[propertyName] = value;
+    
+                        continue;
+                    }
+    
+                    object[propertyName] = propertySerializer.serialize(propertyValue, propertyMetadata);
                 }
 
-                object[propertyName] = propertySerializer.serialize(propertyValue, propertyMetadata);
-            }
-
-            return object;
+                return object;
+            });
         }
 
         if (serializerContext.log.errorEnabled)
@@ -121,14 +169,18 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
      * 
      * @param {TypeLike<any>} x Some value.
      * @param {SerializerContext<Record<string, any>>} serializerContext Serializer context.
-     * @param {WeakMap<any, any>} objectMap Map to track object references.
+     * @param {WeakMap<any, any>} referenceMap Map to track object references.
+     * @param {WeakMap<any, (() => void)[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
+     * @param {TypeLike<any>} $ Root object.
      * 
-     * @returns {TypeLike<Record<string, any>>} Deserialized value.
+     * @returns {TypeLike<Record<string, any>>} Deserialized value or undefined.
      */
     public deserialize(
-        x: TypeLike<any>, 
+        x: TypeLike<any>,
         serializerContext: SerializerContext<Record<string, any>>, 
-        objectMap: WeakMap<any, any> = new WeakMap<any, any>()
+        referenceMap: WeakMap<any, any> = new WeakMap<any, any>(),
+        callbackMap: WeakMap<any, (() => void)[]> = new WeakMap<any, (() => void)[]>(),
+        $: TypeLike<any> = x
     ): TypeLike<Record<string, any>>
     {
         if (Fn.isUndefined(x))
@@ -143,7 +195,31 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
 
         if (Fn.isArray(x))
         {
-            return x.map(v => this.deserialize(v, serializerContext, objectMap));
+            const objectArray = x;
+
+            return this.restoreReference(objectArray, referenceMap, callbackMap, $, () =>
+            {
+                const typeArray = [] as TypeLike<Record<string, any>>[];
+
+                for (let i = 0; i < objectArray.length; i++)
+                {
+                    const value = this.deserialize(objectArray[i], serializerContext, referenceMap, callbackMap, $);
+
+                    if (Fn.isFunction(value))
+                    {
+                        this.pushCallback(objectArray[i], callbackMap, () => 
+                        {
+                            typeArray[i] = value();
+                        });
+
+                        continue;
+                    }
+
+                    typeArray[i] = value;
+                }
+
+                return typeArray;
+            });
         }
 
         if (Fn.isObject(x))
@@ -160,83 +236,99 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
                 return undefined;
             }
 
-            const object      = x;
-            const typeContext = new TypeContext(typeMetadata);
+            const object = x;
 
-            for (const propertyMetadata of typeMetadata.propertyMetadataMap.values())
+            return this.restoreReference(object, referenceMap, callbackMap, $, () =>
             {
-                const namingConvention         = propertyMetadata.namingConvention ?? typeMetadata.namingConvention;
-                const propertyNameByConvention = namingConvention ? namingConvention.convert(propertyMetadata.name) : propertyMetadata.name;
-                const propertyName             = propertyMetadata.alias ?? propertyNameByConvention;
-                const propertyValue            = object[propertyName];
+                const typeContext = new TypeContext(typeMetadata);
 
-                if (propertyMetadata.serializationConfigured && !propertyMetadata.deserializable)
+                for (const propertyMetadata of typeMetadata.propertyMetadataMap.values())
                 {
-                    typeContext.set(propertyName, new TypeContextEntry(propertyName, propertyValue));
+                    const namingConvention         = propertyMetadata.namingConvention ?? typeMetadata.namingConvention;
+                    const propertyNameByConvention = namingConvention ? namingConvention.convert(propertyMetadata.name) : propertyMetadata.name;
+                    const propertyName             = propertyMetadata.alias ?? propertyNameByConvention;
+                    const propertyValue            = object[propertyName];
 
-                    continue;
-                }
-
-                const propertySerializer = propertyMetadata.serializer;
-
-                if (Fn.isNil(propertySerializer))
-                {
-                    let value = propertyValue;
-
-                    if (Fn.isUndefined(value))
+                    if (propertyMetadata.serializationConfigured && !propertyMetadata.deserializable)
                     {
-                        value = propertyMetadata.defaultValue;
+                        typeContext.set(propertyName, new TypeContextEntry(propertyName, propertyValue));
+
+                        continue;
                     }
 
-                    typeContext.set(propertyName, new TypeContextEntry(propertyName, value, propertyMetadata));
+                    const propertySerializer = propertyMetadata.serializer;
 
-                    continue;
-                }
-
-                if (Fn.isObject(propertyValue) && propertySerializer instanceof ObjectSerializer)
-                {
-                    let value = objectMap.get(propertyValue);
-
-                    if (Fn.isUndefined(value))
+                    if (Fn.isNil(propertySerializer))
                     {
-                        value = propertySerializer.deserialize(propertyValue, propertyMetadata, objectMap);
+                        let value = propertyValue;
 
-                        objectMap.set(propertyValue, value);
+                        if (Fn.isUndefined(value))
+                        {
+                            value = propertyMetadata.defaultValue;
+                        }
+
+                        typeContext.set(propertyName, new TypeContextEntry(propertyName, value, propertyMetadata));
+
+                        continue;
                     }
 
-                    typeContext.set(propertyName, new TypeContextEntry(propertyName, value, propertyMetadata));
+                    if (Fn.isObject(propertyValue) && this.isObjectSerializer(propertySerializer))
+                    {
+                        const value = propertySerializer.deserialize(propertyValue, propertyMetadata, referenceMap, callbackMap, $);
 
-                    continue;
+                        if (Fn.isFunction(value))
+                        {
+                            this.pushCallback(propertyValue, callbackMap, () =>
+                            {
+                                const referenceType = referenceMap.get(object);
+
+                                if (!Fn.isNil(referenceType))
+                                {
+                                    referenceType[propertyMetadata.name] = value();
+                                }
+                            });
+
+                            continue;
+                        }
+
+                        typeContext.set(propertyName, new TypeContextEntry(
+                            propertyName, 
+                            value, 
+                            propertyMetadata
+                        ));
+
+                        continue;
+                    }
+
+                    typeContext.set(propertyName, new TypeContextEntry(
+                        propertyName,
+                        propertySerializer.deserialize(propertyValue, propertyMetadata), 
+                        propertyMetadata
+                    ));
                 }
 
-                typeContext.set(propertyName, new TypeContextEntry(
-                    propertyName,
-                    propertySerializer.deserialize(propertyValue, propertyMetadata), 
-                    propertyMetadata
-                ));
-            }
-
-            for (const propertyName in object) 
-            {
-                if (object.hasOwnProperty(propertyName) && !typeContext.has(propertyName))
+                for (const propertyName in object) 
                 {
-                    typeContext.set(propertyName, new TypeContextEntry(propertyName, object[propertyName]));
+                    if (object.hasOwnProperty(propertyName) && !typeContext.has(propertyName))
+                    {
+                        typeContext.set(propertyName, new TypeContextEntry(propertyName, object[propertyName]));
+                    }
                 }
-            }
 
-            const factory  = serializerContext.factory ?? typeMetadata.factory;
-            const injector = serializerContext.injector ?? typeMetadata.injector;
-            const type     = factory.build(typeContext, injector);
+                const factory  = serializerContext.factory ?? typeMetadata.factory;
+                const injector = serializerContext.injector ?? typeMetadata.injector;
+                const type     = factory.build(typeContext, injector);
 
-            for (const typeContextEntry of typeContext.values())
-            {
-                if (!Fn.isNil(typeContextEntry.propertyMetadata) && Fn.isUndefined(type[typeContextEntry.propertyMetadata.name]))
+                for (const typeContextEntry of typeContext.values())
                 {
-                    type[typeContextEntry.propertyMetadata.name] = typeContextEntry.value;
+                    if (!Fn.isNil(typeContextEntry.propertyMetadata) && Fn.isUndefined(type[typeContextEntry.propertyMetadata.name]))
+                    {
+                        type[typeContextEntry.propertyMetadata.name] = typeContextEntry.value;
+                    }
                 }
-            }
 
-            return type;
+                return type;
+            });
         }
         
         if (serializerContext.log.errorEnabled)
@@ -245,5 +337,159 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
         }
 
         return undefined;
+    }
+
+    /**
+     * Checks if provided serializer is an object serializer.
+     * 
+     * @param {Serializer<any>} serializer Any serializer.
+     * 
+     * @returns {boolean} True when serializer is an object serializer. False otherwise.
+     */
+    private isObjectSerializer(serializer: Serializer<any>): serializer is ObjectSerializer
+    {
+        const unknownSerilizer = serializer as any;
+
+        return Fn.isObject(unknownSerilizer) && unknownSerilizer['serializerKey'] === this.serializerKey;
+    }
+
+    /**
+     * Pushes callback for provided key.
+     * 
+     * @param {TypeLike<Record<string, any>>} key Callback map key.
+     * @param {WeakMap<any, (() => void)[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
+     * @param {() => void} callback Callback function.
+     * 
+     * @returns {void}
+     */
+    protected pushCallback(key: TypeLike<Record<string, any>>, callbackMap: WeakMap<any, (() => void)[]>, callback: () => void): void
+    {
+        let callbacks = callbackMap.get(key);
+
+        if (Fn.isNil(callbacks))
+        {
+            callbacks = [];
+
+            callbackMap.set(key, callbacks);
+        }
+
+        callbacks.push(callback);
+
+        return;
+    }
+
+    /**
+     * Executes callbacks for provided key.
+     * 
+     * @param {TypeLike<Record<string, any>>} key Callback map key.
+     * @param {WeakMap<any, (() => void)[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
+     * 
+     * @returns {void}
+     */
+    protected executeCallbacks(key: TypeLike<Record<string, any>>, callbackMap: WeakMap<any, (() => void)[]>): void
+    {
+        const callbacks = callbackMap.get(key);
+
+        if (Fn.isNil(callbacks))
+        {
+            return;
+        }
+
+        for (const callback of callbacks)
+        {
+            callback();
+        }
+        
+        return;
+    }
+
+    /**
+     * Defines object reference for provided key. 
+     * 
+     * Called during serialization. If no reference is available then initializer function
+     * will be called.
+     * 
+     * @param {TypeLike<Record<string, any>>} key Reference map key.
+     * @param {WeakMap<any, any>} referenceMap Reference map.
+     * @param {WeakMap<any, (() => void)[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
+     * @param {string} path JSON path for provided value.
+     * @param {Function} initializer Arrow function to initialize an object.
+     * 
+     * @returns {TypeLike<Record<string, any>>} Object reference for a key.
+     */
+    protected defineReference(
+        key: TypeLike<Record<string, any>>,
+        referenceMap: WeakMap<any, any>,
+        callbackMap: WeakMap<any, (() => void)[]>,
+        path: string,
+        initializer: () => TypeLike<Record<string, any>>
+    ): TypeLike<Record<string, any>>
+    {
+        const reference = referenceMap.get(key);
+
+        if (Fn.isNil(reference))
+        {
+            referenceMap.set(key, key);
+
+            const value = initializer();
+
+            referenceMap.set(key, value);
+
+            this.executeCallbacks(key, callbackMap);
+
+            return value;
+        }
+
+        if (reference === key || Fn.isNil(path))
+        {
+            return () => referenceMap.get(key);
+        }
+
+        return reference;
+    }
+
+    /**
+     * Restores object reference for provided key. 
+     * 
+     * Called during deserialization. If no reference is available then initializer function
+     * will be called.
+     * 
+     * @param {TypeLike<Record<string, any>>} key Reference map key.
+     * @param {WeakMap<any, any>} referenceMap Reference map.
+     * @param {WeakMap<any, (() => void)[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
+     * @param {TypeLike<Record<string, any>>} $ Root JSON object.
+     * @param {Function} initializer Arrow function to initialize an object.
+     * 
+     * @returns {TypeLike<Record<string, any>>} Object reference for a key.
+     */
+    protected restoreReference(
+        key: TypeLike<Record<string, any>>,
+        referenceMap: WeakMap<any, any>,
+        callbackMap: WeakMap<any, (() => void)[]>,
+        $: TypeLike<Record<string, any>>,
+        initializer: () => TypeLike<Record<string, any>>
+    ): TypeLike<Record<string, any>>
+    {
+        const reference = referenceMap.get(key);
+
+        if (Fn.isNil(reference))
+        {
+            referenceMap.set(key, key);
+
+            const value = initializer();
+
+            referenceMap.set(key, value);
+
+            this.executeCallbacks(key, callbackMap);
+
+            return value;
+        }
+
+        if (reference === key || Fn.isNil($))
+        {
+             return () => referenceMap.get(key);
+        }
+
+        return reference;
     }
 }

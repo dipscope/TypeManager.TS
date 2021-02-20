@@ -1,6 +1,5 @@
 import 'reflect-metadata';
 import { Type, TypeManager, Property, Injectable } from './../../src';
-import { Fn } from './../../src/core';
 
 @Injectable()
 class UserService

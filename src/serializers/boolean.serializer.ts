@@ -98,7 +98,7 @@ export class BooleanSerializer implements Serializer<boolean>
     {
         if (Fn.isString(x) || Fn.isNumber(x)) 
         {
-            return Boolean(x);
+            return Boolean(Number(x));
         }
 
         if (serializerContext.log.errorEnabled) 
