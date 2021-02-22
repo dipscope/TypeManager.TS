@@ -40,10 +40,9 @@ describe('Object references', function ()
         company.ownerUser = user;
         user.company      = company;
 
-        // TODO: Handle circular references.
-        // const managedCompany = companyManager.deserialize(companyManager.serialize(company));
+        const managedCompany = companyManager.deserialize(companyManager.serialize(company));
 
-        // expect(managedCompany).toBeInstanceOf(Company);
-        // expect(managedCompany?.user).toBe(managedCompany?.ownerUser?.company);
+        expect(managedCompany).toBeInstanceOf(Company);
+        expect(managedCompany?.ownerUser?.company).toBe(managedCompany);
     });
 });

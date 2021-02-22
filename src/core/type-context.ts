@@ -1,3 +1,4 @@
+import { Fn } from './fn';
 import { TypeContextEntry } from './type-context-entry';
 import { TypeMetadata } from './type-metadata';
 
@@ -35,15 +36,23 @@ export class TypeContext<TType>
     }
 
     /**
-     * Checks if type context has a key.
+     * Sets value for key.
      * 
      * @param {string} key Key.
+     * @param {TypeContextEntry<TType, any>} value Value.
      *  
-     * @returns {boolean} True when type context has a key. False otherwise.
+     * @returns {TypeContext<TType>} Current type context.
      */
-    public has(key: string): boolean
+    public set(key: string, value: TypeContextEntry<TType, any>): TypeContext<TType>
     {
-        return this.typeContextEntryMap.has(key);
+        const typeContextEntry = this.typeContextEntryMap.get(key);
+
+        if (Fn.isNil(typeContextEntry))
+        {
+            this.typeContextEntryMap.set(key, value);
+        }
+        
+        return this;
     }
 
     /**
@@ -59,18 +68,15 @@ export class TypeContext<TType>
     }
 
     /**
-     * Sets value for key.
+     * Checks if type context has a key.
      * 
      * @param {string} key Key.
-     * @param {TypeContextEntry<TType, any>} value Value.
      *  
-     * @returns {TypeContext<TType>} Current type context.
+     * @returns {boolean} True when type context has a key. False otherwise.
      */
-    public set(key: string, value: TypeContextEntry<TType, any>): TypeContext<TType>
+    public has(key: string): boolean
     {
-        this.typeContextEntryMap.set(key, value);
-
-        return this;
+        return this.typeContextEntryMap.has(key);
     }
     
     /**

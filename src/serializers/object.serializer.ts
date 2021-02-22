@@ -6,6 +6,22 @@ import { Serializer } from './../core/serializer';
 import { SerializerContext } from './../core/serializer-context';
 
 /**
+ * Reference resolver function which can be returned during serialization or 
+ * deserialization to get reference at a later time due to circular dependency.
+ * 
+ * @type {ReferenceResolver}
+ */
+export type ReferenceResolver = () => TypeLike<Record<string, any>>;
+
+/**
+ * Callback function which is called when circular references can be resolved for 
+ * a certain object.
+ * 
+ * @type {Callback}
+ */
+export type Callback = () => void;
+
+/**
  * Default object serializer.
  * 
  * @type {ObjectSerializer}
@@ -26,7 +42,7 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
      * @param {TypeLike<Record<string, any>>} x Some value.
      * @param {SerializerContext<Record<string, any>>} serializerContext Serializer context.
      * @param {WeakMap<any, any>} referenceMap Map to track object references.
-     * @param {WeakMap<any, (() => void)[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
+     * @param {WeakMap<any, Callback[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
      * @param {string} path JSON path for provided value. $ means a root.
      * 
      * @returns {TypeLike<any>} Serialized value or undefined.
@@ -35,7 +51,7 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
         x: TypeLike<Record<string, any>>, 
         serializerContext: SerializerContext<Record<string, any>>,
         referenceMap: WeakMap<any, any> = new WeakMap<any, any>(),
-        callbackMap: WeakMap<any, (() => void)[]> = new WeakMap<any, (() => void)[]>(),
+        callbackMap: WeakMap<any, Callback[]> = new WeakMap<any, Callback[]>(),
         path: string = '$'
     ): TypeLike<any>
     {
@@ -170,7 +186,7 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
      * @param {TypeLike<any>} x Some value.
      * @param {SerializerContext<Record<string, any>>} serializerContext Serializer context.
      * @param {WeakMap<any, any>} referenceMap Map to track object references.
-     * @param {WeakMap<any, (() => void)[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
+     * @param {WeakMap<any, Callback[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
      * @param {TypeLike<any>} $ Root object.
      * 
      * @returns {TypeLike<Record<string, any>>} Deserialized value or undefined.
@@ -179,7 +195,7 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
         x: TypeLike<any>,
         serializerContext: SerializerContext<Record<string, any>>, 
         referenceMap: WeakMap<any, any> = new WeakMap<any, any>(),
-        callbackMap: WeakMap<any, (() => void)[]> = new WeakMap<any, (() => void)[]>(),
+        callbackMap: WeakMap<any, Callback[]> = new WeakMap<any, Callback[]>(),
         $: TypeLike<any> = x
     ): TypeLike<Record<string, any>>
     {
@@ -251,8 +267,6 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
 
                     if (propertyMetadata.serializationConfigured && !propertyMetadata.deserializable)
                     {
-                        typeContext.set(propertyName, new TypeContextEntry(propertyName, propertyValue));
-
                         continue;
                     }
 
@@ -267,6 +281,7 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
                             value = propertyMetadata.defaultValue;
                         }
 
+                        typeContext.set(propertyMetadata.name, new TypeContextEntry(propertyMetadata.name, value, propertyMetadata));
                         typeContext.set(propertyName, new TypeContextEntry(propertyName, value, propertyMetadata));
 
                         continue;
@@ -291,25 +306,21 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
                             continue;
                         }
 
-                        typeContext.set(propertyName, new TypeContextEntry(
-                            propertyName, 
-                            value, 
-                            propertyMetadata
-                        ));
+                        typeContext.set(propertyMetadata.name, new TypeContextEntry(propertyMetadata.name, value, propertyMetadata));
+                        typeContext.set(propertyName, new TypeContextEntry(propertyName, value, propertyMetadata));
 
                         continue;
                     }
 
-                    typeContext.set(propertyName, new TypeContextEntry(
-                        propertyName,
-                        propertySerializer.deserialize(propertyValue, propertyMetadata), 
-                        propertyMetadata
-                    ));
+                    const value = propertySerializer.deserialize(propertyValue, propertyMetadata);
+
+                    typeContext.set(propertyMetadata.name, new TypeContextEntry(propertyMetadata.name, value, propertyMetadata));
+                    typeContext.set(propertyName, new TypeContextEntry(propertyName, value, propertyMetadata));
                 }
 
-                for (const propertyName in object) 
+                for (const propertyName in object)
                 {
-                    if (object.hasOwnProperty(propertyName) && !typeContext.has(propertyName))
+                    if (object.hasOwnProperty(propertyName))
                     {
                         typeContext.set(propertyName, new TypeContextEntry(propertyName, object[propertyName]));
                     }
@@ -357,12 +368,12 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
      * Pushes callback for provided key.
      * 
      * @param {TypeLike<Record<string, any>>} key Callback map key.
-     * @param {WeakMap<any, (() => void)[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
-     * @param {() => void} callback Callback function.
+     * @param {WeakMap<any, Callback[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
+     * @param {Callback} callback Callback function.
      * 
      * @returns {void}
      */
-    protected pushCallback(key: TypeLike<Record<string, any>>, callbackMap: WeakMap<any, (() => void)[]>, callback: () => void): void
+    protected pushCallback(key: TypeLike<Record<string, any>>, callbackMap: WeakMap<any, Callback[]>, callback: Callback): void
     {
         let callbacks = callbackMap.get(key);
 
@@ -379,14 +390,14 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
     }
 
     /**
-     * Executes callbacks for provided key.
+     * Resolves callbacks for provided key.
      * 
      * @param {TypeLike<Record<string, any>>} key Callback map key.
-     * @param {WeakMap<any, (() => void)[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
+     * @param {WeakMap<any, Callback[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
      * 
      * @returns {void}
      */
-    protected executeCallbacks(key: TypeLike<Record<string, any>>, callbackMap: WeakMap<any, (() => void)[]>): void
+    protected resolveCallbacks(key: TypeLike<Record<string, any>>, callbackMap: WeakMap<any, Callback[]>): void
     {
         const callbacks = callbackMap.get(key);
 
@@ -399,7 +410,7 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
         {
             callback();
         }
-        
+
         return;
     }
 
@@ -411,19 +422,19 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
      * 
      * @param {TypeLike<Record<string, any>>} key Reference map key.
      * @param {WeakMap<any, any>} referenceMap Reference map.
-     * @param {WeakMap<any, (() => void)[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
+     * @param {WeakMap<any, Callback[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
      * @param {string} path JSON path for provided value.
      * @param {Function} initializer Arrow function to initialize an object.
      * 
-     * @returns {TypeLike<Record<string, any>>} Object reference for a key.
+     * @returns {TypeLike<Record<string, any>>|ReferenceResolver} Object reference or reference resolver for a key.
      */
     protected defineReference(
         key: TypeLike<Record<string, any>>,
         referenceMap: WeakMap<any, any>,
-        callbackMap: WeakMap<any, (() => void)[]>,
+        callbackMap: WeakMap<any, Callback[]>,
         path: string,
         initializer: () => TypeLike<Record<string, any>>
-    ): TypeLike<Record<string, any>>
+    ): TypeLike<Record<string, any>> | ReferenceResolver
     {
         const reference = referenceMap.get(key);
 
@@ -435,7 +446,7 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
 
             referenceMap.set(key, value);
 
-            this.executeCallbacks(key, callbackMap);
+            this.resolveCallbacks(key, callbackMap);
 
             return value;
         }
@@ -456,19 +467,19 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
      * 
      * @param {TypeLike<Record<string, any>>} key Reference map key.
      * @param {WeakMap<any, any>} referenceMap Reference map.
-     * @param {WeakMap<any, (() => void)[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
+     * @param {WeakMap<any, Callback[]>} callbackMap Map with callbacks for deferred property assignment on circular reference.
      * @param {TypeLike<Record<string, any>>} $ Root JSON object.
      * @param {Function} initializer Arrow function to initialize an object.
      * 
-     * @returns {TypeLike<Record<string, any>>} Object reference for a key.
+     * @returns {TypeLike<Record<string, any>>|ReferenceResolver} Object reference or reference resolver for a key.
      */
     protected restoreReference(
         key: TypeLike<Record<string, any>>,
         referenceMap: WeakMap<any, any>,
-        callbackMap: WeakMap<any, (() => void)[]>,
+        callbackMap: WeakMap<any, Callback[]>,
         $: TypeLike<Record<string, any>>,
         initializer: () => TypeLike<Record<string, any>>
-    ): TypeLike<Record<string, any>>
+    ): TypeLike<Record<string, any>> | ReferenceResolver
     {
         const reference = referenceMap.get(key);
 
@@ -480,7 +491,7 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
 
             referenceMap.set(key, value);
 
-            this.executeCallbacks(key, callbackMap);
+            this.resolveCallbacks(key, callbackMap);
 
             return value;
         }

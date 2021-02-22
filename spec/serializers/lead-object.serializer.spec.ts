@@ -1,15 +1,15 @@
-import { CircularObjectSerializer } from './../../src/serializers';
+import { LeadObjectSerializer } from './../../src/serializers';
 import { TypeManager, Type, Property, Serializer } from './../../src';
 
 @Type()
-@Serializer(new CircularObjectSerializer())
+@Serializer(new LeadObjectSerializer())
 class User
 {
     @Property(() => Company) public company?: Company;
 }
 
 @Type()
-@Serializer(new CircularObjectSerializer())
+@Serializer(new LeadObjectSerializer())
 class Company
 {
     @Property(() => User) public user?: User;
@@ -17,13 +17,13 @@ class Company
 }
 
 @Type()
-@Serializer(new CircularObjectSerializer())
+@Serializer(new LeadObjectSerializer())
 class Message
 {
     @Property(() => User) public user?: User;
 }
 
-describe('Circular object serializer', function () 
+describe('Lead object serializer', function () 
 {
     it('should serialize undefined to undefined', function ()
     {
@@ -61,7 +61,7 @@ describe('Circular object serializer', function ()
         expect(result).toBeNull();
     });
 
-    it('should serialize circular types to reference objects', function ()
+    it('should serialize circular types to undefined', function ()
     {
         const typeManager = new TypeManager(User);
         const user        = new User();
@@ -77,24 +77,10 @@ describe('Circular object serializer', function ()
         expect(result).toBeInstanceOf(Object);
         expect(result.company).toBeInstanceOf(Object);
         expect(result.company.message).toBeInstanceOf(Object);
-        expect(result.company.message.user).toBeInstanceOf(Object);
-        expect(result.company.message.user.$ref).toBe('$');
+        expect(result.company.message.user).toBeUndefined()
     });
 
-    it('should deserialize reference objects to circular types', function ()
-    {
-        const typeManager = new TypeManager(User);
-        const value       = { company: { message: { user: { $ref: '$' } } } };
-        const result      = typeManager.deserialize(value);
-        
-        expect(result).toBeInstanceOf(User);
-        expect(result?.company).toBeInstanceOf(Company);
-        expect(result?.company?.message).toBeInstanceOf(Message);
-        expect(result?.company?.message?.user).toBeInstanceOf(User);
-        expect(result?.company?.message?.user).toBe(result);
-    });
-
-    it('should serialize circular type array to reference object array', function ()
+    it('should serialize circular type array to undefined', function ()
     {
         const typeManager = new TypeManager(User);
 
@@ -107,20 +93,6 @@ describe('Circular object serializer', function ()
         const result = typeManager.serialize(array);
 
         expect(result[0]).toBeInstanceOf(Object);
-        expect(result[1]).toBeInstanceOf(Object);
-        expect(result[1].$ref).toBeInstanceOf(String);
-        expect(result[1].$ref).toBe('$');
-    });
-
-    it('should deserialize reference object array to circular type array', function ()
-    {
-        const typeManager = new TypeManager(User);
-        const value       = [{}, { $ref: '$' }];
-        const result      = typeManager.deserialize(value) as any[];
-        
-        expect(result).toBeInstanceOf(Array);
-        expect(result[0]).toBeInstanceOf(User);
-        expect(result[1]).toBeInstanceOf(Array);
-        expect(result[1]).toBe(result);
+        expect(result[1]).toBeUndefined();
     });
 });

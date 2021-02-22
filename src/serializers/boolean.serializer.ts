@@ -96,9 +96,19 @@ export class BooleanSerializer implements Serializer<boolean>
      */
     private convert(x: any, serializerContext: SerializerContext<boolean>): boolean | undefined
     {
-        if (Fn.isString(x) || Fn.isNumber(x)) 
+        if (Fn.isString(x) && (x === 'true' || x === 'false'))
         {
-            return Boolean(Number(x));
+            return x === 'true';
+        }
+
+        if (Fn.isString(x) && (x === '1' || x === '0'))
+        {
+            return x === '1';
+        }
+
+        if (Fn.isNumber(x) && (x === 1 || x === 0))
+        {
+            return x === 1;
         }
 
         if (serializerContext.log.errorEnabled) 

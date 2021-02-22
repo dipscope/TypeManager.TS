@@ -81,28 +81,30 @@ describe('Boolean serializer', function ()
     it('should serialize suitable types to boolean when implicit conversion is enabled', function ()
     {
         const typeManager = new TypeManager(Boolean, { useImplicitConversion: true });
-        const value       = ['0', '1', 0, 1] as any[];
+        const value       = ['true', 'false', '1', '0', 1, 0] as any[];
         const result      = typeManager.serialize(value);
         
         expect(result).toBeInstanceOf(Array);
-        expect(result[0]).toBeFalse();
-        expect(result[1]).toBeTrue();
-        expect(result[2]).toBeFalse();
-        expect(result[3]).toBeTrue();
-        expect(result[4]).toBeUndefined();
+        expect(result[0]).toBeTrue();
+        expect(result[1]).toBeFalse();
+        expect(result[2]).toBeTrue();
+        expect(result[3]).toBeFalse();
+        expect(result[4]).toBeTrue();
+        expect(result[5]).toBeFalse();
     });
 
     it('should deserialize suitable types to boolean when implicit conversion is enabled', function ()
     {
         const typeManager = new TypeManager(Boolean, { useImplicitConversion: true });
-        const value       = ['0', '1', 0, 1] as any[];
+        const value       = ['true', 'false', '1', '0', 1, 0] as any[];
         const result      = typeManager.deserialize(value);
         
         expect(result).toBeInstanceOf(Array);
-        expect(result[0]).toBeFalse();
-        expect(result[1]).toBeTrue();
-        expect(result[2]).toBeFalse();
-        expect(result[3]).toBeTrue();
-        expect(result[4]).toBeUndefined();
+        expect(result[0]).toBeTrue();
+        expect(result[1]).toBeFalse();
+        expect(result[2]).toBeTrue();
+        expect(result[3]).toBeFalse();
+        expect(result[4]).toBeTrue();
+        expect(result[5]).toBeFalse();
     });
 });
