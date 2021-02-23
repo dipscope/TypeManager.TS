@@ -7,12 +7,27 @@ module.exports = {
     entry: {
         index: {
             import: './src/index.ts',
-            filename: 'index.js'
+            filename: './index.js'
         },
-        helpers: { 
-            import: './src/helpers/index.ts', 
-            filename: 'helpers.js',
-            dependOn: ['index']
+        core: { 
+            import: './src/core/index.ts', 
+            filename: './core/index.js'
+        },
+        factories: { 
+            import: './src/factories/index.ts', 
+            filename: './factories/index.js'
+        },
+        injectors: { 
+            import: './src/injectors/index.ts', 
+            filename: './injectors/index.js'
+        },
+        namingConventions: { 
+            import: './src/naming-conventions/index.ts', 
+            filename: './naming-conventions/index.js'
+        },
+        serializers: { 
+            import: './src/serializers/index.ts', 
+            filename: './serializers/index.js'
         }
     },
     output: {
@@ -35,12 +50,12 @@ module.exports = {
             use: [{
                 loader: 'ts-loader',
                 options: {
-                    configFile: "tsconfig.webpack.json"
+                    configFile: 'tsconfig.webpack.json'
                 }
             }],
             exclude: /node_modules/,
             include: [
-                Path.resolve(__dirname, "src")
+                Path.resolve(__dirname, 'src')
             ],
         }]
     },

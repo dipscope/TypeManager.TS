@@ -32,6 +32,7 @@ class Message
     @Property(() => String, { serializer: new MessageBodySerializer() }) public body?: string;
     @Property(() => String, { alias: 'label'}) public title?: string;
     @Property(() => User) public user?: User; 
+    @Property(() => Group, { multiple: true }) public groups?: Group[];
 }
 
 @Type()
@@ -46,7 +47,7 @@ describe('Type manager', function ()
     it('should deserialize type when object is provided and vice versa', function () 
     {
         const messageManager = new TypeManager(Message, { useDefaultValue: false });
-        const baseObject     = { body: 'a', label: 'b', user: { username: 'a', email: 'b', description: null, about: 'g', device: 'h' } };
+        const baseObject     = { body: 'a', label: 'b', user: { username: 'a', email: 'b', description: null, about: 'g', device: 'h' }, groups: [{ title: 'a' }, { title: 'a' }] };
         const baseObjects    = [baseObject, baseObject];
         const entity         = messageManager.deserialize(baseObject);
         const entities       = messageManager.deserialize(baseObjects);
@@ -63,11 +64,19 @@ describe('Type manager', function ()
         expect(entity.user?.description).toBeNull();
         expect(entity.user?.about).toBeUndefined(); 
         expect(entity.user?.device).toBe('h');
+        expect(entity.groups).toBeInstanceOf(Array);
+        expect(entity.groups?.length).toBeGreaterThan(0);
+
+        entity.groups?.forEach(e => 
+        {
+            expect(e).toBeInstanceOf(Group);
+            expect(e.title).toBe('a');
+        });
 
         expect(entities).toBeInstanceOf(Array);
         expect(entities[0]).toEqual(entities[1]);
 
-        entities.forEach((e: any) => 
+        entities.forEach(e => 
         {
             expect(e).toBeInstanceOf(Message);
             expect(e.body).toBe('aa');
@@ -103,11 +112,19 @@ describe('Type manager', function ()
         expect(object.user?.description).toBeNull();
         expect(object.user?.about).toBe('g');
         expect(object.user?.device).toBeUndefined();
+        expect(object.groups).toBeInstanceOf(Array);
+        expect(object.groups?.length).toBeGreaterThan(0);
+
+        entity.groups?.forEach(e => 
+        {
+            expect(e).toBeInstanceOf(Object);
+            expect(e.title).toBe('a');
+        });
 
         expect(objects).toBeInstanceOf(Array);
         expect(objects[0]).toEqual(objects[1]);
 
-        objects.forEach((o: any) => 
+        objects.forEach(o => 
         {
             expect(o).toBeInstanceOf(Object);
             expect(o.body).toBe('a');

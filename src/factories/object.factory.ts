@@ -22,6 +22,7 @@ export class ObjectFactory implements Factory<Record<string, any>>
     {
         const typeMetadata = typeContext.typeMetadata;
         const typeCtor     = typeMetadata.typeCtor;
+        const injectedKeys = [];
         const args         = new Array<any>(typeCtor.length).fill(undefined);
 
         for (const injectMetadata of typeMetadata.injectMetadataMap.values())
@@ -31,6 +32,8 @@ export class ObjectFactory implements Factory<Record<string, any>>
             if (!Fn.isNil(argKey))
             {
                 args[injectMetadata.index] = typeContext.get(argKey)?.value;
+
+                injectedKeys.push(argKey);
 
                 continue;
             }
@@ -45,6 +48,16 @@ export class ObjectFactory implements Factory<Record<string, any>>
             }
         }
 
-        return new typeCtor(...args);
+        const type = new typeCtor(...args);
+
+        for (const typeContextEntry of typeContext.values())
+        {
+            if (!Fn.isNil(typeContextEntry.propertyMetadata) && !injectedKeys.includes(typeContextEntry.propertyMetadata.name))
+            {
+                type[typeContextEntry.propertyMetadata.name] = typeContextEntry.value;
+            }
+        }
+
+        return type;
     }
 }

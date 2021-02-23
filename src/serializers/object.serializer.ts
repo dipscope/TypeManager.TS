@@ -330,14 +330,6 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
                 const injector = serializerContext.injector ?? typeMetadata.injector;
                 const type     = factory.build(typeContext, injector);
 
-                for (const typeContextEntry of typeContext.values())
-                {
-                    if (!Fn.isNil(typeContextEntry.propertyMetadata) && Fn.isUndefined(type[typeContextEntry.propertyMetadata.name]))
-                    {
-                        type[typeContextEntry.propertyMetadata.name] = typeContextEntry.value;
-                    }
-                }
-
                 return type;
             });
         }
