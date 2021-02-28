@@ -1,9 +1,9 @@
-import { TypeCtor } from './type-ctor';
+import { TypeArgument } from './type-argument';
 import { TypeMetadata } from './type-metadata';
 
 /**
- * Type metadata resolver.
+ * Type metadata resolver used to resolve a certain type metadata by provided type argument.
  * 
- * @type {TypeMetadataResolver}
+ * @type {TypeMetadataResolver<TType>}
  */
-export type TypeMetadataResolver = <TType>(typeCtor: TypeCtor<TType>) => TypeMetadata<TType>;
+export type TypeMetadataResolver<TType> = (typeArgument: TypeArgument<TType>) => TypeMetadata<TType>;

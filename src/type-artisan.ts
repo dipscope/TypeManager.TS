@@ -1,3 +1,5 @@
+import { TypeArgument } from './core';
+import { Alias } from './core/alias';
 import { Fn } from './core/fn';
 import { Log } from './core/log';
 import { LogLevel } from './core/log-level';
@@ -7,11 +9,11 @@ import { TypeOptions } from './core/type-options';
 import { TypeOptionsBase } from './core/type-options-base';
 import { ObjectFactory } from './factories/object.factory';
 import { SingletonInjector } from './injectors/singleton.injector';
-import { StringSerializer } from './serializers/string.serializer';
-import { NumberSerializer } from './serializers/number.serializer';
 import { BooleanSerializer } from './serializers/boolean.serializer';
 import { DateSerializer } from './serializers/date.serializer';
+import { NumberSerializer } from './serializers/number.serializer';
 import { ObjectSerializer } from './serializers/object.serializer';
+import { StringSerializer } from './serializers/string.serializer';
 
 /**
  * Type artisan class to encapsulate type manipulating functions.
@@ -60,9 +62,9 @@ export class TypeArtisan
     /**
      * Type constructor map for types with aliases.
      * 
-     * @type {Map<string, TypeCtor<any>>}
+     * @type {Map<Alias, TypeCtor<any>>}
      */
-    public static readonly typeCtorMap: Map<string, TypeCtor<any>> = new Map<string, TypeCtor<any>>();
+    public static readonly typeCtorMap: Map<Alias, TypeCtor<any>> = new Map<Alias, TypeCtor<any>>();
     
     /**
      * Configures global type options.
@@ -74,41 +76,6 @@ export class TypeArtisan
     public static configureTypeOptionsBase<TType>(typeOptionsBase: Partial<TypeOptionsBase<TType>>): void
     {
         Fn.assign(this.typeOptionsBase, typeOptionsBase);
-
-        if (Fn.isNil(this.typeOptionsBase.customData))
-        {
-            throw new Error('Custom type options must be specified for type options base!');
-        }
-
-        if (Fn.isNil(this.typeOptionsBase.log))
-        {
-            throw new Error('Log must be specified for type options base!')
-        }
-
-        if (Fn.isNil(this.typeOptionsBase.factory))
-        {
-            throw new Error('Type factory must be specified for type options base!');
-        }
-
-        if (Fn.isNil(this.typeOptionsBase.injector))
-        {
-            throw new Error('Type injector must be specified for type options base!');
-        }
-
-        if (Fn.isNil(this.typeOptionsBase.serializer))
-        {
-            throw new Error('Type serializer must be specified for type options base!');
-        }
-
-        if (Fn.isNil(this.typeOptionsBase.useDefaultValue))
-        {
-            throw new Error('Using of default values must be specified for type options base!');
-        }
-
-        if (Fn.isNil(this.typeOptionsBase.useImplicitConversion))
-        {
-            throw new Error('Using of implicit convertion must be specified for type options base!');
-        }
 
         return;
     }
@@ -167,8 +134,8 @@ export class TypeArtisan
     {
         const typeOptionsBase      = this.typeOptionsBase;
         const typeOptions          = this.typeOptionsMap.get(typeCtor);
-        const typeMetadataResolver = this.extractTypeMetadata.bind(this);
-        const typeMetadata         = new TypeMetadata(typeCtor, typeMetadataResolver, typeOptionsBase, typeOptions ?? {});
+        const typeMetadataResolver = this.resolveTypeMetadata.bind(this);
+        const typeMetadata         = new TypeMetadata(typeMetadataResolver, typeCtor, typeOptionsBase, typeOptions ?? {});
 
         if (!Fn.isNil(typeMetadata.alias))
         {
@@ -236,5 +203,22 @@ export class TypeArtisan
         const typeMetadata    = metadataDefined ? prototype[metadataKey] as TypeMetadata<TType> : this.defineTypeMetadata(typeCtor);
 
         return typeMetadata;
+    }
+
+    /**
+     * Resolves type metadata by provided type argument.
+     * 
+     * @type {TypeMetadata<any>} Type metadata for provided type argument.
+     */
+    public static resolveTypeMetadata<TType>(typeArgument: TypeArgument<TType>): TypeMetadata<TType>
+    {
+        const typeCtor = Fn.isString(typeArgument) ? this.typeCtorMap.get(typeArgument) : (Fn.isCtor(typeArgument) ? typeArgument : typeArgument());
+
+        if (Fn.isNil(typeCtor))
+        {
+            throw new Error(`Cannot resolve type metadata for provided type argument: ${JSON.stringify(typeArgument)}! Looks like your configuration is invalid!`);
+        }
+
+        return this.extractTypeMetadata(typeCtor);
     }
 }

@@ -4,37 +4,42 @@ import { Serializer } from './../core/serializer';
 import { SerializerContext } from './../core/serializer-context';
 
 /**
- * String serializer.
+ * Uint 16 array serializer.
  * 
- * @type {StringSerializer}
+ * @type {Uint16ArraySerializer}
  */
-export class StringSerializer implements Serializer<string>
+export class Uint16ArraySerializer implements Serializer<Uint16Array>
 {
     /**
      * Serializes provided value.
      * 
-     * @param {TypeLike<string>} x Some value.
-     * @param {SerializerContext<string>} serializerContext Serializer context.
+     * @param {TypeLike<Uint16Array>} x Some value.
+     * @param {SerializerContext<Uint16Array>} serializerContext Serializer context.
      * 
      * @returns {TypeLike<any>} Serialized value or undefined.
      */
-    public serialize(x: TypeLike<string>, serializerContext: SerializerContext<string>): TypeLike<any>
+    public serialize(x: TypeLike<Uint16Array>, serializerContext: SerializerContext<Uint16Array>): TypeLike<any>
     {
         if (Fn.isUndefined(x))
         {
             return serializerContext.defaultValue;
         }
 
-        if (Fn.isNull(x) || Fn.isString(x))
+        if (Fn.isNull(x))
         {
             return x;
+        }
+
+        if (Fn.isUint16Array(x))
+        {
+            return Array.from(x);
         }
 
         if (Fn.isArray(x))
         {
             return x.map(v => this.serialize(v, serializerContext));
         }
-
+        
         if (serializerContext.useImplicitConversion) 
         {
             return this.convert(x, serializerContext);
@@ -42,7 +47,7 @@ export class StringSerializer implements Serializer<string>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as string!`, x);
+            serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as uint 16 array!`, x);
         }
 
         return undefined;
@@ -52,23 +57,28 @@ export class StringSerializer implements Serializer<string>
      * Deserializes provided value.
      * 
      * @param {TypeLike<any>} x Some value.
-     * @param {SerializerContext<string>} serializerContext Serializer context.
+     * @param {SerializerContext<Uint16Array>} serializerContext Serializer context.
      * 
-     * @returns {TypeLike<string>} Deserialized value.
+     * @returns {TypeLike<Uint16Array>} Deserialized value.
      */
-    public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<string>): TypeLike<string>
+    public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Uint16Array>): TypeLike<Uint16Array>
     {
         if (Fn.isUndefined(x))
         {
             return serializerContext.defaultValue;
         }
 
-        if (Fn.isNull(x) || Fn.isString(x))
+        if (Fn.isNull(x))
         {
             return x;
         }
 
-        if (Fn.isArray(x))
+        if (Fn.isArray(x) && x.every(v => Fn.isNumber(v) && !Number.isNaN(v)))
+        {
+            return Uint16Array.from(x);
+        }
+
+        if (Fn.isArray(x) && x.every(v => Fn.isArray(v)))
         {
             return x.map(v => this.deserialize(v, serializerContext));
         }
@@ -80,7 +90,7 @@ export class StringSerializer implements Serializer<string>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as string!`, x);
+            serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as uint 16 array!`, x);
         }
 
         return undefined;
@@ -90,32 +100,22 @@ export class StringSerializer implements Serializer<string>
      * Converts provided value to the target type value.
      * 
      * @param {any} x Some value.
-     * @param {SerializerContext<string>} serializerContext Type serializer context.
+     * @param {SerializerContext<Uint16Array>} serializerContext Serializer context.
      * 
-     * @returns {string|undefined} Converted value or original value.
+     * @returns {Uint16Array|undefined} Converted value or undefined.
      */
-    private convert(x: any, serializerContext: SerializerContext<string>): string | undefined
+    private convert(x: any, serializerContext: SerializerContext<Uint16Array>): Uint16Array | undefined
     {
-        if (Fn.isNumber(x) || Fn.isBoolean(x)) 
+        if (Fn.isUint8Array(x))
         {
-            return String(x);
-        }
-
-        if (Fn.isDate(x))
-        {
-            return x.toISOString();
-        }
-
-        if (Fn.isObject(x))
-        {
-            return JSON.stringify(x);
-        }
-
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.path}: Cannot convert value to string!`, x);
+            return Uint16Array.from(x);
         }
         
+        if (serializerContext.log.errorEnabled) 
+        {
+            serializerContext.log.error(`${serializerContext.path}: Cannot convert value to uint 16 array!`, x);
+        }
+
         return undefined;
     }
 }

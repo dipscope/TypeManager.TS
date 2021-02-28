@@ -1,5 +1,5 @@
-import { TypeLike } from './type-like';
 import { SerializerContext } from './serializer-context';
+import { TypeLike } from './type-like';
 
 /**
  * Serializer.

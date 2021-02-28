@@ -838,9 +838,9 @@ With this any value which can be converted to `string` will be converted properl
 
 ## Defining configuration manually
 
-There are circumstances when decorators cannot be used or you don't want to. For example you are using a 3rd party package and cannot decorate classes from it. Another use case - you want to configure some options globally. In this case you can define the complete configuration through special static configure method. 
+There are circumstances when decorators cannot be used or you don't want to. For example you are using a 3rd party package and cannot decorate classes from it. Another use case - you want to configure some options globally. In this case you can define the complete configuration through special static configure methods. 
 
-There are also exist separate methods to configure each type manager option, so the provided examples can be simplified to avoid creating additional object. It is useful when you need to configure only one option. In our examples we are always use the main one to give you a general overview.
+We have separate methods to configure each type manager option, so the provided examples can be simplified to avoid creating additional object. It is useful when you need to configure only one option. In our examples we are always use the main one to give you a general overview.
 
 ### Configuring global options
 
@@ -1047,9 +1047,9 @@ Now all property names will be converted to snake case while reading them from J
 
 We have several object serializers: default, circular and lead. Each of them can be used globally or per type. Their behaviour is absolutely the same until it comes to handling circular references.
 
-* Default object serializer preserves circular references without making any special changes.
-* Circular object serializer preserves circular references using JSONPath notation.
-* Lead object serializer preserves only the first occurrence. When circular reference is detected then it will be set to undefined.
+* Default object serializer preserves circular references without making any special changes;
+* Circular object serializer preserves circular references using JSONPath notation;
+* Lead object serializer preserves only the first occurrence and when circular reference is detected it will be set to undefined;
 
 There is nothing better to show the difference than code. For example we have two classes which reference each other:
 
@@ -1299,71 +1299,7 @@ Now types will be resolved using framework injector.
 
 ### Defining custom factory
 
-When you want to apply additional logic to how types are constructed you can specify custom factory globally or per type. Let's say you want to init some properties based on your custom data specified for a type. You can do this by extending default `ObjectFactory` but let's first look how it may look like if you want implement one from scratch.
-
-```typescript
-import { Factory, TypeContext, Injector } from '@dipscope/type-manager/core';
-
-export class CustomObjectFactory implements Factory<Record<string, any>>
-{
-    public build(typeContext: TypeContext<Record<string, any>>, injector: Injector): Record<string, any>
-    {
-        const typeMetadata = typeContext.typeMetadata;
-        const typeCtor     = typeMetadata.typeCtor;
-        const injectedKeys = [];
-        const args         = new Array<any>(typeCtor.length).fill(undefined);
-
-        // Define inject arguments.
-        for (const injectMetadata of typeMetadata.injectMetadataMap.values())
-        {
-            const argKey = injectMetadata.key;
-
-            if (argKey)
-            {
-                args[injectMetadata.index] = typeContext.get(argKey)?.value;
-
-                injectedKeys.push(argKey);
-
-                continue;
-            }
-
-            const argTypeMetadata = injectMetadata.typeMetadata;
-
-            if (argTypeMetadata)
-            {
-                args[injectMetadata.index] = injector.get(argTypeMetadata);
-
-                continue;
-            }
-        }
-
-        // Build type.
-        const type = new typeCtor(...args);
-
-        // Fill properties.
-        for (const typeContextEntry of typeContext.values())
-        {
-            if (!Fn.isNil(typeContextEntry.propertyMetadata) && !injectedKeys.includes(typeContextEntry.propertyMetadata.name))
-            {
-                type[typeContextEntry.propertyMetadata.name] = typeContextEntry.value;
-            }
-        }
-
-        // Resolve custom data.
-        const customData = typeMetadata.customData;
-
-        // Process custom data.
-        for (const propertyName in customData)
-        {
-            type[propertyName] = customData[propertyName];
-        }
-
-        return type;
-    }
-}
-```
-
-Resolving constructor arguments and building a type are required steps. However you can do whatever you want. If controlling of injection steps are not required above example can be rewritten as following.
+When you want to apply additional logic to how types are constructed you can specify custom factory globally or per type. Let's say you want to init some properties based on your custom data specified for a type. You can do this by extending default `ObjectFactory`.
 
 ```typescript
 import { TypeContext, Injector } from '@dipscope/type-manager/core';
@@ -1390,8 +1326,6 @@ export class CustomObjectFactory extends ObjectFactory
     }
 }
 ```
-
-This will keep you away from controlling injection. 
 
 When you are finished with definitions there are two possible ways to register a factory. You can use decorators.
 

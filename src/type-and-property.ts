@@ -1,8 +1,8 @@
 import { Fn } from './core/fn';
-import { Type } from './type';
-import { Property } from './property';
-import { TypeOptions } from './core/type-options';
 import { PropertyOptions } from './core/property-options';
+import { TypeOptions } from './core/type-options';
+import { Property } from './property';
+import { Type } from './type';
 
 /**
  * Type and property decorator.

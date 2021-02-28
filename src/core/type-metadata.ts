@@ -1,26 +1,31 @@
-import { Fn } from './fn';
-import { Serializer } from './serializer';
-import { SerializerContext } from './serializer-context';
-import { TypeOptions } from './type-options';
-import { TypeCtor } from './type-ctor';
+import { Alias } from './alias';
+import { CustomData } from './custom-data';
 import { Factory } from './factory';
-import { TypeMetadataResolver } from './type-metadata-resolver';
-import { PropertyMetadata } from './property-metadata';
-import { PropertyOptions } from './property-options';
-import { TypeOptionsBase } from './type-options-base';
-import { Injector } from './injector';
+import { Fn } from './fn';
+import { GenericArgument } from './generic-argument';
+import { GenericMetadata } from './generic-metadata';
 import { InjectMetadata } from './inject-metadata';
 import { InjectOptions } from './inject-options';
-import { CustomData } from './custom-data';
+import { Injector } from './injector';
 import { Log } from './log';
+import { Metadata } from './metadata';
 import { NamingConvention } from './naming-convention';
+import { PropertyMetadata } from './property-metadata';
+import { PropertyOptions } from './property-options';
+import { Serializer } from './serializer';
+import { SerializerContext } from './serializer-context';
+import { SerializerContextOptions } from './serializer-context-options';
+import { TypeCtor } from './type-ctor';
+import { TypeMetadataResolver } from './type-metadata-resolver';
+import { TypeOptions } from './type-options';
+import { TypeOptionsBase } from './type-options-base';
 
 /**
  * Main class used to describe a certain type.
  * 
  * @type {TypeMetadata<TType>}
  */
-export class TypeMetadata<TType> implements SerializerContext<TType>
+export class TypeMetadata<TType> extends Metadata
 {
     /**
      * Constructor function name. 
@@ -37,13 +42,6 @@ export class TypeMetadata<TType> implements SerializerContext<TType>
      * @type {TypeCtor<TType>}
      */
     public readonly typeCtor: TypeCtor<TType>;
-
-    /**
-     * Type metadata resolver.
-     * 
-     * @type {TypeMetadataResolver}
-     */
-    public readonly typeMetadataResolver: TypeMetadataResolver;
 
     /**
      * Type options used by default.
@@ -76,18 +74,20 @@ export class TypeMetadata<TType> implements SerializerContext<TType>
     /**
      * Constructor.
      * 
+     * @param {TypeCtorResolver<any>} typeCtorResolver Type constructor resolver.
+     * @param {TypeMetadataResolver<any>} typeMetadataResolver Type metadata resolver.
      * @param {TypeCtor<TType>} typeCtor Type constructor function.
-     * @param {TypeMetadataResolver} typeMetadataResolver Type declaration.
      * @param {TypeOptionsBase<TType>} typeOptionsBase Type options used by default.
      * @param {TypeOptions<TType>} typeOptions Type options.
      */
-    public constructor(typeCtor: TypeCtor<TType>, typeMetadataResolver: TypeMetadataResolver, typeOptionsBase: TypeOptionsBase<TType>, typeOptions: TypeOptions<TType>)
+    public constructor(typeMetadataResolver: TypeMetadataResolver<any>, typeCtor: TypeCtor<TType>, typeOptionsBase: TypeOptionsBase<TType>, typeOptions: TypeOptions<TType>)
     {
-        this.name                 = Fn.nameOf(typeCtor);
-        this.typeCtor             = typeCtor;
-        this.typeMetadataResolver = typeMetadataResolver;
-        this.typeOptionsBase      = typeOptionsBase;
-        this.typeOptions          = {};
+        super(typeMetadataResolver);
+
+        this.name            = Fn.nameOf(typeCtor);
+        this.typeCtor        = typeCtor;
+        this.typeOptionsBase = typeOptionsBase;
+        this.typeOptions     = {};
 
         this.configure(typeOptions);
 
@@ -95,29 +95,83 @@ export class TypeMetadata<TType> implements SerializerContext<TType>
     }
 
     /**
-     * Gets current alias.
+     * Gets alias.
      * 
-     * @returns {string|undefined} Alias or undefined.
+     * @returns {Alias|undefined} Alias or undefined.
      */
-    public get alias(): string | undefined
+    public get alias(): Alias | undefined
     {
         return this.typeOptions.alias;
     }
 
     /**
-     * Gets current custom data.
+     * Sets alias.
      * 
-     * @returns {CustomData} Custom data.
+     * @returns Nothing.
      */
-    public get customData(): CustomData
+    public set alias(alias: Alias | undefined)
     {
-        const customData = Fn.assign({}, this.typeOptionsBase.customData);
+        this.typeOptions.alias = alias;
 
-        return Fn.assign(customData, this.typeOptions.customData ?? {});
+        return;
     }
 
     /**
-     * Gets current default value.
+     * Gets custom data.
+     * 
+     * @returns {CustomData|undefined} Custom data or undefined.
+     */
+    public get customData(): CustomData | undefined
+    {
+        const typeCustomData     = this.typeOptionsBase.customData;
+        const typeBaseCustomData = this.typeOptionsBase.customData;
+
+        if (Fn.isNil(typeCustomData) && Fn.isNil(typeBaseCustomData))
+        {
+            return undefined;
+        }
+
+        const customData = {};
+
+        if (Fn.isObject(typeBaseCustomData))
+        {
+            Fn.assign(customData, typeBaseCustomData);
+        }
+
+        if (Fn.isObject(typeCustomData))
+        {
+            Fn.assign(customData, typeCustomData);
+        }
+
+        return customData;
+    }
+
+    /**
+     * Sets custom data.
+     * 
+     * @returns Nothing.
+     */
+    public set customData(customData: CustomData | undefined)
+    {
+        if (Fn.isNil(customData))
+        {
+            this.typeOptions.customData = customData;
+
+            return;
+        }
+
+        if (Fn.isNil(this.typeOptions.customData))
+        {
+            this.typeOptions.customData = {};
+        }
+
+        Fn.assign(this.typeOptions.customData, customData);
+
+        return;
+    }
+
+    /**
+     * Gets default value.
      * 
      * @returns {any|undefined} Resolved default value or undefined.
      */
@@ -134,43 +188,142 @@ export class TypeMetadata<TType> implements SerializerContext<TType>
     }
 
     /**
-     * Gets current factory.
+     * Sets default value.
      * 
-     * @returns {Factory<TType>} Factory.
+     * @returns Nothing.
      */
-    public get factory(): Factory<TType>
+    public set defaultValue(defaultValue: any | undefined)
+    {
+        this.typeOptions.defaultValue = defaultValue;
+
+        return;
+    }
+
+    /**
+     * Gets factory.
+     * 
+     * @returns {Factory<TType>|undefined} Factory or undefined.
+     */
+    public get factory(): Factory<TType> | undefined
     {
         return this.typeOptions.factory ?? this.typeOptionsBase.factory;
     }
 
     /**
-     * Gets current injectable value.
+     * Sets factory.
      * 
-     * @returns {boolean} Injectable indicator.
+     * @returns Nothing.
      */
-    public get injectable(): boolean
+    public set factory(factory: Factory<TType> | undefined)
     {
-        return this.typeOptions.injectable ?? false;
+        this.typeOptions.factory = factory;
+        
+        return;
     }
 
     /**
-     * Gets current injector.
+     * Gets generic arguments.
      * 
-     * @returns {Injector} Injector.
+     * @returns {GenericArgument<any>[]|undefined} Generic arguments or undefined.
      */
-    public get injector(): Injector
+    public get genericArguments(): GenericArgument<any>[] | undefined
+    {
+        return this.typeOptions.genericArguments;
+    }
+
+    /**
+     * Sets generic arguments.
+     * 
+     * @returns Nothing.
+     */
+    public set genericArguments(genericArguments: GenericArgument<any>[] | undefined)
+    {
+        this.typeOptions.genericArguments = genericArguments;
+
+        return;
+    }
+
+    /**
+     * Gets generic metadatas.
+     * 
+     * @returns {GenericMetadata<any>[]|undefined} Generic metadatas.
+     */
+    public get genericMetadatas(): GenericMetadata<any>[] | undefined
+    {
+        const genericArguments = this.genericArguments;
+
+        if (!Fn.isNil(genericArguments))
+        {
+            return this.defineGenericMetadatas(genericArguments);
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Gets injectable value.
+     * 
+     * @returns {boolean|undefined} Injectable indicator or undefined.
+     */
+    public get injectable(): boolean | undefined
+    {
+        return this.typeOptions.injectable;
+    }
+
+    /**
+     * Sets injectable value.
+     * 
+     * @returns Nothing.
+     */
+    public set injectable(injectable: boolean | undefined)
+    {
+        this.typeOptions.injectable = injectable;
+        
+        return;
+    }
+
+    /**
+     * Gets injector.
+     * 
+     * @returns {Injector|undefined} Injector or undefined.
+     */
+    public get injector(): Injector | undefined
     {
         return this.typeOptions.injector ?? this.typeOptionsBase.injector;
     }
 
     /**
+     * Sets injector.
+     * 
+     * @returns Nothing.
+     */
+    public set injector(injector: Injector | undefined)
+    {
+        this.typeOptions.injector = injector;
+        
+        return;
+    }
+
+    /**
      * Gets log.
      * 
-     * @returns {Log}
+     * @returns {Log|undefined}
      */
-    public get log(): Log
+    public get log(): Log | undefined
     {
         return this.typeOptions.log ?? this.typeOptionsBase.log;
+    }
+
+    /**
+     * Sets log.
+     * 
+     * @returns Nothing.
+     */
+    public set log(log: Log | undefined)
+    {
+        this.typeOptions.log = log;
+        
+        return;
     }
 
     /**
@@ -184,74 +337,104 @@ export class TypeMetadata<TType> implements SerializerContext<TType>
     }
 
     /**
-     * Gets metadata path for logging.
+     * Sets naming convention.
      * 
-     * @returns {string}
+     * @returns Nothing.
      */
-    public get path(): string
+    public set namingConvention(namingConvention: NamingConvention | undefined)
     {
-        return this.name;
-    }
-
-    /**
-     * Gets context property metadata.
-     * 
-     * @returns {PropertyMetadata<any, TType>|undefined}
-     */
-    public get propertyMetadata(): PropertyMetadata<any, TType> | undefined
-    {
-        return undefined;
+        this.typeOptions.namingConvention = namingConvention;
+        
+        return;
     }
 
     /**
      * Gets current serializer.
      * 
-     * @returns {Serializer<TType>} Serializer.
+     * @returns {Serializer<TType>|undefined} Serializer or undefined.
      */
-    public get serializer(): Serializer<TType>
+    public get serializer(): Serializer<TType> | undefined
     {
         return this.typeOptions.serializer ?? this.typeOptionsBase.serializer;
     }
 
     /**
-     * Gets context type metadata.
+     * Sets serializer.
      * 
-     * @type {TypeMetadata<TType>}
+     * @returns Nothing.
      */
-    public get typeMetadata(): TypeMetadata<TType>
+    public set serializer(serializer: Serializer<TType> | undefined)
     {
-        return this;
+        this.typeOptions.serializer = serializer;
+        
+        return;
     }
 
     /**
      * Gets indicator if default value should be used.
      * 
-     * @returns {boolean} True when type should use default value. False otherwise.
+     * @returns {boolean|undefined} True when type should use default value. False otherwise.
      */
-    public get useDefaultValue(): boolean
+    public get useDefaultValue(): boolean | undefined
     {
         return this.typeOptions.useDefaultValue ?? this.typeOptionsBase.useDefaultValue;
     }
 
     /**
+     * Sets indicator if default value should be used.
+     * 
+     * @returns Nothing.
+     */
+    public set useDefaultValue(useDefaultValue: boolean | undefined)
+    {
+        this.typeOptions.useDefaultValue = useDefaultValue;
+        
+        return;
+    }
+
+    /**
      * Gets indicator if implicit conversion should be used.
      * 
-     * @returns {boolean} True when type should use implicit conversion. False otherwise.
+     * @returns {boolean|undefined} True when type should use implicit conversion. False otherwise.
      */
-    public get useImplicitConversion(): boolean
+    public get useImplicitConversion(): boolean | undefined
     {
         return this.typeOptions.useImplicitConversion ?? this.typeOptionsBase.useImplicitConversion;
     }
 
     /**
-     * Defines inject metadata using reflection. 
+     * Sets indicator if implicit conversion should be used.
      * 
-     * Cannot be called in constructor because reflect metadata is defined when 
-     * class decorators are executed.
+     * @returns Nothing.
+     */
+    public set useImplicitConversion(useImplicitConversion: boolean | undefined)
+    {
+        this.typeOptions.useImplicitConversion = useImplicitConversion;
+        
+        return;
+    }
+
+    /**
+     * Defines serializer context of type metadata.
+     * 
+     * @param {SerializerContextOptions<TType>} serializerContextOptions Serializer context options.
+     * 
+     * @returns {SerializerContext<TType>} Serializer context of current type metadata.
+     */
+    public defineSerializerContext(serializerContextOptions: SerializerContextOptions<TType>): SerializerContext<TType>
+    {
+        serializerContextOptions.typeMetadata     = this;
+        serializerContextOptions.propertyMetadata = undefined;
+
+        return new SerializerContext(this.typeMetadataResolver, serializerContextOptions);
+    }
+
+    /**
+     * Extracts reflect metadata.
      * 
      * @returns {TypeMetadata<TType>}
      */
-    public defineInjectMetadata(): TypeMetadata<TType>
+    public extractReflectMetadata(): TypeMetadata<TType>
     {
         if (this.typeCtor.length === 0)
         {
@@ -272,43 +455,6 @@ export class TypeMetadata<TType> implements SerializerContext<TType>
     }
 
     /**
-     * Clones current metadata instance.
-     * 
-     * @returns {TypeMetadata<TType>} Clone of current metadata instance.
-     */
-    public clone(): TypeMetadata<TType>
-    {
-        const typeOptions  = Fn.assign({}, this.typeOptions) as TypeOptions<TType>;
-        const typeMetadata = new TypeMetadata(this.typeCtor, this.typeMetadataResolver, this.typeOptionsBase, typeOptions);
-        
-        if (Fn.isNil(typeOptions.injectOptionsMap))
-        {
-            typeOptions.injectOptionsMap = new Map<number, InjectOptions<any>>();
-        }
-
-        for (const injectMetadata of this.injectMetadataMap.values())
-        {
-            const injectOptions = Fn.assign({}, injectMetadata.injectOptions) as InjectOptions<any>;
-
-            typeOptions.injectOptionsMap.set(injectMetadata.index, injectOptions);
-        }
-
-        if (Fn.isNil(typeOptions.propertyOptionsMap))
-        {
-            typeOptions.propertyOptionsMap = new Map<string, PropertyOptions<any>>();
-        }
-
-        for (const propertyMetadata of this.propertyMetadataMap.values())
-        {
-            const propertyOptions = Fn.assign({}, propertyMetadata.propertyOptions) as PropertyOptions<any>;
-
-            typeOptions.propertyOptionsMap.set(propertyMetadata.name, propertyOptions);
-        }
-
-        return typeMetadata.configure(typeOptions);
-    }
-
-    /**
      * Configures certain property metadata.
      * 
      * @param {string} propertyName Property name. 
@@ -322,7 +468,7 @@ export class TypeMetadata<TType> implements SerializerContext<TType>
 
         if (Fn.isNil(propertyMetadata))
         {
-            propertyMetadata = new PropertyMetadata(this, propertyName, propertyOptions);
+            propertyMetadata = new PropertyMetadata(this.typeMetadataResolver, this, propertyName, propertyOptions);
             
             this.propertyMetadataMap.set(propertyName, propertyMetadata);
 
@@ -346,7 +492,7 @@ export class TypeMetadata<TType> implements SerializerContext<TType>
 
         if (Fn.isNil(injectMetadata))
         {
-            injectMetadata = new InjectMetadata(this, injectIndex, injectOptions);
+            injectMetadata = new InjectMetadata(this.typeMetadataResolver, this, injectIndex, injectOptions);
             
             this.injectMetadataMap.set(injectIndex, injectMetadata);
 
@@ -391,25 +537,6 @@ export class TypeMetadata<TType> implements SerializerContext<TType>
     }
 
     /**
-     * Configures type options custom data.
-     * 
-     * @param {CustomData} customData Custom data.
-     * 
-     * @returns {TypeMetadata<TType>} Configured property metadata.
-     */
-    public configureTypeOptionsCustomData(customData: CustomData): TypeMetadata<TType>
-    {
-        if (Fn.isNil(this.typeOptions.customData))
-        {
-            this.typeOptions.customData = {};
-        }
-
-        Fn.assign(this.typeOptions.customData, customData);
-
-        return this;
-    }
-
-    /**
      * Configures type metadata based on provided options.
      * 
      * @param {TypeOptions<TType>} typeOptions Type options.
@@ -420,57 +547,62 @@ export class TypeMetadata<TType> implements SerializerContext<TType>
     {
         if (!Fn.isUndefined(typeOptions.alias)) 
         {
-            this.typeOptions.alias = typeOptions.alias;
+            this.alias = typeOptions.alias;
         }
 
         if (!Fn.isUndefined(typeOptions.customData))
         {
-            this.configureTypeOptionsCustomData(typeOptions.customData);
+            this.customData = typeOptions.customData;
         }
 
         if (!Fn.isUndefined(typeOptions.defaultValue)) 
         {
-            this.typeOptions.defaultValue = typeOptions.defaultValue;
+            this.defaultValue = typeOptions.defaultValue;
         }
 
         if (!Fn.isUndefined(typeOptions.factory)) 
         {
-            this.typeOptions.factory = typeOptions.factory;
+            this.factory = typeOptions.factory;
+        }
+
+        if (!Fn.isUndefined(typeOptions.genericArguments)) 
+        {
+            this.genericArguments = typeOptions.genericArguments;
         }
 
         if (!Fn.isUndefined(typeOptions.injectable))
         {
-            this.typeOptions.injectable = typeOptions.injectable;
+            this.injectable = typeOptions.injectable;
         }
 
         if (!Fn.isUndefined(typeOptions.injector))
         {
-            this.typeOptions.injector = typeOptions.injector;
+            this.injector = typeOptions.injector;
         }
 
         if (!Fn.isUndefined(typeOptions.log))
         {
-            this.typeOptions.log = typeOptions.log;
+            this.log = typeOptions.log;
         }
 
         if (!Fn.isUndefined(typeOptions.namingConvention))
         {
-            this.typeOptions.namingConvention = typeOptions.namingConvention;
+            this.namingConvention = typeOptions.namingConvention;
         }
 
         if (!Fn.isUndefined(typeOptions.serializer)) 
         {
-            this.typeOptions.serializer = typeOptions.serializer;
+            this.serializer = typeOptions.serializer;
         }
 
         if (!Fn.isUndefined(typeOptions.useDefaultValue)) 
         {
-            this.typeOptions.useDefaultValue = typeOptions.useDefaultValue;
+            this.useDefaultValue = typeOptions.useDefaultValue;
         }
 
         if (!Fn.isUndefined(typeOptions.useImplicitConversion)) 
         {
-            this.typeOptions.useImplicitConversion = typeOptions.useImplicitConversion;
+            this.useImplicitConversion = typeOptions.useImplicitConversion;
         }
 
         if (!Fn.isUndefined(typeOptions.propertyOptionsMap))

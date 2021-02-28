@@ -1,4 +1,5 @@
-import { TypeResolver } from './type-resolver';
+import { Alias } from './alias';
+import { TypeArgument } from './type-argument';
 import { TypeOptionsBase } from './type-options-base';
 
 /**
@@ -6,16 +7,16 @@ import { TypeOptionsBase } from './type-options-base';
  * 
  * @type {PropertyOptions<TType>}
  */
-export interface PropertyOptions<TType> extends Partial<TypeOptionsBase<TType>>
+export interface PropertyOptions<TType> extends TypeOptionsBase<TType>
 {
     /**
      * Property alias.
      * 
      * Used if property name in object differs from declared for type.
      * 
-     * @type {string}
+     * @type {Alias}
      */
-    alias?: string;
+    alias?: Alias;
 
     /**
      * Deserializable from object?
@@ -25,13 +26,6 @@ export interface PropertyOptions<TType> extends Partial<TypeOptionsBase<TType>>
     deserializable?: boolean;
 
     /**
-     * Multiple property?
-     * 
-     * @type {boolean}
-     */
-    multiple?: boolean;
-
-    /**
      * Serializable to object?
      * 
      * @type {boolean}
@@ -39,16 +33,9 @@ export interface PropertyOptions<TType> extends Partial<TypeOptionsBase<TType>>
     serializable?: boolean;
 
     /**
-     * Type alias used to build a type resolver.
+     * Type argument.
      * 
-     * @type {string}
+     * @type {TypeArgument<TType>}
      */
-    typeAlias?: string;
-
-    /**
-     * Type resolver to get a property type.
-     * 
-     * @type {TypeResolver<TType>}
-     */
-    typeResolver?: TypeResolver<TType>;
+    typeArgument?: TypeArgument<TType>;
 }

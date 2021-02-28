@@ -1,9 +1,9 @@
-import { Fn } from './../core/fn';
-import { TypeLike } from './../core/type-like';
-import { TypeContext } from './../core/type-context';
-import { TypeContextEntry } from './../core/type-context-entry';
-import { Serializer } from './../core/serializer';
-import { SerializerContext } from './../core/serializer-context';
+import { Fn } from '../core/fn';
+import { Serializer } from '../core/serializer';
+import { SerializerContext } from '../core/serializer-context';
+import { TypeContext } from '../core/type-context';
+import { TypeContextEntry } from '../core/type-context-entry';
+import { TypeLike } from '../core/type-like';
 
 /**
  * Reference resolver function which can be returned during serialization or 
@@ -140,10 +140,12 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
     
                         continue;
                     }
+
+                    const propertySerializerContext = propertyMetadata.defineSerializerContext(serializerContext.serializerContextOptions);
     
                     if (Fn.isObject(propertyValue) && this.isObjectSerializer(propertySerializer))
                     {
-                        const value = propertySerializer.serialize(propertyValue, propertyMetadata, referenceMap, callbackMap, `${path}['${propertyName}']`);
+                        const value = propertySerializer.serialize(propertyValue, propertySerializerContext, referenceMap, callbackMap, `${path}['${propertyName}']`);
 
                         if (Fn.isFunction(value))
                         {
@@ -165,7 +167,7 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
                         continue;
                     }
     
-                    object[propertyName] = propertySerializer.serialize(propertyValue, propertyMetadata);
+                    object[propertyName] = propertySerializer.serialize(propertyValue, propertySerializerContext);
                 }
 
                 return object;
@@ -252,7 +254,19 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
                 return undefined;
             }
 
-            const object = x;
+            const object   = x;
+            const factory  = serializerContext.factory ?? typeMetadata.factory;
+            const injector = serializerContext.injector ?? typeMetadata.injector;
+
+            if (Fn.isNil(factory) || Fn.isNil(injector))
+            {
+                if (serializerContext.log.errorEnabled)
+                {
+                    serializerContext.log.error(`${serializerContext.path}: Cannot define type factory or injector during deserializing value as object!`, x);
+                }
+
+                return undefined;
+            }
 
             return this.restoreReference(object, referenceMap, callbackMap, $, () =>
             {
@@ -287,9 +301,11 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
                         continue;
                     }
 
+                    const propertySerializerContext = propertyMetadata.defineSerializerContext(serializerContext.serializerContextOptions);
+
                     if (Fn.isObject(propertyValue) && this.isObjectSerializer(propertySerializer))
                     {
-                        const value = propertySerializer.deserialize(propertyValue, propertyMetadata, referenceMap, callbackMap, $);
+                        const value = propertySerializer.deserialize(propertyValue, propertySerializerContext, referenceMap, callbackMap, $);
 
                         if (Fn.isFunction(value))
                         {
@@ -312,7 +328,7 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
                         continue;
                     }
 
-                    const value = propertySerializer.deserialize(propertyValue, propertyMetadata);
+                    const value = propertySerializer.deserialize(propertyValue, propertySerializerContext);
 
                     typeContext.set(propertyMetadata.name, new TypeContextEntry(propertyMetadata.name, value, propertyMetadata));
                     typeContext.set(propertyName, new TypeContextEntry(propertyName, value, propertyMetadata));
@@ -326,9 +342,7 @@ export class ObjectSerializer implements Serializer<Record<string, any>>
                     }
                 }
 
-                const factory  = serializerContext.factory ?? typeMetadata.factory;
-                const injector = serializerContext.injector ?? typeMetadata.injector;
-                const type     = factory.build(typeContext, injector);
+                const type = factory.build(typeContext, injector);
 
                 return type;
             });

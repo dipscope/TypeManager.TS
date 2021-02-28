@@ -1,5 +1,6 @@
-import { PropertyOptions } from './property-options';
+import { Alias } from './alias';
 import { InjectOptions } from './inject-options';
+import { PropertyOptions } from './property-options';
 import { TypeOptionsBase } from './type-options-base';
 
 /**
@@ -7,16 +8,16 @@ import { TypeOptionsBase } from './type-options-base';
  * 
  * @type {TypeOptions<TType>}
  */
-export interface TypeOptions<TType> extends Partial<TypeOptionsBase<TType>>
+export interface TypeOptions<TType> extends TypeOptionsBase<TType>
 {
     /**
      * Type alias. 
      * 
      * Can be used to resolve a type at runtime instead of type resolver function.
      * 
-     * @type {string}
+     * @type {Alias}
      */
-    alias?: string;
+    alias?: Alias;
 
     /**
      * Injectable type?

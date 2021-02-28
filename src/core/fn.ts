@@ -245,6 +245,186 @@ export class Fn
     }
 
     /**
+     * Checks if value is array buffer.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is array buffer. False otherwise.
+     */
+    public static isArrayBuffer(x: any): x is ArrayBuffer
+    {
+        return x instanceof ArrayBuffer;
+    }
+
+    /**
+     * Checks if value is data view.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is data view. False otherwise.
+     */
+    public static isDataView(x: any): x is DataView
+    {
+        return x instanceof DataView;
+    }
+
+    /**
+     * Checks if value is float 32 array.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is float 32 array. False otherwise.
+     */
+    public static isFloat32Array(x: any): x is Float32Array
+    {
+        return x instanceof Float32Array;
+    }
+
+    /**
+     * Checks if value is float 64 array.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is float 64 array. False otherwise.
+     */
+    public static isFloat64Array(x: any): x is Float64Array
+    {
+        return x instanceof Float64Array;
+    }
+
+    /**
+     * Checks if value is int 8 array.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is int 8 array. False otherwise.
+     */
+    public static isInt8Array(x: any): x is Int8Array
+    {
+        return x instanceof Int8Array;
+    }
+
+    /**
+     * Checks if value is int 16 array.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is int 16 array. False otherwise.
+     */
+    public static isInt16Array(x: any): x is Int16Array
+    {
+        return x instanceof Int16Array;
+    }
+
+    /**
+     * Checks if value is int 32 array.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is int 32 array. False otherwise.
+     */
+    public static isInt32Array(x: any): x is Int32Array
+    {
+        return x instanceof Int32Array;
+    }
+
+    /**
+     * Checks if value is map.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is map. False otherwise.
+     */
+    public static isMap(x: any): x is Map<any, any>
+    {
+        return x instanceof Map;
+    }
+
+    /**
+     * Checks if value is set.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is set. False otherwise.
+     */
+    public static isSet(x: any): x is Set<any>
+    {
+        return x instanceof Set;
+    }
+
+    /**
+     * Checks if value is uint 8 array.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is uint 8 array. False otherwise.
+     */
+    public static isUint8Array(x: any): x is Uint8Array
+    {
+        return x instanceof Uint8Array;
+    }
+
+    /**
+     * Checks if value is uint 8 clamped array.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is uint 8 clamped array. False otherwise.
+     */
+    public static isUint8ClampedArray(x: any): x is Uint8ClampedArray
+    {
+        return x instanceof Uint8ClampedArray;
+    }
+
+    /**
+     * Checks if value is uint 16 array.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is uint 16 array. False otherwise.
+     */
+    public static isUint16Array(x: any): x is Uint16Array
+    {
+        return x instanceof Uint16Array;
+    }
+
+    /**
+     * Checks if value is uint 32 array.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is uint 32 array. False otherwise.
+     */
+    public static isUint32Array(x: any): x is Uint32Array
+    {
+        return x instanceof Uint32Array;
+    }
+
+    /**
+     * Checks if value is weak map.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is weak map. False otherwise.
+     */
+    public static isWeakMap(x: any): x is WeakMap<any, any>
+    {
+        return x instanceof WeakMap;
+    }
+
+    /**
+     * Checks if value is weak set.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is weak set. False otherwise.
+     */
+    public static isWeakSet(x: any): x is WeakSet<any>
+    {
+        return x instanceof WeakSet;
+    }
+
+    /**
      * Checks if provided value is empty.
      *
      * @param {any} x Input value.
@@ -260,39 +440,42 @@ export class Fn
      * Performs deep assign and returns target object.
      *
      * @param {any} target Target object.
-     * @param {any} source Source object.
+     * @param {any[]} sources Source objects.
      *
      * @returns {any} Target object.
      */
-    public static assign(target: any, source: any): any
+    public static assign(target: any, ...sources: any[]): any
     {
-        if (!this.isObject(target) || !this.isObject(source))
+        if (!this.isObject(target) || !sources.every(s => this.isObject(s)))
         {
             return target;
         }
 
-        for (const key in source)
+        for (const source of sources) 
         {
-            if (!source.hasOwnProperty(key))
+            for (const key in source)
             {
-                continue;
+                if (!source.hasOwnProperty(key))
+                {
+                    continue;
+                }
+    
+                if (!this.isObject(source[key]) || !this.isPlainObject(source[key]))
+                {
+                    target[key] = source[key];
+    
+                    continue;
+                }
+    
+                if (!this.isObject(target[key]))
+                {
+                    target[key] = {};
+                }
+    
+                target[key] = this.assign(target[key], source[key]);
             }
-
-            if (!this.isObject(source[key]) || !this.isPlainObject(source[key]))
-            {
-                target[key] = source[key];
-
-                continue;
-            }
-
-            if (!this.isObject(target[key]))
-            {
-                target[key] = {};
-            }
-
-            target[key] = this.assign(target[key], source[key]);
         }
-
+        
         return target;
     }
 

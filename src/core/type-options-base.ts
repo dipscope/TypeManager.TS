@@ -1,9 +1,10 @@
-import { Serializer } from './serializer';
-import { Factory } from './factory';
-import { Injector } from './injector';
 import { CustomData } from './custom-data';
+import { Factory } from './factory';
+import { GenericArgument } from './generic-argument';
+import { Injector } from './injector';
 import { Log } from './log';
 import { NamingConvention } from './naming-convention';
+import { Serializer } from './serializer';
 
 /**
  * Type options base interface.
@@ -17,7 +18,7 @@ export interface TypeOptionsBase<TType>
      * 
      * @type {CustomData}
      */
-    customData: CustomData;
+    customData?: CustomData;
 
     /**
      * Default value for undefined ones.
@@ -29,25 +30,32 @@ export interface TypeOptionsBase<TType>
     defaultValue?: any;
 
     /**
+     * Generic arguments.
+     * 
+     * @type {GenericArgument<any>[]}
+     */
+    genericArguments?: GenericArgument<any>[];
+
+    /**
      * Factory used to build instances of type.
      * 
      * @type {Factory<TType>}
      */
-    factory: Factory<TType>;
+    factory?: Factory<TType>;
 
     /**
      * Injector used to resolve types.
      * 
      * @type {Injector}
      */
-    injector: Injector;
+    injector?: Injector;
 
     /**
      * Log instance with specified log level.
      * 
      * @type {Log}
      */
-    log: Log;
+    log?: Log;
 
     /**
      * Naming convention.
@@ -61,14 +69,14 @@ export interface TypeOptionsBase<TType>
      * 
      * @type {Serializer<TType>}
      */
-    serializer: Serializer<TType>;
+    serializer?: Serializer<TType>;
 
     /**
      * Use default value assignment for undefined values?
      * 
      * @type {boolean}
      */
-    useDefaultValue: boolean;
+    useDefaultValue?: boolean;
 
     /**
      * Use implicit conversion when provided value can be converted
@@ -76,5 +84,5 @@ export interface TypeOptionsBase<TType>
      * 
      * @type {boolean}
      */
-    useImplicitConversion: boolean;
+    useImplicitConversion?: boolean;
 }

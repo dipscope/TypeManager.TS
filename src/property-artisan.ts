@@ -1,7 +1,6 @@
-import { TypeCtor } from './core/type-ctor';
-import { TypeResolver } from './core/type-resolver';
-import { PropertyOptions } from './core/property-options';
 import { PropertyMetadata } from './core/property-metadata';
+import { PropertyOptions } from './core/property-options';
+import { TypeCtor } from './core/type-ctor';
 import { TypeArtisan } from './type-artisan';
 
 /**
@@ -30,19 +29,5 @@ export class PropertyArtisan
         const propertyMetadata = typeMetadata.configurePropertyMetadata(propertyName, propertyOptions);
 
         return propertyMetadata;
-    }
-
-    /**
-     * Builds type resolver for type alias.
-     * 
-     * @param {string} typeAlias Type alias.
-     * 
-     * @returns {TypeResolver<any>} Configured type resolver.
-     */
-    public static buildTypeResolverForAlias(typeAlias: string): TypeResolver<any>
-    {
-        const typeResolver = () => TypeArtisan.typeCtorMap.get(typeAlias);
-
-        return typeResolver;
     }
 }

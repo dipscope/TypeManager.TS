@@ -1,6 +1,6 @@
-import { TypeCtor } from './core/type-ctor';
-import { InjectOptions } from './core/inject-options';
 import { InjectMetadata } from './core/inject-metadata';
+import { InjectOptions } from './core/inject-options';
+import { TypeCtor } from './core/type-ctor';
 import { TypeArtisan } from './type-artisan';
 
 /**

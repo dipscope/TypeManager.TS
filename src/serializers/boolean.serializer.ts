@@ -113,7 +113,7 @@ export class BooleanSerializer implements Serializer<boolean>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot convert value to a boolean!`, x);
+            serializerContext.log.error(`${serializerContext.path}: Cannot convert value to boolean!`, x);
         }
 
         return undefined;

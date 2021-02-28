@@ -1,23 +1,29 @@
+import { Alias } from './alias';
+import { CustomData } from './custom-data';
+import { Factory } from './factory';
 import { Fn } from './fn';
-import { TypeCtor } from './type-ctor';
-import { TypeResolver } from './type-resolver';
+import { GenericArgument } from './generic-argument';
+import { GenericMetadata } from './generic-metadata';
+import { Injector } from './injector';
+import { Log } from './log';
+import { Metadata } from './metadata';
+import { NamingConvention } from './naming-convention';
+import { PropertyOptions } from './property-options';
 import { Serializer } from './serializer';
 import { SerializerContext } from './serializer-context';
-import { Injector } from './injector';
-import { Factory } from './factory';
+import { SerializerContextOptions } from './serializer-context-options';
+import { TypeArgument } from './type-argument';
+import { TypeCtor } from './type-ctor';
 import { TypeMetadata } from './type-metadata';
-import { PropertyOptions } from './property-options';
-import { CustomData } from './custom-data';
-import { Log } from './log';
-import { NamingConvention } from './naming-convention';
-import { LogLevel } from './log-level';
+import { TypeMetadataResolver } from './type-metadata-resolver';
+import { TypeResolver } from './type-resolver';
 
 /**
- * Main class used to describe certain property.
+ * Main class used to describe a certain property.
  * 
  * @type {PropertyMetadata<TDeclaringType, TType>}
  */
-export class PropertyMetadata<TDeclaringType, TType> implements SerializerContext<TType>
+export class PropertyMetadata<TDeclaringType, TType> extends Metadata
 {
     /**
      * Type metadata to which property metadata belongs to.
@@ -52,59 +58,111 @@ export class PropertyMetadata<TDeclaringType, TType> implements SerializerContex
     /**
      * Constructor.
      * 
+     * @param {TypeMetadataResolver<any>} typeMetadataResolver Type metadata resolver.
      * @param {TypeMetadata<TDeclaringType>} declaringTypeMetadata Type metadata to which property metadata belongs to.
      * @param {string} name Property name.
      * @param {PropertyOptions<TType>} propertyOptions Property options.
      */
-    public constructor(declaringTypeMetadata: TypeMetadata<TDeclaringType>, name: string, propertyOptions: PropertyOptions<TType>)
+    public constructor(typeMetadataResolver: TypeMetadataResolver<any>, declaringTypeMetadata: TypeMetadata<TDeclaringType>, name: string, propertyOptions: PropertyOptions<TType>)
     {
-        const propertyTypeCtor = Fn.extractReflectMetadata('design:type', declaringTypeMetadata.typeCtor.prototype, name) as TypeCtor<any>;
+        super(typeMetadataResolver);
+
+        const typeCtor = Fn.extractReflectMetadata('design:type', declaringTypeMetadata.typeCtor.prototype, name) as TypeCtor<any>;
 
         this.declaringTypeMetadata = declaringTypeMetadata;
         this.name                  = name;
-        this.reflectTypeResolver   = () => propertyTypeCtor;
+        this.reflectTypeResolver   = () => typeCtor;
         this.propertyOptions       = {};
         
         this.configure(propertyOptions);
-
-        if (Fn.isUndefined(this.propertyOptions.multiple))
-        {
-            this.propertyOptions.multiple = propertyTypeCtor === Array;
-        }
 
         return;
     }
 
     /**
-     * Gets current alias.
+     * Gets alias.
      * 
-     * @returns {string|undefined} Alias or undefined.
+     * @returns {Alias|undefined} Alias or undefined.
      */
-    public get alias(): string | undefined
+    public get alias(): Alias | undefined
     {
         return this.propertyOptions.alias;
     }
 
     /**
-     * Gets current custom data.
+     * Sets alias.
      * 
-     * @returns {CustomData} Custom data.
+     * @returns Nothing.
      */
-    public get customData(): CustomData
+    public set alias(alias: Alias | undefined)
     {
-        const customData = Fn.assign({}, this.typeMetadata?.customData ?? {});
+        this.propertyOptions.alias = alias;
 
-        return Fn.assign(customData, this.propertyOptions.customData ?? {});
+        return;
     }
 
     /**
-     * Gets current default value.
+     * Gets custom data.
+     * 
+     * @returns {CustomData|undefined} Custom data or undefined.
+     */
+    public get customData(): CustomData | undefined
+    {
+        const propertyCustomData = this.propertyOptions.customData;
+        const typeCustomData     = this.typeMetadata?.customData;
+
+        if (Fn.isNil(propertyCustomData) && Fn.isNil(typeCustomData))
+        {
+            return undefined;
+        }
+
+        const customData = {};
+
+        if (Fn.isObject(typeCustomData))
+        {
+            Fn.assign(customData, typeCustomData);
+        }
+
+        if (Fn.isObject(propertyCustomData))
+        {
+            Fn.assign(customData, propertyCustomData);
+        }
+
+        return customData;
+    }
+
+    /**
+     * Sets custom data.
+     * 
+     * @returns Nothing.
+     */
+    public set customData(customData: CustomData | undefined)
+    {
+        if (Fn.isNil(customData))
+        {
+            this.propertyOptions.customData = customData;
+
+            return;
+        }
+
+        if (Fn.isNil(this.propertyOptions.customData))
+        {
+            this.propertyOptions.customData = {};
+        }
+
+        Fn.assign(this.propertyOptions.customData, customData);
+
+        return;
+    }
+
+    /**
+     * Gets default value.
      * 
      * @returns {any|undefined} Resolved default value or undefined.
      */
     public get defaultValue(): any | undefined
     {
-        const defaultValue = this.multiple ? [] : (this.propertyOptions.defaultValue ?? this.typeMetadata?.defaultValue);
+        const defaultValue = this.propertyOptions.defaultValue ?? this.typeMetadata?.defaultValue;
 
         if (this.useDefaultValue)
         {
@@ -115,9 +173,21 @@ export class PropertyMetadata<TDeclaringType, TType> implements SerializerContex
     }
 
     /**
-     * Gets current deserializable value.
+     * Sets default value.
      * 
-     * @returns {boolean} True when property is deserializable. False otherwise.
+     * @returns Nothing.
+     */
+    public set defaultValue(defaultValue: any | undefined)
+    {
+        this.propertyOptions.defaultValue = defaultValue;
+
+        return;
+    }
+
+    /**
+     * Gets deserializable value.
+     * 
+     * @returns {boolean|undefined} Deserializable indicator or undefined.
      */
     public get deserializable(): boolean | undefined
     {
@@ -125,7 +195,19 @@ export class PropertyMetadata<TDeclaringType, TType> implements SerializerContex
     }
 
     /**
-     * Gets current factory.
+     * Sets deserializable value.
+     * 
+     * @returns Nothing.
+     */
+    public set deserializable(deserializable: boolean | undefined)
+    {
+        this.propertyOptions.deserializable = deserializable;
+        
+        return;
+    }
+
+    /**
+     * Gets factory.
      * 
      * @returns {Factory<TType>|undefined} Factory or undefined.
      */
@@ -135,7 +217,58 @@ export class PropertyMetadata<TDeclaringType, TType> implements SerializerContex
     }
 
     /**
-     * Gets current injector.
+     * Sets factory.
+     * 
+     * @returns Nothing.
+     */
+    public set factory(factory: Factory<TType> | undefined)
+    {
+        this.propertyOptions.factory = factory;
+        
+        return;
+    }
+
+    /**
+     * Gets generic arguments.
+     * 
+     * @returns {GenericArgument<any>[]|undefined} Generic arguments or undefined.
+     */
+    public get genericArguments(): GenericArgument<any>[] | undefined
+    {
+        return this.propertyOptions.genericArguments ?? this.typeMetadata?.genericArguments;
+    }
+
+    /**
+     * Sets generic arguments.
+     * 
+     * @returns Nothing.
+     */
+    public set genericArguments(genericArguments: GenericArgument<any>[] | undefined)
+    {
+        this.propertyOptions.genericArguments = genericArguments;
+
+        return;
+    }
+
+    /**
+     * Gets generic metadatas.
+     * 
+     * @returns {GenericMetadata<any>[]|undefined} Generic metadatas.
+     */
+    public get genericMetadatas(): GenericMetadata<any>[] | undefined
+    {
+        const genericArguments = this.genericArguments;
+
+        if (!Fn.isNil(genericArguments))
+        {
+            return this.defineGenericMetadatas(genericArguments);
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Gets injector.
      * 
      * @returns {Injector|undefined} Injector or undefined.
      */
@@ -145,19 +278,43 @@ export class PropertyMetadata<TDeclaringType, TType> implements SerializerContex
     }
 
     /**
+     * Sets injector.
+     * 
+     * @returns Nothing.
+     */
+    public set injector(injector: Injector | undefined)
+    {
+        this.propertyOptions.injector = injector;
+        
+        return;
+    }
+
+    /**
      * Gets log.
      * 
-     * @returns {Log}
+     * @returns {Log|undefined} Log or undefined.
      */
-    public get log(): Log
+    public get log(): Log | undefined
     {
-        return this.propertyOptions.log ?? this.typeMetadata?.log ?? new Log(LogLevel.Error);
+        return this.propertyOptions.log ?? this.typeMetadata?.log;
+    }
+
+    /**
+     * Sets log.
+     * 
+     * @returns Nothing.
+     */
+    public set log(log: Log | undefined)
+    {
+        this.propertyOptions.log = log;
+        
+        return;
     }
 
     /**
      * Gets naming convention.
      * 
-     * @returns {NamingConvention|undefined}
+     * @returns {NamingConvention|undefined} Naming convention or undefined.
      */
     public get namingConvention(): NamingConvention | undefined
     {
@@ -165,43 +322,37 @@ export class PropertyMetadata<TDeclaringType, TType> implements SerializerContex
     }
 
     /**
-     * Gets current multiple value.
+     * Sets naming convention.
      * 
-     * @returns {boolean} Multiple value or undefined.
+     * @returns Nothing.
      */
-    public get multiple(): boolean | undefined
+    public set namingConvention(namingConvention: NamingConvention | undefined)
     {
-        return this.propertyOptions.multiple;
+        this.propertyOptions.namingConvention = namingConvention;
+        
+        return;
     }
 
     /**
-     * Gets metadata path for logging.
+     * Gets serializable value.
      * 
-     * @returns {string}
-     */
-    public get path(): string
-    {
-        return `${this.declaringTypeMetadata.name}.${this.name}`;
-    }
-
-    /**
-     * Gets context property metadata.
-     * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>|undefined}
-     */
-    public get propertyMetadata(): PropertyMetadata<TDeclaringType, TType> | undefined
-    {
-        return this;
-    }
-
-    /**
-     * Gets current serializable value.
-     * 
-     * @returns {boolean} True when property is serializable. False otherwise.
+     * @returns {boolean|undefined} Serializable indicator or undefined.
      */
     public get serializable(): boolean | undefined
     {
         return this.propertyOptions.serializable;
+    }
+
+    /**
+     * Sets serializable value.
+     * 
+     * @returns Nothing.
+     */
+    public set serializable(serializable: boolean | undefined)
+    {
+        this.propertyOptions.serializable = serializable;
+        
+        return;
     }
 
     /**
@@ -211,11 +362,11 @@ export class PropertyMetadata<TDeclaringType, TType> implements SerializerContex
      */
     public get serializationConfigured(): boolean
     {
-        return !Fn.isNil(this.propertyOptions.serializable) || !Fn.isNil(this.propertyOptions.deserializable);
+        return !Fn.isNil(this.serializable) || !Fn.isNil(this.deserializable);
     }
 
     /**
-     * Gets current serializer.
+     * Gets serializer.
      * 
      * @returns {Serializer<TType>|undefined} Serializer or undefined.
      */
@@ -225,46 +376,60 @@ export class PropertyMetadata<TDeclaringType, TType> implements SerializerContex
     }
 
     /**
-     * Gets current type alias.
+     * Sets serializer.
      * 
-     * @returns {string|undefined} Type alias or undefined.
+     * @returns Nothing.
      */
-    public get typeAlias(): string | undefined
+    public set serializer(serializer: Serializer<TType> | undefined)
     {
-        return this.propertyOptions.typeAlias;
+        this.propertyOptions.serializer = serializer;
+        
+        return;
     }
 
     /**
-     * Gets property type metadata if it can be defined.
+     * Gets type argument.
+     * 
+     * @returns {TypeArgument|undefined} Type argument or undefined.
+     */
+    public get typeArgument(): TypeArgument<TType> | undefined
+    {
+        return this.propertyOptions.typeArgument;
+    }
+
+    /**
+     * Sets type argument.
+     * 
+     * @returns Nothing.
+     */
+    public set typeArgument(typeArgument: TypeArgument<TType> | undefined)
+    {
+        this.propertyOptions.typeArgument = typeArgument;
+        
+        return;
+    }
+
+    /**
+     * Gets type metadata if it can be defined.
      * 
      * @returns {TypeMetadata<TType>|undefined} Type metadata or undefined.
      */
     public get typeMetadata(): TypeMetadata<TType> | undefined
     {
-        const typeCtor = this.typeResolver();
+        const typeArgument = this.typeArgument ?? this.reflectTypeResolver();
 
-        if (!Fn.isNil(typeCtor))
+        if (!Fn.isNil(typeArgument))
         {
-            return this.declaringTypeMetadata.typeMetadataResolver(typeCtor);
+            return this.defineTypeMetadata(typeArgument);
         }
 
         return undefined;
     }
 
     /**
-     * Gets current type resolver.
-     * 
-     * @type {TypeResolver<TType>} Type resolver or undefined.
-     */
-    public get typeResolver(): TypeResolver<TType> 
-    {
-        return this.propertyOptions.typeResolver ?? this.reflectTypeResolver;
-    }
-
-    /**
      * Gets indicator if default value should be used.
      * 
-     * @returns {boolean} True when property should use default value. False otherwise.
+     * @returns {boolean|undefined} Use default value indicator or undefined.
      */
     public get useDefaultValue(): boolean | undefined
     {
@@ -272,9 +437,21 @@ export class PropertyMetadata<TDeclaringType, TType> implements SerializerContex
     }
 
     /**
+     * Sets indicator if default value should be used.
+     * 
+     * @returns Nothing.
+     */
+    public set useDefaultValue(useDefaultValue: boolean | undefined)
+    {
+        this.propertyOptions.useDefaultValue = useDefaultValue;
+        
+        return;
+    }
+
+    /**
      * Gets indicator if implicit conversion should be used.
      * 
-     * @returns {boolean} True when property should use implicit conversion. False otherwise.
+     * @returns {boolean|undefined} Use implicit conversion indicator or undefined.
      */
     public get useImplicitConversion(): boolean | undefined
     {
@@ -282,35 +459,31 @@ export class PropertyMetadata<TDeclaringType, TType> implements SerializerContex
     }
 
     /**
-     * Clones current metadata instance.
+     * Sets indicator if implicit conversion should be used.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Clone of current metadata instance.
+     * @returns Nothing.
      */
-    public clone(): PropertyMetadata<TDeclaringType, TType>
+    public set useImplicitConversion(useImplicitConversion: boolean | undefined)
     {
-        const propertyOptions  = Fn.assign({}, this.propertyOptions) as PropertyOptions<TType>;
-        const propertyMetadata = new PropertyMetadata(this.declaringTypeMetadata, this.name, propertyOptions);
+        this.propertyOptions.useImplicitConversion = useImplicitConversion;
         
-        return propertyMetadata;
+        return;
     }
 
     /**
-     * Configures property options custom data.
+     * Defines serializer context of property metadata.
      * 
-     * @param {CustomData} customData Custom data.
+     * @param {SerializerContextOptions<TType>} serializerContextOptions Serializer context options.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Configured property metadata.
+     * @returns {SerializerContext<TType>} Serializer context of current type metadata.
      */
-    public configurePropertyOptionsCustomData(customData: CustomData): PropertyMetadata<TDeclaringType, TType>
+    public defineSerializerContext(serializerContextOptions: SerializerContextOptions<TType>): SerializerContext<TType>
     {
-        if (Fn.isNil(this.propertyOptions.customData))
-        {
-            this.propertyOptions.customData = {};
-        }
-
-        Fn.assign(this.propertyOptions.customData, customData);
-
-        return this;
+        serializerContextOptions.genericArguments = this.genericArguments;
+        serializerContextOptions.typeMetadata     = this.typeMetadata;
+        serializerContextOptions.propertyMetadata = this;
+        
+        return new SerializerContext(this.typeMetadataResolver, serializerContextOptions);
     }
 
     /**
@@ -324,77 +497,72 @@ export class PropertyMetadata<TDeclaringType, TType> implements SerializerContex
     {
         if (!Fn.isUndefined(propertyOptions.alias))
         {
-            this.propertyOptions.alias = propertyOptions.alias;
+            this.alias = propertyOptions.alias;
         }
 
         if (!Fn.isUndefined(propertyOptions.customData))
         {
-            this.configurePropertyOptionsCustomData(propertyOptions.customData);
+            this.customData = propertyOptions.customData;
         }
 
-        if (!Fn.isUndefined(propertyOptions.defaultValue)) 
+        if (!Fn.isUndefined(propertyOptions.defaultValue))
         {
-            this.propertyOptions.defaultValue = propertyOptions.defaultValue;
+            this.defaultValue = propertyOptions.defaultValue;
         }
 
         if (!Fn.isUndefined(propertyOptions.deserializable))
         {
-            this.propertyOptions.deserializable = propertyOptions.deserializable;
+            this.deserializable = propertyOptions.deserializable;
         }
 
         if (!Fn.isUndefined(propertyOptions.factory))
         {
-            this.propertyOptions.factory = propertyOptions.factory;
+            this.factory = propertyOptions.factory;
+        }
+
+        if (!Fn.isUndefined(propertyOptions.genericArguments)) 
+        {
+            this.genericArguments = propertyOptions.genericArguments;
         }
 
         if (!Fn.isUndefined(propertyOptions.injector))
         {
-            this.propertyOptions.injector = propertyOptions.injector;
+            this.injector = propertyOptions.injector;
         }
 
         if (!Fn.isUndefined(propertyOptions.log))
         {
-            this.propertyOptions.log = propertyOptions.log;
+            this.log = propertyOptions.log;
         }
 
         if (!Fn.isUndefined(propertyOptions.namingConvention))
         {
-            this.propertyOptions.namingConvention = propertyOptions.namingConvention;
-        }
-
-        if (!Fn.isUndefined(propertyOptions.multiple))
-        {
-            this.propertyOptions.multiple = propertyOptions.multiple;
-        }
-
-        if (!Fn.isUndefined(propertyOptions.useDefaultValue)) 
-        {
-            this.propertyOptions.useDefaultValue = propertyOptions.useDefaultValue;
-        }
-
-        if (!Fn.isUndefined(propertyOptions.useImplicitConversion)) 
-        {
-            this.propertyOptions.useImplicitConversion = propertyOptions.useImplicitConversion;
-        }
-
-        if (!Fn.isUndefined(propertyOptions.typeAlias)) 
-        {
-            this.propertyOptions.typeAlias = propertyOptions.typeAlias;
+            this.namingConvention = propertyOptions.namingConvention;
         }
 
         if (!Fn.isUndefined(propertyOptions.serializable)) 
         {
-            this.propertyOptions.serializable = propertyOptions.serializable;
+            this.serializable = propertyOptions.serializable;
         }
 
         if (!Fn.isUndefined(propertyOptions.serializer)) 
         {
-            this.propertyOptions.serializer = propertyOptions.serializer;
+            this.serializer = propertyOptions.serializer;
         }
 
-        if (!Fn.isUndefined(propertyOptions.typeResolver))
+        if (!Fn.isUndefined(propertyOptions.typeArgument)) 
         {
-            this.propertyOptions.typeResolver = propertyOptions.typeResolver;
+            this.typeArgument = propertyOptions.typeArgument;
+        }
+
+        if (!Fn.isUndefined(propertyOptions.useDefaultValue))
+        {
+            this.useDefaultValue = propertyOptions.useDefaultValue;
+        }
+
+        if (!Fn.isUndefined(propertyOptions.useImplicitConversion)) 
+        {
+            this.useImplicitConversion = propertyOptions.useImplicitConversion;
         }
 
         return this;

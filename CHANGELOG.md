@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - If you are using `TypeSerializer`, `TypeFactory`, `TypeInjector` helper decorators or interfaces then rename them to `Serializer`, `Factory`, `Injector` accordingly.
 - Replace all core type and interface imports from `@dipscope/type-manager` to `@dipscope/type-manager/core`.
 - Replace all helper decorator imports from `@dipscope/type-manager/helpers` to `@dipscope/type-manager`.
+- Multiple removed...
 
 ## [2.0.4] - 2021-02-13
 

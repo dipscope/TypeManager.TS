@@ -1,11 +1,12 @@
+import { SerializerContext } from './core';
 import { Fn } from './core/fn';
-import { TypeMetadata } from './core/type-metadata';
 import { TypeCtor } from './core/type-ctor';
-import { TypeOptionsBase } from './core/type-options-base';
-import { TypeOptions } from './core/type-options';
 import { TypeLike } from './core/type-like';
-import { TypeManagerOptions } from './type-manager-options';
+import { TypeMetadata } from './core/type-metadata';
+import { TypeOptions } from './core/type-options';
+import { TypeOptionsBase } from './core/type-options-base';
 import { TypeArtisan } from './type-artisan';
+import { TypeManagerOptions } from './type-manager-options';
 
 /**
  * Type manager class for external usage.
@@ -22,19 +23,22 @@ export class TypeManager<TType>
     public readonly typeMetadata: TypeMetadata<TType>;
 
     /**
+     * Serializer context.
+     * 
+     * @type {SerializerContext<TType>}
+     */
+    public readonly serializerContext: SerializerContext<TType>;
+
+    /**
      * Constructor.
      * 
      * @param {TypeCtor<TType>} typeCtor Type constructor function.
-     * @param {TypeOptions<TType>} typeOptions Type options binded to the instance.
+     * @param {TypeOptionsBase<TType>} typeOptionsBase Type options base binded to this instance.
      */
-    public constructor(typeCtor: TypeCtor<TType>, typeOptions: TypeOptions<TType> = {})
+    public constructor(typeCtor: TypeCtor<TType>, typeOptionsBase: TypeOptionsBase<TType> = {})
     {
-        this.typeMetadata = TypeArtisan.extractTypeMetadata(typeCtor);
-
-        if (!Fn.isEmpty(typeOptions))
-        {
-            this.typeMetadata = this.typeMetadata.clone().configure(typeOptions);
-        }
+        this.typeMetadata      = TypeArtisan.extractTypeMetadata(typeCtor);
+        this.serializerContext = this.typeMetadata.defineSerializerContext(typeOptionsBase);
 
         return;
     }
@@ -109,18 +113,19 @@ export class TypeManager<TType>
      * 
      * @param {TypeCtor<TType>} typeCtor Type constructor function.
      * @param {TypeLike<TType>} x Input value.
+     * @param {TypeOptionsBase<TType>} typeOptionsBase Type options base.
      * 
      * @returns {TypeLike<any>} Object created from provided input value or undefined. 
      */
-    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: undefined): undefined;
-    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: null): null;
-    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: TType[]): any[];
-    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: TType): any;
-    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: TypeLike<TType>): TypeLike<any>
+    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: undefined, typeOptionsBase?: TypeOptionsBase<TType>): undefined;
+    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: null, typeOptionsBase?: TypeOptionsBase<TType>): null;
+    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: TType[], typeOptionsBase?: TypeOptionsBase<TType>): any[];
+    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: TType, typeOptionsBase?: TypeOptionsBase<TType>): any;
+    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: TypeLike<TType>, typeOptionsBase?: TypeOptionsBase<TType>): TypeLike<any>
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(typeCtor);
-
-        return typeMetadata.serializer.serialize(x, typeMetadata);
+        const typeManager = new TypeManager(typeCtor, typeOptionsBase ?? {});
+        
+        return typeManager.serialize(x as any);
     }
 
     /**
@@ -131,15 +136,15 @@ export class TypeManager<TType>
      * 
      * @returns {TypeLike<TType>} Type created from provided input value or undefined.
      */
-    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: undefined): undefined;
-    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: null): null;
-    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: any[]): TType[];
-    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: any): TType;
-    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: TypeLike<any>): TypeLike<TType>
+    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: undefined, typeOptionsBase?: TypeOptionsBase<TType>): undefined;
+    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: null, typeOptionsBase?: TypeOptionsBase<TType>): null;
+    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: any[], typeOptionsBase?: TypeOptionsBase<TType>): TType[];
+    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: any, typeOptionsBase?: TypeOptionsBase<TType>): TType;
+    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: TypeLike<any>, typeOptionsBase?: TypeOptionsBase<TType>): TypeLike<TType>
     {
-        const typeMetadata = TypeArtisan.extractTypeMetadata(typeCtor);
-
-        return typeMetadata.serializer.deserialize(x, typeMetadata);
+        const typeManager = new TypeManager(typeCtor, typeOptionsBase ?? {});
+        
+        return typeManager.deserialize(x as any);
     }
 
     /**
@@ -184,7 +189,12 @@ export class TypeManager<TType>
     public serialize(x: TType): any;
     public serialize(x: TypeLike<TType>): TypeLike<any>
     {
-        return this.typeMetadata.serializer.serialize(x, this.typeMetadata);
+        if (Fn.isNil(this.typeMetadata.serializer))
+        {
+            throw new Error(`Cannot define a serializer for type: ${this.typeMetadata.name}!`);
+        }
+
+        return this.typeMetadata.serializer.serialize(x, this.serializerContext);
     }
 
     /**
@@ -200,7 +210,12 @@ export class TypeManager<TType>
     public deserialize(x: any): TType;
     public deserialize(x: TypeLike<any>): TypeLike<TType>
     {
-        return this.typeMetadata.serializer.deserialize(x, this.typeMetadata);
+        if (Fn.isNil(this.typeMetadata.serializer))
+        {
+            throw new Error(`Cannot define a serializer for type: ${this.typeMetadata.name}!`);
+        }
+
+        return this.typeMetadata.serializer.deserialize(x, this.serializerContext);
     }
 
     /**

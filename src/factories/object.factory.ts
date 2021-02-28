@@ -52,9 +52,11 @@ export class ObjectFactory implements Factory<Record<string, any>>
 
         for (const typeContextEntry of typeContext.values())
         {
-            if (!Fn.isNil(typeContextEntry.propertyMetadata) && !injectedKeys.includes(typeContextEntry.propertyMetadata.name))
+            const propertyMetadata = typeContextEntry.propertyMetadata;
+
+            if (!Fn.isNil(propertyMetadata) && !Fn.isUndefined(typeContextEntry.value) && !injectedKeys.includes(propertyMetadata.name))
             {
-                type[typeContextEntry.propertyMetadata.name] = typeContextEntry.value;
+                type[propertyMetadata.name] = typeContextEntry.value;
             }
         }
 

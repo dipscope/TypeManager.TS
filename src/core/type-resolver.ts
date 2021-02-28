@@ -5,4 +5,4 @@ import { TypeCtor } from './type-ctor';
  * 
  * @type {TypeResolver<TType>}
  */
-export type TypeResolver<TType> = () => TypeCtor<TType> | undefined;
+export type TypeResolver<TType> = () => TypeCtor<TType>;

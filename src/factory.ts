@@ -1,4 +1,3 @@
-import { Fn } from './core/fn';
 import { Factory } from './core/factory';
 import { TypeAndProperty } from './type-and-property';
 

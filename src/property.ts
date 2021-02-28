@@ -1,24 +1,53 @@
+import { GenericArgument, TypeArgument } from './core';
 import { Fn } from './core/fn';
-import { TypeResolver } from './core/type-resolver';
 import { PropertyOptions } from './core/property-options';
 import { PropertyArtisan } from './property-artisan';
 
 /**
  * Property decorator.
  * 
- * @param {TypeResolver<TType>|PropertyOptions<TType>|string} x Type resolver, type options or type alias.
- * @param {PropertyOptions<TType>} y Property options if first argument is a type resolver.
+ * @param {TypeArgument<TType>|GenericArgument<any>[]|PropertyOptions<TType>} x Type argument, generic arguments or property options.
+ * @param {GenericArgument<any>[]|PropertyOptions<TType>} y Generic arguments or property options if first parameter is type argument.
+ * @param {PropertyOptions<TType>} z Property options if second parameter are generic arguments.
  * 
  * @returns {PropertyDecorator} Property decorator.
  */
-export function Property<TType>(x?: TypeResolver<TType> | PropertyOptions<TType> | string, y?: PropertyOptions<TType>): PropertyDecorator
+export function Property<TType>(
+    x?: TypeArgument<TType> | GenericArgument<any>[] | PropertyOptions<TType>, 
+    y?: GenericArgument<any>[] | PropertyOptions<TType>,
+    z?: PropertyOptions<TType>
+): PropertyDecorator
 {
-    const typeResolver    = Fn.isFunction(x) ? x : (Fn.isString(x) ? PropertyArtisan.buildTypeResolverForAlias(x) : undefined) as TypeResolver<TType>;
-    const propertyOptions = Fn.isObject(y) ? y : (Fn.isObject(x) ? x : {}) as PropertyOptions<TType>;
-    
-    if (Fn.isUndefined(propertyOptions.typeResolver))
+    const propertyOptions = {} as PropertyOptions<TType>;
+
+    if (Fn.isObject(z))
     {
-        propertyOptions.typeResolver = Fn.isString(propertyOptions.typeAlias) ? PropertyArtisan.buildTypeResolverForAlias(propertyOptions.typeAlias) : typeResolver;
+        Fn.assign(propertyOptions, z);
+    }
+
+    if (Fn.isObject(y) && !Fn.isArray(y))
+    {
+        Fn.assign(propertyOptions, y);
+    }
+
+    if (Fn.isObject(x) && !Fn.isArray(x))
+    {
+        Fn.assign(propertyOptions, x);
+    }
+
+    if (Fn.isArray(y))
+    {
+        propertyOptions.genericArguments = y;
+    }
+
+    if (Fn.isArray(x))
+    {
+        propertyOptions.genericArguments = x;
+    }
+
+    if (Fn.isString(x) || Fn.isFunction(x) || Fn.isCtor(x))
+    {
+        propertyOptions.typeArgument = x;
     }
 
     return function (target: any, propertyName: string | symbol): void

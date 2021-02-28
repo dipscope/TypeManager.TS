@@ -1,4 +1,3 @@
-import { Fn } from './core/fn';
 import { Injector } from './core/injector';
 import { TypeAndProperty } from './type-and-property';
 

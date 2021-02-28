@@ -12,7 +12,7 @@ export function Type<TType>(typeOptions?: TypeOptions<TType>): ClassDecorator
 {
     return function (target: any): any
     {
-        TypeArtisan.defineTypeMetadata(target, typeOptions ?? {}).defineInjectMetadata();
+        TypeArtisan.defineTypeMetadata(target, typeOptions ?? {}).extractReflectMetadata();
 
         return target;
     };

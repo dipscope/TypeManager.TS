@@ -1,8 +1,8 @@
-import { TypeContext } from './type-context';
 import { Injector } from './injector';
+import { TypeContext } from './type-context';
 
 /**
- * Factory for building a type.
+ * Factory for building a certain type.
  * 
  * @type {Factory<TType>}
  */

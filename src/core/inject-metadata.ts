@@ -1,14 +1,16 @@
 import { Fn } from './fn';
+import { InjectOptions } from './inject-options';
+import { Metadata } from './metadata';
 import { TypeCtor } from './type-ctor';
 import { TypeMetadata } from './type-metadata';
-import { InjectOptions } from './inject-options';
+import { TypeMetadataResolver } from './type-metadata-resolver';
 
 /**
  * Main class used to describe an injection.
  * 
  * @type {InjectMetadata<TDeclaringType, TType>}
  */
-export class InjectMetadata<TDeclaringType, TType>
+export class InjectMetadata<TDeclaringType, TType> extends Metadata
 {
     /**
      * Type metadata to which inject metadata belongs to.
@@ -43,12 +45,16 @@ export class InjectMetadata<TDeclaringType, TType>
     /**
      * Constructor.
      * 
+     * @param {TypeMetadataResolver<any>} typeMetadataResolver Type metadata resolver.
      * @param {TypeMetadata<TDeclaringType>} declaringTypeMetadata Type metadata to which inject metadata belongs to.
      * @param {number} index Index of injection within a type constructor function.
      * @param {InjectOptions<TType>} injectOptions Inject options.
      */
-    public constructor(declaringTypeMetadata: TypeMetadata<TDeclaringType>, index: number, injectOptions: InjectOptions<TType>)
+    public constructor(typeMetadataResolver: TypeMetadataResolver<any>, declaringTypeMetadata: TypeMetadata<TDeclaringType>, index: number, injectOptions: InjectOptions<TType>)
     {
+        super(typeMetadataResolver);
+
+        // TODO: Check. May not be applied. If so then remove this reflect and configure on type metadata level. Assign typeCtor if it is empty.
         const injectTypeCtors = (Fn.extractOwnReflectMetadata('design:paramtypes', declaringTypeMetadata.typeCtor) ?? []) as TypeCtor<any>[];
 
         this.declaringTypeMetadata = declaringTypeMetadata;
@@ -62,7 +68,7 @@ export class InjectMetadata<TDeclaringType, TType>
     }
 
     /**
-     * Gets current key.
+     * Gets key.
      * 
      * @returns {string|undefined} Key or undefined.
      */
@@ -72,13 +78,37 @@ export class InjectMetadata<TDeclaringType, TType>
     }
 
     /**
-     * Gets current type constructor.
+     * Sets key.
+     * 
+     * @returns Nothing.
+     */
+    public set key(key: string | undefined)
+    {
+        this.injectOptions.key = key;
+
+        return;
+    }
+
+    /**
+     * Gets type constructor.
      * 
      * @returns {TypeCtor<TType>|undefined} Type constructor or undefined.
      */
     public get typeCtor(): TypeCtor<TType> | undefined
     {
         return this.injectOptions.typeCtor ?? this.reflectTypeCtor;
+    }
+
+    /**
+     * Sets type constructor.
+     * 
+     * @returns Nothing.
+     */
+    public set typeCtor(typeCtor: TypeCtor<TType> | undefined)
+    {
+        this.injectOptions.typeCtor = typeCtor;
+
+        return;
     }
 
     /**
@@ -92,23 +122,10 @@ export class InjectMetadata<TDeclaringType, TType>
 
         if (!Fn.isNil(typeCtor))
         {
-            return this.declaringTypeMetadata.typeMetadataResolver(typeCtor);
+            return this.defineTypeMetadata(typeCtor);
         }
 
         return undefined;
-    }
-
-    /**
-     * Clones current metadata instance.
-     * 
-     * @returns {InjectMetadata<TDeclaringType, TType>} Clone of current metadata instance.
-     */
-    public clone(): InjectMetadata<TDeclaringType, TType>
-    {
-        const injectOptions  = Fn.assign({}, this.injectOptions) as InjectOptions<TType>;
-        const injectMetadata = new InjectMetadata(this.declaringTypeMetadata, this.index, injectOptions);
-        
-        return injectMetadata;
     }
 
     /**
@@ -122,12 +139,12 @@ export class InjectMetadata<TDeclaringType, TType>
     {
         if (!Fn.isUndefined(injectOptions.key))
         {
-            this.injectOptions.key = injectOptions.key;
+            this.key = injectOptions.key;
         }
 
         if (!Fn.isUndefined(injectOptions.typeCtor)) 
         {
-            this.injectOptions.typeCtor = injectOptions.typeCtor;
+            this.typeCtor = injectOptions.typeCtor;
         }
 
         return this;
