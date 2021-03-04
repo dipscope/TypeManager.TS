@@ -1,4 +1,4 @@
-import { TypeArtisan, Injectable } from './../src';
+import { Injectable, TypeArtisan } from '../src';
 
 @Injectable()
 class UserService
@@ -12,9 +12,9 @@ class EmailService
     public prop?: string;
 }
 
-describe('Injectable decorator', function () 
+describe('Injectable decorator', () =>
 {
-    it('should register a type as injectable', function ()
+    it('should register a type as injectable', () =>
     {
         const userServiceMetadata  = TypeArtisan.extractTypeMetadata(UserService);
         const emailServiceMetadata = TypeArtisan.extractTypeMetadata(EmailService);

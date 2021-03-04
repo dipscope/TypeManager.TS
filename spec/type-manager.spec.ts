@@ -1,5 +1,5 @@
-import { Type, Property, TypeManager } from './../src';
-import { Serializer } from './../src/core';
+import { Property, Type, TypeManager } from '../src';
+import { Serializer } from '../src/core';
 
 class MessageBodySerializer implements Serializer<string>
 {
@@ -17,13 +17,13 @@ class MessageBodySerializer implements Serializer<string>
 @Type()
 class User
 {
-    @Property({ alias: 'username' }) public name?: string;
-    @Property() public email?: string;
-    @Property({ defaultValue: 'd', useDefaultValue: true }) public status?: string;
-    @Property({ defaultValue: () => 'e', useDefaultValue: true }) public login?: string;
-    @Property({ useImplicitConversion: true }) public description?: string;
-    @Property({ serializable: true }) public about?: string;
-    @Property({ deserializable: true }) public device?: string;
+    @Property(() => String, { alias: 'username' }) public name?: string;
+    @Property(() => String) public email?: string;
+    @Property(() => String, { defaultValue: 'd', useDefaultValue: true }) public status?: string;
+    @Property(() => String, { defaultValue: () => 'e', useDefaultValue: true }) public login?: string;
+    @Property(() => String, { useImplicitConversion: true }) public description?: string;
+    @Property(() => String, { serializable: true }) public about?: string;
+    @Property(() => String, { deserializable: true }) public device?: string;
 }
 
 @Type()
@@ -32,7 +32,7 @@ class Message
     @Property(() => String, { serializer: new MessageBodySerializer() }) public body?: string;
     @Property(() => String, { alias: 'label'}) public title?: string;
     @Property(() => User) public user?: User; 
-    @Property(() => Group, { multiple: true }) public groups?: Group[];
+    @Property(() => Array, [() => Group]) public groups?: Group[];
 }
 
 @Type()
@@ -42,11 +42,19 @@ class Group
     @Property(() => User, { defaultValue: () => new User(), useDefaultValue: true }) public user?: User;
 }
 
-describe('Type manager', function ()
+describe('Type manager', () =>
 {
-    it('should deserialize type when object is provided and vice versa', function () 
+    afterEach(() =>
     {
-        const messageManager = new TypeManager(Message, { useDefaultValue: false });
+        TypeManager.configureTypeOptionsBase({
+            useDefaultValue: false,
+            useImplicitConversion: false
+        });
+    });
+
+    it('should deserialize type when object is provided and vice versa', () =>
+    {
+        const messageManager = new TypeManager(Message);
         const baseObject     = { body: 'a', label: 'b', user: { username: 'a', email: 'b', description: null, about: 'g', device: 'h' }, groups: [{ title: 'a' }, { title: 'a' }] };
         const baseObjects    = [baseObject, baseObject];
         const entity         = messageManager.deserialize(baseObject);
@@ -142,7 +150,7 @@ describe('Type manager', function ()
         expect(nullObject).toBeNull();
     });
 
-    it('should use base type default value when it is enabled', function ()
+    it('should use base type default value when it is enabled', () =>
     {
         const groupManager = new TypeManager(Group);
         const baseObject   = { title: 'a' };
@@ -161,7 +169,7 @@ describe('Type manager', function ()
         expect(object.user).toBeInstanceOf(User);
     });
 
-    it('should produce the same result for serialization functions', function ()
+    it('should produce the same result for serialization functions', () =>
     {
         const groupManager = new TypeManager(Group);
         const baseObject   = { title: 'a' };

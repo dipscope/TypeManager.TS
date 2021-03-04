@@ -1,5 +1,6 @@
 import 'reflect-metadata';
-import { Type, TypeManager, Property, Injectable } from './../../src';
+
+import { Injectable, Property, Type, TypeManager } from '../../src';
 
 @Injectable()
 class UserService
@@ -18,7 +19,7 @@ class UserStatus
 class User
 {
     @Property() public name?: string;
-    @Property() public userStatus?: UserStatus;
+    @Property([UserStatus]) public userStatuses?: UserStatus[];
 
     public constructor(public userService: UserService)
     {
@@ -26,25 +27,27 @@ class User
     }
 }
 
-describe('Reflect metadata', function () 
+describe('Reflect metadata', () =>
 {
-    it('should implicitly register property and constructor argument types', function ()
+    it('should implicitly register property and constructor argument types', () =>
     {
         const userManager  = new TypeManager(User);
         const userMetadata = userManager.typeMetadata;
         
-        expect(userMetadata.propertyMetadataMap.get('name')!.typeResolver()).toBe(String);
-        expect(userMetadata.propertyMetadataMap.get('userStatus')!.typeResolver()).toBe(UserStatus);
+        expect(userMetadata.propertyMetadataMap.get('name')!.typeMetadata!.typeCtor).toBe(String);
+        expect(userMetadata.propertyMetadataMap.get('userStatuses')!.typeMetadata!.typeCtor).toBe(Array);
+        expect(userMetadata.propertyMetadataMap.get('userStatuses')!.genericArguments![0] as any).toBe(UserStatus);
         expect(userMetadata.injectMetadataMap.get(0)!.typeCtor).toBe(UserService);
 
-        const userJson = { name: 'Dmitry', userStatus: { name: 'Active', title: 'Active user status' } };
+        const userJson = { name: 'Dmitry', userStatuses: [{ name: 'Active', title: 'Active user status' }] };
         const user     = userManager.deserialize(userJson);
 
         expect(user).toBeInstanceOf(User);
         expect(user.name).toBe('Dmitry');
-        expect(user.userStatus).toBeInstanceOf(UserStatus);
-        expect(user.userStatus?.name).toBe('Active');
-        expect(user.userStatus?.title).toBe('Active user status');
+        expect(user.userStatuses).toBeInstanceOf(Array);
+        expect(user.userStatuses![0]).toBeInstanceOf(UserStatus);
+        expect(user.userStatuses![0].name).toBe('Active');
+        expect(user.userStatuses![0].title).toBe('Active user status');
         expect(user.userService).toBeInstanceOf(UserService);
     });
 });

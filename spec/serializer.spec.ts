@@ -1,23 +1,23 @@
-import { Type, TypeArtisan, Property, Serializer } from './../src';
-import { ObjectSerializer, StringSerializer } from './../src/serializers';
+import { Property, Serializer, Type, TypeArtisan } from '../src';
+import { StringSerializer, TypeSerializer } from '../src/serializers';
 
 @Type()
-@Serializer(new ObjectSerializer())
+@Serializer(new TypeSerializer())
 class User
 {
     @Property() @Serializer(new StringSerializer()) public name?: string;
 }
 
-describe('Type serializer decorator', function () 
+describe('Type serializer decorator', () =>
 {
-    it('should register custom serializer for a type', function ()
+    it('should register custom serializer for a type', () =>
     {
         const userMetadata = TypeArtisan.extractTypeMetadata(User);
 
-        expect(userMetadata.typeOptions.serializer).toBeInstanceOf(ObjectSerializer);
+        expect(userMetadata.typeOptions.serializer).toBeInstanceOf(TypeSerializer);
     });
 
-    it('should register custom serializer for a property', function ()
+    it('should register custom serializer for a property', () =>
     {
         const userMetadata     = TypeArtisan.extractTypeMetadata(User);
         const userNameMetadata = userMetadata.propertyMetadataMap.get('name');

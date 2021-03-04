@@ -1,43 +1,43 @@
-import { PascalCaseNamingConvention } from './../../src/naming-conventions';
+import { PascalCaseNamingConvention } from '../../src/naming-conventions';
 
-describe('Pascal case naming convention', function () 
+describe('Pascal case naming convention', () =>
 {
-    it('should convert camelCase to CamelCase', function ()
+    it('should convert camelCase to CamelCase', () =>
     {
         const namingConvention = new PascalCaseNamingConvention();
 
         expect(namingConvention.convert('camelCase')).toBe('CamelCase');
     });
 
-    it('should convert snake_case to SnakeCase', function ()
+    it('should convert snake_case to SnakeCase', () =>
     {
         const namingConvention = new PascalCaseNamingConvention();
 
         expect(namingConvention.convert('snake_case')).toBe('SnakeCase');
     });
 
-    it('should convert SNAKE_UPPER_CASE to SnakeUpperCase', function ()
+    it('should convert SNAKE_UPPER_CASE to SnakeUpperCase', () =>
     {
         const namingConvention = new PascalCaseNamingConvention();
 
         expect(namingConvention.convert('SNAKE_UPPER_CASE')).toBe('SnakeUpperCase');
     });
 
-    it('should convert kebab-case to KebabCase', function ()
+    it('should convert kebab-case to KebabCase', () =>
     {
         const namingConvention = new PascalCaseNamingConvention();
         
         expect(namingConvention.convert('kebab-case')).toBe('KebabCase');
     });
 
-    it('should convert KEBAB-UPPER-CASE to KebabUpperCase', function ()
+    it('should convert KEBAB-UPPER-CASE to KebabUpperCase', () =>
     {
         const namingConvention = new PascalCaseNamingConvention();
         
         expect(namingConvention.convert('KEBAB-UPPER-CASE')).toBe('KebabUpperCase');
     });
 
-    it('should convert PascalCase to PascalCase', function ()
+    it('should convert PascalCase to PascalCase', () =>
     {
         const namingConvention = new PascalCaseNamingConvention();
         

@@ -1,4 +1,4 @@
-import { Type, Inject, TypeManager, Injectable } from './../../src';
+import { Inject, Injectable, Type, TypeManager } from '../../src';
 
 @Injectable()
 class UserService
@@ -19,9 +19,9 @@ class User
     }
 }
 
-describe('Dependency injection', function () 
+describe('Dependency injection', () =>
 {
-    it('should init services and provide them to the types', function ()
+    it('should init services and provide them to the types', () =>
     {
         const userManager = new TypeManager(User);
         const user        = userManager.deserialize({});

@@ -1,5 +1,7 @@
-import { Type, TypeManager, NamingConvention, Property } from './../../src';
-import { SnakeCaseNamingConvention, SnakeUpperCaseNamingConvention, CamelCaseNamingConvention } from './../../src/naming-conventions';
+import { NamingConvention, Property, Type, TypeManager } from '../../src';
+import {
+    CamelCaseNamingConvention, SnakeCaseNamingConvention, SnakeUpperCaseNamingConvention
+} from '../../src/naming-conventions';
 
 @Type()
 @NamingConvention(new SnakeCaseNamingConvention())
@@ -17,9 +19,9 @@ class User
     @Property(() => UserStatus) @NamingConvention(new CamelCaseNamingConvention()) public userStatus?: UserStatus;
 }
 
-describe('Naming conventions', function () 
+describe('Naming conventions', () =>
 {
-    it('should properly handle names during serialization and deserialization', function ()
+    it('should properly handle names during serialization and deserialization', () =>
     {
         const userManager = new TypeManager(User);
         const user        = userManager.deserialize({ CREATED_AT: '1', userStatus: { created_at: '2', updated_at: '3' }})

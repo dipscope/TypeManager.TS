@@ -1,8 +1,16 @@
-import { TypeManager } from './../../src';
+import { TypeManager } from '../../src';
 
-describe('Boolean serializer', function () 
+describe('Boolean serializer', () =>
 {
-    it('should serialize undefined to undefined', function ()
+    afterEach(() =>
+    {
+        TypeManager.configureTypeOptionsBase({
+            useDefaultValue: false,
+            useImplicitConversion: false
+        });
+    });
+
+    it('should serialize undefined to undefined', () =>
     {
         const typeManager = new TypeManager(Boolean);
         const value       = undefined;
@@ -11,7 +19,7 @@ describe('Boolean serializer', function ()
         expect(result).toBeUndefined();
     });
 
-    it('should deserialize undefined to undefined', function ()
+    it('should deserialize undefined to undefined', () =>
     {
         const typeManager = new TypeManager(Boolean);
         const value       = undefined;
@@ -20,7 +28,7 @@ describe('Boolean serializer', function ()
         expect(result).toBeUndefined();
     });
 
-    it('should serialize null to null', function ()
+    it('should serialize null to null', () =>
     {
         const typeManager = new TypeManager(Boolean);
         const value       = null;
@@ -29,7 +37,7 @@ describe('Boolean serializer', function ()
         expect(result).toBeNull();
     });
 
-    it('should deserialize null to null', function ()
+    it('should deserialize null to null', () =>
     {
         const typeManager = new TypeManager(Boolean);
         const value       = null;
@@ -38,7 +46,7 @@ describe('Boolean serializer', function ()
         expect(result).toBeNull();
     });
 
-    it('should serialize boolean to boolean', function ()
+    it('should serialize boolean to boolean', () =>
     {
         const typeManager = new TypeManager(Boolean);
         const value       = true;
@@ -47,7 +55,7 @@ describe('Boolean serializer', function ()
         expect(result).toBeTrue();
     });
 
-    it('should deserialize boolean to boolean', function ()
+    it('should deserialize boolean to boolean', () =>
     {
         const typeManager = new TypeManager(Boolean);
         const value       = true;
@@ -56,7 +64,7 @@ describe('Boolean serializer', function ()
         expect(result).toBeTrue();
     });
 
-    it('should serialize boolean array to boolean array', function ()
+    it('should serialize boolean array to boolean array', () =>
     {
         const typeManager = new TypeManager(Boolean);
         const value       = [true, false];
@@ -67,7 +75,7 @@ describe('Boolean serializer', function ()
         expect(result[1]).toBeFalse();
     });
 
-    it('should deserialize boolean array to boolean array', function ()
+    it('should deserialize boolean array to boolean array', () =>
     {
         const typeManager = new TypeManager(Boolean);
         const value       = [true, false];
@@ -78,9 +86,11 @@ describe('Boolean serializer', function ()
         expect(result[1]).toBeFalse();
     });
 
-    it('should serialize suitable types to boolean when implicit conversion is enabled', function ()
+    it('should serialize suitable types to boolean when implicit conversion is enabled', () =>
     {
-        const typeManager = new TypeManager(Boolean, { useImplicitConversion: true });
+        TypeManager.configureTypeOptionsBase({ useImplicitConversion: true });
+
+        const typeManager = new TypeManager(Boolean);
         const value       = ['true', 'false', '1', '0', 1, 0] as any[];
         const result      = typeManager.serialize(value);
         
@@ -93,9 +103,11 @@ describe('Boolean serializer', function ()
         expect(result[5]).toBeFalse();
     });
 
-    it('should deserialize suitable types to boolean when implicit conversion is enabled', function ()
+    it('should deserialize suitable types to boolean when implicit conversion is enabled', () =>
     {
-        const typeManager = new TypeManager(Boolean, { useImplicitConversion: true });
+        TypeManager.configureTypeOptionsBase({ useImplicitConversion: true });
+
+        const typeManager = new TypeManager(Boolean);
         const value       = ['true', 'false', '1', '0', 1, 0] as any[];
         const result      = typeManager.deserialize(value);
         

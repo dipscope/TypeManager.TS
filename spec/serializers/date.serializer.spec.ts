@@ -1,8 +1,16 @@
-import { TypeManager } from './../../src';
+import { TypeManager } from '../../src';
 
-describe('Date serializer', function ()
+describe('Date serializer', () =>
 {
-    it('should serialize undefined to undefined', function ()
+    afterEach(() =>
+    {
+        TypeManager.configureTypeOptionsBase({
+            useDefaultValue: false,
+            useImplicitConversion: false
+        });
+    });
+
+    it('should serialize undefined to undefined', () =>
     {
         const typeManager = new TypeManager(Date);
         const value       = undefined;
@@ -11,7 +19,7 @@ describe('Date serializer', function ()
         expect(result).toBeUndefined();
     });
 
-    it('should deserialize undefined to undefined', function ()
+    it('should deserialize undefined to undefined', () =>
     {
         const typeManager = new TypeManager(Date);
         const value       = undefined;
@@ -20,7 +28,7 @@ describe('Date serializer', function ()
         expect(result).toBeUndefined();
     });
 
-    it('should serialize null to null', function ()
+    it('should serialize null to null', () =>
     {
         const typeManager = new TypeManager(Date);
         const value       = null;
@@ -29,7 +37,7 @@ describe('Date serializer', function ()
         expect(result).toBeNull();
     });
 
-    it('should deserialize null to null', function ()
+    it('should deserialize null to null', () =>
     {
         const typeManager = new TypeManager(Date);
         const value       = null;
@@ -38,7 +46,7 @@ describe('Date serializer', function ()
         expect(result).toBeNull();
     });
 
-    it('should serialize date to ISO string', function ()
+    it('should serialize date to ISO string', () =>
     {
         const typeManager = new TypeManager(Date);
         const value       = new Date('2021-02-22T20:00:00.000Z');
@@ -47,7 +55,7 @@ describe('Date serializer', function ()
         expect(result).toBe('2021-02-22T20:00:00.000Z');
     });
 
-    it('should deserialize ISO string to date', function ()
+    it('should deserialize ISO string to date', () =>
     {
         const typeManager = new TypeManager(Date);
         const value       = '2021-02-22T20:00:00.000Z';
@@ -57,7 +65,7 @@ describe('Date serializer', function ()
         expect(result.toISOString()).toBe('2021-02-22T20:00:00.000Z');
     });
 
-    it('should serialize date array to ISO string array', function ()
+    it('should serialize date array to ISO string array', () =>
     {
         const typeManager = new TypeManager(Date);
         const value       = [new Date('2021-02-22T20:00:00.000Z'), new Date('2021-02-22T21:00:00.000Z')];
@@ -68,7 +76,7 @@ describe('Date serializer', function ()
         expect(result[1]).toBe('2021-02-22T21:00:00.000Z');
     });
 
-    it('should deserialize ISO string array to date array', function ()
+    it('should deserialize ISO string array to date array', () =>
     {
         const typeManager = new TypeManager(Date);
         const value       = ['2021-02-22T20:00:00.000Z', '2021-02-22T21:00:00.000Z'];

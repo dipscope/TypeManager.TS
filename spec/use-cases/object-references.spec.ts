@@ -1,4 +1,4 @@
-import { Type, TypeManager, Property } from './../../src';
+import { Property, Type, TypeManager } from '../../src';
 
 @Type()
 class User
@@ -14,9 +14,9 @@ class Company
     @Property(() => User) public ownerUser?: User;
 }
 
-describe('Object references', function () 
+describe('Object references', () =>
 {
-    it('should be preserved during serialization and deserialization', function ()
+    it('should be preserved during serialization and deserialization', () =>
     {
         const companyManager = new TypeManager(Company);
         const company        = new Company();
@@ -31,7 +31,7 @@ describe('Object references', function ()
         expect(managedCompany?.creatorUser).toBe(managedCompany?.ownerUser);
     });
 
-    it('should be preserved during circular serialization and deserialization', function ()
+    it('should be preserved during circular serialization and deserialization', () =>
     {
         const companyManager = new TypeManager(Company);
         const company        = new Company();

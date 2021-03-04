@@ -1,8 +1,16 @@
-import { TypeManager } from './../../src';
+import { TypeManager } from '../../src';
 
-describe('String serializer', function () 
+describe('String serializer', () => 
 {
-    it('should serialize undefined to undefined', function ()
+    afterEach(() =>
+    {
+        TypeManager.configureTypeOptionsBase({
+            useDefaultValue: false,
+            useImplicitConversion: false
+        });
+    });
+
+    it('should serialize undefined to undefined', () =>
     {
         const typeManager = new TypeManager(String);
         const value       = undefined;
@@ -11,7 +19,7 @@ describe('String serializer', function ()
         expect(result).toBeUndefined();
     });
 
-    it('should deserialize undefined to undefined', function ()
+    it('should deserialize undefined to undefined', () =>
     {
         const typeManager = new TypeManager(String);
         const value       = undefined;
@@ -20,7 +28,7 @@ describe('String serializer', function ()
         expect(result).toBeUndefined();
     });
 
-    it('should serialize null to null', function ()
+    it('should serialize null to null', () =>
     {
         const typeManager = new TypeManager(String);
         const value       = null;
@@ -29,7 +37,7 @@ describe('String serializer', function ()
         expect(result).toBeNull();
     });
 
-    it('should deserialize null to null', function ()
+    it('should deserialize null to null', () =>
     {
         const typeManager = new TypeManager(String);
         const value       = null;
@@ -38,7 +46,7 @@ describe('String serializer', function ()
         expect(result).toBeNull();
     });
 
-    it('should serialize string to string', function ()
+    it('should serialize string to string', () =>
     {
         const typeManager = new TypeManager(String);
         const value       = 'x';
@@ -47,7 +55,7 @@ describe('String serializer', function ()
         expect(result).toBe('x');
     });
 
-    it('should deserialize string to string', function ()
+    it('should deserialize string to string', () =>
     {
         const typeManager = new TypeManager(String);
         const value       = 'x';
@@ -56,7 +64,7 @@ describe('String serializer', function ()
         expect(result).toBe('x');
     });
 
-    it('should serialize string array to string array', function ()
+    it('should serialize string array to string array', () =>
     {
         const typeManager = new TypeManager(String);
         const value       = ['x', 'y'];
@@ -67,7 +75,7 @@ describe('String serializer', function ()
         expect(result[1]).toBe('y');
     });
 
-    it('should deserialize string array to string array', function ()
+    it('should deserialize string array to string array', () =>
     {
         const typeManager = new TypeManager(String);
         const value       = ['x', 'y'];
@@ -78,9 +86,11 @@ describe('String serializer', function ()
         expect(result[1]).toBe('y');
     });
 
-    it('should serialize suitable types to string when implicit conversion is enabled', function ()
+    it('should serialize suitable types to string when implicit conversion is enabled', () =>
     {
-        const typeManager = new TypeManager(String, { useImplicitConversion: true });
+        TypeManager.configureTypeOptionsBase({ useImplicitConversion: true });
+
+        const typeManager = new TypeManager(String);
         const value       = [12.5, -12.5, true, false] as any[];
         const result      = typeManager.serialize(value);
         
@@ -91,9 +101,11 @@ describe('String serializer', function ()
         expect(result[3]).toBe('false');
     });
 
-    it('should deserialize suitable types to string when implicit conversion is enabled', function ()
+    it('should deserialize suitable types to string when implicit conversion is enabled', () =>
     {
-        const typeManager = new TypeManager(String, { useImplicitConversion: true });
+        TypeManager.configureTypeOptionsBase({ useImplicitConversion: true });
+
+        const typeManager = new TypeManager(String);
         const value       = [12.5, -12.5, true, false] as any[];
         const result      = typeManager.deserialize(value);
         

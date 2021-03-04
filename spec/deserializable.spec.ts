@@ -1,4 +1,4 @@
-import { Type, TypeArtisan, Property, Deserializable } from './../src';
+import { Deserializable, Property, Type, TypeArtisan } from '../src';
 
 @Type()
 class User
@@ -7,9 +7,9 @@ class User
     @Property() @Deserializable(false) public email?: string;
 }
 
-describe('Deserializable decorator', function () 
+describe('Deserializable decorator', () =>
 {
-    it('should register property as deserializable', function ()
+    it('should register property as deserializable', () =>
     {
         const userMetadata      = TypeArtisan.extractTypeMetadata(User);
         const userNameMetadata  = userMetadata.propertyMetadataMap.get('name');

@@ -1,7 +1,7 @@
-import { ObjectFactory } from './../src/factories';
-import { SingletonInjector } from './../src/injectors';
-import { ObjectSerializer } from './../src/serializers';
-import { Type, TypeArtisan } from './../src';
+import { Type, TypeArtisan } from '../src';
+import { TypeFactory } from '../src/factories';
+import { SingletonInjector } from '../src/injectors';
+import { TypeSerializer } from '../src/serializers';
 
 @Type({
     alias: 'User:Type',
@@ -10,18 +10,18 @@ import { Type, TypeArtisan } from './../src';
     useDefaultValue: true,
     useImplicitConversion: false,
     injectable: true,
-    factory: new ObjectFactory(),
+    factory: new TypeFactory(),
     injector: new SingletonInjector(),
-    serializer: new ObjectSerializer()
+    serializer: new TypeSerializer()
 })
 class User
 {
     public name?: string;
 }
 
-describe('Type decorator', function () 
+describe('Type decorator', () =>
 {
-    it('should register type metadata', function ()
+    it('should register type metadata', () =>
     {
         const userMetadata = TypeArtisan.extractTypeMetadata(User);
         const typeCtor     = TypeArtisan.typeCtorMap.get('User:Type');
@@ -34,9 +34,9 @@ describe('Type decorator', function ()
         expect(userMetadata.typeOptions.useDefaultValue).toBeTrue();
         expect(userMetadata.typeOptions.useImplicitConversion).toBeFalse();
         expect(userMetadata.typeOptions.injectable).toBeTrue();
-        expect(userMetadata.typeOptions.factory).toBeInstanceOf(ObjectFactory);
+        expect(userMetadata.typeOptions.factory).toBeInstanceOf(TypeFactory);
         expect(userMetadata.typeOptions.injector).toBeInstanceOf(SingletonInjector);
-        expect(userMetadata.typeOptions.serializer).toBeInstanceOf(ObjectSerializer);
+        expect(userMetadata.typeOptions.serializer).toBeInstanceOf(TypeSerializer);
 
         expect(typeCtor).toBeDefined();
         expect(typeCtor).toBe(userMetadata.typeCtor);

@@ -1,4 +1,4 @@
-import { Property, Type, Inject, TypeManager, Alias } from './../../src';
+import { Alias, Inject, Property, Type, TypeManager } from '../../src';
 
 @Type()
 class UserStatus
@@ -30,9 +30,9 @@ class User
     }
 }
 
-describe('Immutable type', function () 
+describe('Immutable types', () =>
 {
-    it('should inject data from JSON context', function ()
+    it('should inject data from JSON context', () =>
     {
         const userStatusManager = new TypeManager(UserStatus);
         const userStatusJson    = { name: 'Active', label: 'Active user status' };
@@ -43,7 +43,7 @@ describe('Immutable type', function ()
         expect(userStatus.title).toBe('Active user status');
     });
 
-    it('should inject deserialized JSON data when property metadata is known', function ()
+    it('should inject deserialized JSON data when property metadata is known', () =>
     {
         const userManager = new TypeManager(User);
         const userJson    = { name: 'Dmitry', userStatus: { name: 'Active', label: 'Active user status' } };

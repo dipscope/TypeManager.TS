@@ -1,29 +1,29 @@
-import { Property, TypeArtisan } from './../src';
-import { ObjectSerializer } from './../src/serializers';
-import { ObjectFactory } from './../src/factories';
-import { SingletonInjector } from './../src/injectors';
+import { Property, TypeArtisan } from '../src';
+import { TypeFactory } from '../src/factories';
+import { SingletonInjector } from '../src/injectors';
+import { TypeSerializer } from '../src/serializers';
 
 class User
 {
     @Property() public name?: string;
-    @Property('String', { alias: 'my@mail.ru', factory: new ObjectFactory() }) public email?: string;
+    @Property('String', { alias: 'my@mail.ru', factory: new TypeFactory() }) public email?: string;
     @Property(() => String, { serializable: true, injector: new SingletonInjector() }) public group?: string;
     @Property({ deserializable: true }) public rank?: number;
     @Property('Number', { defaultValue: 10 }) public priority?: number;
     @Property(() => Number, { useDefaultValue: true }) public loginCount?: number;
-    @Property({ useImplicitConversion: true, serializer: new ObjectSerializer() }) public active?: boolean;
+    @Property({ useImplicitConversion: true, serializer: new TypeSerializer() }) public active?: boolean;
 }
 
-describe('Property decorator', function () 
+describe('Property decorator', () =>
 {
-    it('should register type metadata', function ()
+    it('should register type metadata', () =>
     {
         const userMetadata = TypeArtisan.extractTypeMetadata(User);
 
         expect(userMetadata).toBeDefined();
     });
 
-    it('should register property metadata', function ()
+    it('should register property metadata', () =>
     {
         const userMetadata           = TypeArtisan.extractTypeMetadata(User);
         const userNameMetadata       = userMetadata.propertyMetadataMap.get('name');
@@ -42,7 +42,7 @@ describe('Property decorator', function ()
         expect(userNameMetadata?.propertyOptions.defaultValue).toBeUndefined();
         expect(userNameMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
         expect(userNameMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
-        expect(userNameMetadata?.propertyOptions.typeResolver).toBeUndefined();
+        expect(userNameMetadata?.propertyOptions.typeArgument).toBeUndefined();
         expect(userNameMetadata?.propertyOptions.factory).toBeUndefined();
         expect(userNameMetadata?.propertyOptions.injector).toBeUndefined();
         expect(userNameMetadata?.propertyOptions.serializer).toBeUndefined();
@@ -55,8 +55,8 @@ describe('Property decorator', function ()
         expect(userEmailMetadata?.propertyOptions.defaultValue).toBeUndefined();
         expect(userEmailMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
         expect(userEmailMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
-        expect(userEmailMetadata?.propertyOptions.typeResolver).toBeDefined();
-        expect(userEmailMetadata?.propertyOptions.factory).toBeInstanceOf(ObjectFactory);
+        expect(userEmailMetadata?.propertyOptions.typeArgument).toBeDefined();
+        expect(userEmailMetadata?.propertyOptions.factory).toBeInstanceOf(TypeFactory);
         expect(userEmailMetadata?.propertyOptions.injector).toBeUndefined();
         expect(userEmailMetadata?.propertyOptions.serializer).toBeUndefined();
 
@@ -68,7 +68,7 @@ describe('Property decorator', function ()
         expect(userGroupMetadata?.propertyOptions.defaultValue).toBeUndefined();
         expect(userGroupMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
         expect(userGroupMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
-        expect(userGroupMetadata?.propertyOptions.typeResolver).toBeDefined();
+        expect(userGroupMetadata?.propertyOptions.typeArgument).toBeDefined();
         expect(userGroupMetadata?.propertyOptions.factory).toBeUndefined();
         expect(userGroupMetadata?.propertyOptions.injector).toBeInstanceOf(SingletonInjector);
         expect(userGroupMetadata?.propertyOptions.serializer).toBeUndefined();
@@ -81,7 +81,7 @@ describe('Property decorator', function ()
         expect(userRankMetadata?.propertyOptions.defaultValue).toBeUndefined();
         expect(userRankMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
         expect(userRankMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
-        expect(userRankMetadata?.propertyOptions.typeResolver).toBeUndefined();
+        expect(userRankMetadata?.propertyOptions.typeArgument).toBeUndefined();
         expect(userRankMetadata?.propertyOptions.factory).toBeUndefined();
         expect(userRankMetadata?.propertyOptions.injector).toBeUndefined();
         expect(userRankMetadata?.propertyOptions.serializer).toBeUndefined();
@@ -94,7 +94,7 @@ describe('Property decorator', function ()
         expect(userPriorityMetadata?.propertyOptions.defaultValue).toBe(10);
         expect(userPriorityMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
         expect(userPriorityMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
-        expect(userPriorityMetadata?.propertyOptions.typeResolver).toBeDefined();
+        expect(userPriorityMetadata?.propertyOptions.typeArgument).toBeDefined();
         expect(userPriorityMetadata?.propertyOptions.factory).toBeUndefined();
         expect(userPriorityMetadata?.propertyOptions.injector).toBeUndefined();
         expect(userPriorityMetadata?.propertyOptions.serializer).toBeUndefined();
@@ -107,7 +107,7 @@ describe('Property decorator', function ()
         expect(userLoginCountMetadata?.propertyOptions.defaultValue).toBeUndefined();
         expect(userLoginCountMetadata?.propertyOptions.useDefaultValue).toBeTrue();
         expect(userLoginCountMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
-        expect(userLoginCountMetadata?.propertyOptions.typeResolver).toBeDefined();
+        expect(userLoginCountMetadata?.propertyOptions.typeArgument).toBeDefined();
         expect(userLoginCountMetadata?.propertyOptions.factory).toBeUndefined();
         expect(userLoginCountMetadata?.propertyOptions.injector).toBeUndefined();
         expect(userLoginCountMetadata?.propertyOptions.serializer).toBeUndefined();
@@ -120,9 +120,9 @@ describe('Property decorator', function ()
         expect(userActiveMetadata?.propertyOptions.defaultValue).toBeUndefined();
         expect(userActiveMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
         expect(userActiveMetadata?.propertyOptions.useImplicitConversion).toBeTrue();
-        expect(userActiveMetadata?.propertyOptions.typeResolver).toBeUndefined();
+        expect(userActiveMetadata?.propertyOptions.typeArgument).toBeUndefined();
         expect(userActiveMetadata?.propertyOptions.factory).toBeUndefined();
         expect(userActiveMetadata?.propertyOptions.injector).toBeUndefined();
-        expect(userActiveMetadata?.propertyOptions.serializer).toBeInstanceOf(ObjectSerializer);
+        expect(userActiveMetadata?.propertyOptions.serializer).toBeInstanceOf(TypeSerializer);
     });
 });
