@@ -1,6 +1,6 @@
-import { Fn } from './../core/fn';
-import { TypeMetadata } from './../core/type-metadata';
-import { Injector } from './../core/injector';
+import { Fn } from '../core/fn';
+import { Injector } from '../core/injector';
+import { TypeMetadata } from '../core/type-metadata';
 
 /**
  * Singleton injector.
@@ -27,12 +27,7 @@ export class SingletonInjector implements Injector
     {
         if (!typeMetadata.injectable)
         {
-            if (typeMetadata.log.errorEnabled)
-            {
-                typeMetadata.log.error(`${typeMetadata.path}: cannot resolve type! Have you registered it as injectable?`);
-            }
-
-            return undefined;
+            throw new Error(`${typeMetadata.name}: cannot resolve type! Have you registered it as injectable?`);
         }
 
         const instance = this.instanceMap.get(typeMetadata);
@@ -58,12 +53,7 @@ export class SingletonInjector implements Injector
 
         for (const injectMetadata of typeMetadata.injectMetadataMap.values())
         {
-            const argTypeMetadata = injectMetadata.typeMetadata;
-
-            if (!Fn.isNil(argTypeMetadata))
-            {
-                args[injectMetadata.index] = this.get(argTypeMetadata);
-            }
+            args[injectMetadata.index] = this.get(injectMetadata.typeMetadata);
         }
 
         const instance = new typeMetadata.typeCtor(...args);

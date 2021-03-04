@@ -38,17 +38,7 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
             return charCodeArray.map(c => String.fromCharCode(c)).join('');
         }
 
-        if (Fn.isArray(x))
-        {
-            return x.map(v => this.serialize(v, serializerContext));
-        }
-
-        if (serializerContext.useImplicitConversion) 
-        {
-            return this.convert(x, serializerContext);
-        }
-
-        if (serializerContext.log.errorEnabled) 
+        if (serializerContext.log.errorEnabled)
         {
             serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as array buffer!`, x);
         }
@@ -88,43 +78,10 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
         
             return arrayBuffer;
         }
-
-        if (Fn.isArray(x))
-        {
-            return x.map(v => this.deserialize(v, serializerContext));
-        }
-
-        if (serializerContext.useImplicitConversion) 
-        {
-            return this.convert(x, serializerContext);
-        }
         
         if (serializerContext.log.errorEnabled) 
         {
             serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as array buffer!`, x);
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Converts provided value to the target type value.
-     * 
-     * @param {any} x Some value.
-     * @param {SerializerContext<ArrayBuffer>} serializerContext Serializer context.
-     * 
-     * @returns {ArrayBuffer|undefined} Converted value or undefined.
-     */
-    private convert(x: any, serializerContext: SerializerContext<ArrayBuffer>): ArrayBuffer | undefined
-    {
-        if (Fn.isDataView(x))
-        {
-            return x.buffer;
-        }
-        
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.path}: Cannot convert value to array buffer!`, x);
         }
 
         return undefined;

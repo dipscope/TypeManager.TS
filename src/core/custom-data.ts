@@ -1,5 +1,5 @@
 /**
- * Custom data defined by developer.
+ * Custom data which can be defined by developer.
  * 
  * @type {CustomData}
  */

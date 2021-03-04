@@ -1,19 +1,34 @@
-import { TypeArgument } from './core';
 import { Alias } from './core/alias';
 import { Fn } from './core/fn';
 import { Log } from './core/log';
 import { LogLevel } from './core/log-level';
+import { TypeArgument } from './core/type-argument';
 import { TypeCtor } from './core/type-ctor';
 import { TypeMetadata } from './core/type-metadata';
 import { TypeOptions } from './core/type-options';
 import { TypeOptionsBase } from './core/type-options-base';
-import { ObjectFactory } from './factories/object.factory';
+import { TypeFactory } from './factories/type.factory';
 import { SingletonInjector } from './injectors/singleton.injector';
+import { DirectReferenceHandler } from './reference-handlers/direct.reference-handler';
+import { ArrayBufferSerializer } from './serializers/array-buffer.serializer';
+import { ArraySerializer } from './serializers/array.serializer';
 import { BooleanSerializer } from './serializers/boolean.serializer';
+import { DataViewSerializer } from './serializers/data-view.serializer';
 import { DateSerializer } from './serializers/date.serializer';
+import { Float32ArraySerializer } from './serializers/float-32-array.serializer';
+import { Float64ArraySerializer } from './serializers/float-64-array.serializer';
+import { Int16ArraySerializer } from './serializers/int-16-array.serializer';
+import { Int32ArraySerializer } from './serializers/int-32-array.serializer';
+import { Int8ArraySerializer } from './serializers/int-8-array.serializer';
+import { MapSerializer } from './serializers/map.serializer';
 import { NumberSerializer } from './serializers/number.serializer';
-import { ObjectSerializer } from './serializers/object.serializer';
+import { SetSerializer } from './serializers/set.serializer';
 import { StringSerializer } from './serializers/string.serializer';
+import { TypeSerializer } from './serializers/type.serializer';
+import { Uint16ArraySerializer } from './serializers/uint-16-array.serializer';
+import { Uint32ArraySerializer } from './serializers/uint-32-array.serializer';
+import { Uint8ArraySerializer } from './serializers/uint-8-array.serializer';
+import { Uint8ClampedArraySerializer } from './serializers/uint-8-clamped-array.serializer';
 
 /**
  * Type artisan class to encapsulate type manipulating functions.
@@ -35,12 +50,12 @@ export class TypeArtisan
      * @type {TypeOptionsBase<any>}
      */
     public static readonly typeOptionsBase: TypeOptionsBase<any> = {
-        customData:            {},
         defaultValue:          undefined,
-        factory:               new ObjectFactory(),
+        factory:               new TypeFactory(),
         injector:              new SingletonInjector(),
         log:                   new Log(LogLevel.Error),
-        serializer:            new ObjectSerializer(),
+        referenceHandler:      new DirectReferenceHandler(),
+        serializer:            new TypeSerializer(),
         useDefaultValue:       false,
         useImplicitConversion: false
     };
@@ -53,10 +68,24 @@ export class TypeArtisan
      * @type {Map<TypeCtor<any>, TypeOptions<any>>}
      */
     public static readonly typeOptionsMap: Map<TypeCtor<any>, TypeOptions<any>> = new Map<TypeCtor<any>, TypeOptions<any>>([
-        [String,  { serializer: new StringSerializer(),  defaultValue: null             }],
-        [Number,  { serializer: new NumberSerializer(),  defaultValue: 0                }],
-        [Boolean, { serializer: new BooleanSerializer(), defaultValue: false            }],
-        [Date,    { serializer: new DateSerializer(),    defaultValue: () => new Date() }]
+        [ArrayBuffer,       { serializer: new ArrayBufferSerializer(),       defaultValue: undefined }],
+        [Array,             { serializer: new ArraySerializer(),             defaultValue: () => []  }],
+        [Boolean,           { serializer: new BooleanSerializer(),           defaultValue: false     }],
+        [DataView,          { serializer: new DataViewSerializer(),          defaultValue: undefined }],
+        [Date,              { serializer: new DateSerializer(),              defaultValue: undefined }],
+        [Float32Array,      { serializer: new Float32ArraySerializer(),      defaultValue: undefined }],
+        [Float64Array,      { serializer: new Float64ArraySerializer(),      defaultValue: undefined }],
+        [Int8Array,         { serializer: new Int8ArraySerializer(),         defaultValue: undefined }],
+        [Int16Array,        { serializer: new Int16ArraySerializer(),        defaultValue: undefined }],
+        [Int32Array,        { serializer: new Int32ArraySerializer(),        defaultValue: undefined }],
+        [Map,               { serializer: new MapSerializer(),               defaultValue: undefined }],
+        [Number,            { serializer: new NumberSerializer(),            defaultValue: 0         }],
+        [Set,               { serializer: new SetSerializer(),               defaultValue: undefined }],
+        [String,            { serializer: new StringSerializer(),            defaultValue: undefined }],
+        [Uint8Array,        { serializer: new Uint8ArraySerializer(),        defaultValue: undefined }],
+        [Uint8ClampedArray, { serializer: new Uint8ClampedArraySerializer(), defaultValue: undefined }],
+        [Uint16Array,       { serializer: new Uint16ArraySerializer(),       defaultValue: undefined }],
+        [Uint32Array,       { serializer: new Uint32ArraySerializer(),       defaultValue: undefined }]
     ]);
 
     /**
@@ -216,7 +245,7 @@ export class TypeArtisan
 
         if (Fn.isNil(typeCtor))
         {
-            throw new Error(`Cannot resolve type metadata for provided type argument: ${JSON.stringify(typeArgument)}! Looks like your configuration is invalid!`);
+            throw new Error(`Cannot resolve type metadata for provided type argument: ${JSON.stringify(typeArgument)}! This is usually caused by invalid configuration!`);
         }
 
         return this.extractTypeMetadata(typeCtor);

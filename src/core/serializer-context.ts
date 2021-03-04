@@ -5,14 +5,19 @@ import { GenericArgument } from './generic-argument';
 import { GenericMetadata } from './generic-metadata';
 import { Injector } from './injector';
 import { Log } from './log';
-import { LogLevel } from './log-level';
 import { Metadata } from './metadata';
 import { NamingConvention } from './naming-convention';
 import { PropertyMetadata } from './property-metadata';
+import { ReferenceCallback } from './reference-callback';
+import { ReferenceHandler } from './reference-handler';
+import { ReferenceKey } from './reference-key';
+import { ReferenceValue } from './reference-value';
+import { ReferenceValueInitializer } from './reference-value-initializer';
+import { ReferenceValueResolver } from './reference-value-resolver';
 import { Serializer } from './serializer';
 import { SerializerContextOptions } from './serializer-context-options';
+import { TypeLike } from './type-like';
 import { TypeMetadata } from './type-metadata';
-import { TypeMetadataResolver } from './type-metadata-resolver';
 
 /**
  * Serializer context of a certain type.
@@ -29,38 +34,27 @@ export class SerializerContext<TType> extends Metadata
     public readonly serializerContextOptions: SerializerContextOptions<TType>;
 
     /**
-     * Generic type metadata map. Key is a generic index.
-     * 
-     * This are generic types if serializing type has any.
-     * 
-     * @type {Map<number, TypeMetadata<any>>}
-     */
-    public readonly genericTypeMetadataMap: Map<number, TypeMetadata<any>> = new Map<number, TypeMetadata<any>>();
-
-    /**
-     * Generic serializer context map. Key is a generic index.
-     * 
-     * This are contexts related to certain generic types.
-     * 
-     * @type {Map<number, SerializerContext<any>>}
-     */
-    public readonly genericSerializerContextMap: Map<number, SerializerContext<any>> = new Map<number, SerializerContext<any>>();
-
-    /**
      * Constructor.
      * 
-     * @param {TypeMetadataResolver} typeMetadataResolver Type metadata resolver.
      * @param {SerializerContextOptions<TType>} serializerContextOptions Serializer context options.
      */
-    public constructor(typeMetadataResolver: TypeMetadataResolver<any>, serializerContextOptions: SerializerContextOptions<TType>)
+    public constructor(serializerContextOptions: SerializerContextOptions<TType>)
     {
-        super(typeMetadataResolver);
+        super(serializerContextOptions.typeMetadata.typeMetadataResolver);
 
-        this.serializerContextOptions = {};
-
-        this.configure(serializerContextOptions);
+        this.serializerContextOptions = serializerContextOptions;
 
         return;
+    }
+
+    /**
+     * Gets serializer context root.
+     * 
+     * @returns {any} Serializer context root.
+     */
+    public get $(): any
+    {
+        return this.serializerContextOptions.$;
     }
 
     /**
@@ -70,38 +64,21 @@ export class SerializerContext<TType> extends Metadata
      */
     public get customData(): CustomData
     {
-        const customData       = {};
-        const typeMetadata     = this.typeMetadata;
-        const propertyMetadata = this.propertyMetadata;
+        const customData         = {};
+        const typeCustomData     = this.typeMetadata.customData;
+        const propertyCustomData = this.propertyMetadata?.customData;
 
-        if (!Fn.isNil(typeMetadata))
+        if (!Fn.isNil(typeCustomData))
         {
-            Fn.assign(customData, typeMetadata.customData);
+            Fn.assign(customData, typeCustomData);
         }
 
-        if (!Fn.isNil(propertyMetadata))
+        if (!Fn.isNil(propertyCustomData))
         {
-            Fn.assign(customData, propertyMetadata.customData);
+            Fn.assign(customData, propertyCustomData);
         }
 
-        return Fn.assign(customData, this.serializerContextOptions.customData ?? {});
-    }
-
-    /**
-     * Sets custom data.
-     * 
-     * @returns Nothing.
-     */
-    public set customData(customData: CustomData)
-    {
-        if (Fn.isNil(this.serializerContextOptions.customData))
-        {
-            this.serializerContextOptions.customData = {};
-        }
-
-        Fn.assign(this.serializerContextOptions.customData, customData);
-
-        return;
+        return customData;
     }
 
     /**
@@ -111,7 +88,7 @@ export class SerializerContext<TType> extends Metadata
      */
     public get defaultValue(): any | undefined
     {
-        const defaultValue = this.serializerContextOptions.defaultValue ?? this.propertyMetadata?.defaultValue ?? this.typeMetadata?.defaultValue;
+        const defaultValue = this.propertyMetadata?.defaultValue ?? this.typeMetadata.defaultValue;
 
         if (this.useDefaultValue)
         {
@@ -122,37 +99,13 @@ export class SerializerContext<TType> extends Metadata
     }
 
     /**
-     * Sets default value.
-     * 
-     * @returns Nothing.
-     */
-    public set defaultValue(defaultValue: any | undefined)
-    {
-        this.serializerContextOptions.defaultValue = defaultValue;
-
-        return;
-    }
-
-    /**
      * Gets factory.
      * 
-     * @returns {Factory<TType>|undefined} Factory or undefined.
+     * @returns {Factory} Factory.
      */
-    public get factory(): Factory<TType> | undefined
+    public get factory(): Factory
     {
-        return this.serializerContextOptions.factory ?? this.propertyMetadata?.factory ?? this.typeMetadata?.factory;
-    }
-
-    /**
-     * Sets factory.
-     * 
-     * @returns Nothing.
-     */
-    public set factory(factory: Factory<TType> | undefined)
-    {
-        this.serializerContextOptions.factory = factory;
-        
-        return;
+        return this.propertyMetadata?.factory ?? this.typeMetadata.factory;
     }
 
     /**
@@ -162,21 +115,7 @@ export class SerializerContext<TType> extends Metadata
      */
     public get genericArguments(): GenericArgument<any>[] | undefined
     {
-        return this.serializerContextOptions.genericArguments ?? this.propertyMetadata?.genericArguments ?? this.typeMetadata?.genericArguments;
-    }
-
-    /**
-     * Sets generic arguments.
-     * 
-     * @returns Nothing.
-     */
-    public set genericArguments(genericArguments: GenericArgument<any>[] | undefined)
-    {
-        this.serializerContextOptions.genericArguments = genericArguments;
-
-        this.configureGenericMaps();
-
-        return;
+        return this.serializerContextOptions.genericArguments ?? this.propertyMetadata?.genericArguments ?? this.typeMetadata.genericArguments;
     }
 
     /**
@@ -188,56 +127,47 @@ export class SerializerContext<TType> extends Metadata
     {
         const genericArguments = this.genericArguments;
 
-        if (!Fn.isNil(genericArguments))
+        if (Fn.isNil(genericArguments))
         {
-            return this.defineGenericMetadatas(genericArguments);
+            return undefined;
         }
 
-        return undefined;
+        return this.defineGenericMetadatas(genericArguments);
     }
 
     /**
      * Gets injector.
      * 
-     * @returns {Injector|undefined} Injector or undefined
+     * @returns {Injector} Injector
      */
-    public get injector(): Injector | undefined
+    public get injector(): Injector
     {
-        return this.serializerContextOptions.injector ?? this.propertyMetadata?.injector ?? this.typeMetadata?.injector;
-    }
-
-    /**
-     * Sets injector.
-     * 
-     * @returns Nothing.
-     */
-    public set injector(injector: Injector | undefined)
-    {
-        this.serializerContextOptions.injector = injector;
-        
-        return;
+        return this.propertyMetadata?.injector ?? this.typeMetadata.injector;
     }
 
     /**
      * Gets log.
      * 
-     * @returns {Log}
+     * @returns {Log} Log instance.
      */
     public get log(): Log
     {
-        return this.serializerContextOptions.log ?? this.propertyMetadata?.log ?? this.typeMetadata?.log ?? new Log(LogLevel.Error);
+        return this.propertyMetadata?.log ?? this.typeMetadata.log;
     }
 
     /**
-     * Sets log.
+     * Gets context name.
      * 
-     * @returns Nothing.
+     * @returns {string} Context name.
      */
-    public set log(log: Log)
+    public get name(): string
     {
-        this.serializerContextOptions.log = log;
-        
-        return;
+        if (Fn.isNil(this.propertyMetadata))
+        {
+            return this.typeMetadata.name;
+        }
+
+        return `${this.propertyMetadata.declaringTypeMetadata.name}.${this.propertyMetadata.name}`;
     }
 
     /**
@@ -247,39 +177,17 @@ export class SerializerContext<TType> extends Metadata
      */
     public get namingConvention(): NamingConvention | undefined
     {
-        return this.serializerContextOptions.namingConvention ?? this.propertyMetadata?.namingConvention ?? this.typeMetadata?.namingConvention;
+        return this.propertyMetadata?.namingConvention ?? this.typeMetadata.namingConvention;
     }
 
     /**
-     * Sets naming convention.
+     * Gets JSONPath from serializer context root.
      * 
-     * @returns Nothing.
-     */
-    public set namingConvention(namingConvention: NamingConvention | undefined)
-    {
-        this.serializerContextOptions.namingConvention = namingConvention;
-        
-        return;
-    }
-
-    /**
-     * Gets metadata path for logging.
-     * 
-     * @returns {string}
+     * @returns {string} Path.
      */
     public get path(): string
     {
-        if (!Fn.isNil(this.propertyMetadata))
-        {
-            return `${this.propertyMetadata.declaringTypeMetadata.name}.${this.propertyMetadata.name}`;
-        }
-
-        if (!Fn.isNil(this.typeMetadata))
-        {
-            return this.typeMetadata.name;
-        }
-
-        return 'Unknown';
+        return this.serializerContextOptions.path;
     }
 
     /**
@@ -293,81 +201,63 @@ export class SerializerContext<TType> extends Metadata
     }
 
     /**
-     * Sets property metadata.
+     * Gets reference handler.
      * 
-     * @returns Nothing.
+     * @returns {ReferenceHandler} Reference handler.
      */
-    public set propertyMetadata(propertyMetadata: PropertyMetadata<any, TType> | undefined)
+    public get referenceHandler(): ReferenceHandler
     {
-        this.serializerContextOptions.propertyMetadata = propertyMetadata;
+        return this.propertyMetadata?.referenceHandler ?? this.typeMetadata.referenceHandler;
+    }
 
-        return;
+    /**
+     * Gets reference callback map.
+     * 
+     * @returns {WeakMap<ReferenceKey, ReferenceCallback[]>} Reference callback map.
+     */
+    public get referenceCallbackMap(): WeakMap<ReferenceKey, ReferenceCallback[]>
+    {
+        return this.serializerContextOptions.referenceCallbackMap;
+    }
+
+    /**
+     * Gets reference map.
+     * 
+     * @returns {WeakMap<ReferenceKey, ReferenceValue>} Reference map.
+     */
+    public get referenceMap(): WeakMap<ReferenceKey, ReferenceValue>
+    {
+        return this.serializerContextOptions.referenceMap;
     }
 
     /**
      * Gets serializer.
      * 
-     * @returns {Serializer<TType>|undefined} Serializer or undefined.
+     * @returns {Serializer<TType>} Serializer.
      */
-    public get serializer(): Serializer<TType> | undefined
+    public get serializer(): Serializer<TType>
     {
-        return this.serializerContextOptions.serializer ?? this.propertyMetadata?.serializer ?? this.typeMetadata?.serializer;
-    }
-
-    /**
-     * Sets serializer.
-     * 
-     * @returns Nothing.
-     */
-    public set serializer(serializer: Serializer<TType> | undefined)
-    {
-        this.serializerContextOptions.serializer = serializer;
-        
-        return;
+        return this.propertyMetadata?.serializer ?? this.typeMetadata.serializer;
     }
 
     /**
      * Gets type metadata.
      * 
-     * @returns {TypeMetadata<TType>|undefined} Type metadata or undefined.
+     * @returns {TypeMetadata<TType>} Type metadata.
      */
-    public get typeMetadata(): TypeMetadata<TType> | undefined
+    public get typeMetadata(): TypeMetadata<TType>
     {
         return this.serializerContextOptions.typeMetadata;
     }
 
     /**
-     * Sets type metadata.
-     * 
-     * @returns Nothing.
-     */
-    public set typeMetadata(typeMetadata: TypeMetadata<TType> | undefined)
-    {
-        this.serializerContextOptions.typeMetadata = typeMetadata;
-
-        return;
-    }
-
-    /**
      * Gets indicator if default value should be used.
      * 
-     * @returns {boolean|undefined} True when type should use default value. False otherwise.
+     * @returns {boolean} True when type should use default value. False otherwise.
      */
-    public get useDefaultValue(): boolean | undefined
+    public get useDefaultValue(): boolean
     {
-        return this.serializerContextOptions.useDefaultValue ?? this.propertyMetadata?.useDefaultValue ?? this.typeMetadata?.useDefaultValue;
-    }
-
-    /**
-     * Sets indicator if default value should be used.
-     * 
-     * @returns Nothing.
-     */
-    public set useDefaultValue(useDefaultValue: boolean | undefined)
-    {
-        this.serializerContextOptions.useDefaultValue = useDefaultValue;
-        
-        return;
+        return this.propertyMetadata?.useDefaultValue ?? this.typeMetadata.useDefaultValue;
     }
 
     /**
@@ -375,125 +265,166 @@ export class SerializerContext<TType> extends Metadata
      * 
      * @returns {boolean} True when type should use implicit conversion. False otherwise.
      */
-    public get useImplicitConversion(): boolean | undefined
+    public get useImplicitConversion(): boolean
     {
-        return this.serializerContextOptions.useImplicitConversion ?? this.propertyMetadata?.useImplicitConversion ?? this.typeMetadata?.useImplicitConversion;
+        return this.propertyMetadata?.useImplicitConversion ?? this.typeMetadata.useImplicitConversion;
     }
 
     /**
-     * Sets indicator if implicit conversion should be used.
+     * Serializes provided value using context.
      * 
-     * @returns Nothing.
+     * @param {TypeLike<TType>} x Some value.
+     * 
+     * @returns {TypeLike<any>} Value serialized by context.
      */
-    public set useImplicitConversion(useImplicitConversion: boolean | undefined)
+    public serialize(x: TypeLike<TType>): TypeLike<any>
     {
-        this.serializerContextOptions.useImplicitConversion = useImplicitConversion;
-        
+        return this.serializer.serialize(x, this);
+    }
+
+    /**
+     * Deserializes provided value using context.
+     * 
+     * @param {TypeLike<any>} x Some value.
+     * 
+     * @returns {TypeLike<TType>} Value deserialized by context.
+     */
+    public deserialize(x: TypeLike<any>): TypeLike<TType>
+    {
+        return this.serializer.deserialize(x, this);
+    }
+
+    /**
+     * Defines reference. 
+     * 
+     * May be called during serialization to define reference.
+     * 
+     * @param {ReferenceKey} referenceKey Reference key.
+     * @param {ReferenceValueInitializer} referenceValueInitializer Reference value initializer.
+     * 
+     * @returns {ReferenceValue|ReferenceValueResolver} Reference value or reference value resolver when circular dependency is detected.
+     */
+    public defineReference(referenceKey: ReferenceKey, referenceValueInitializer: ReferenceValueInitializer): ReferenceValue | ReferenceValueResolver
+    {
+        return this.referenceHandler.define(this, referenceKey, referenceValueInitializer);
+    }
+
+    /**
+     * Restores reference.
+     * 
+     * May be called during deserialization to restore reference.
+     * 
+     * @param {ReferenceKey} referenceKey Reference key.
+     * @param {ReferenceValueInitializer} referenceValueInitializer Reference value initializer.
+     * 
+     * @returns {ReferenceValue|ReferenceValueResolver} Reference value or reference value resolver when circular dependency is detected.
+     */
+    public restoreReference(referenceKey: ReferenceKey, referenceValueInitializer: ReferenceValueInitializer): ReferenceValue | ReferenceValueResolver
+    {
+        return this.referenceHandler.restore(this, referenceKey, referenceValueInitializer);
+    }
+
+    /**
+     * Pushes callback for provided reference key.
+     * 
+     * Called by serializers during handling of circular references.
+     * 
+     * @param {ReferenceKey} referenceKey Reference key.
+     * @param {ReferenceCallback} referenceCallback Reference callback.
+     * 
+     * @returns {void}
+     */
+    public pushReferenceCallback(referenceKey: ReferenceKey, referenceCallback: ReferenceCallback): void
+    {
+        let referenceCallbacks = this.referenceCallbackMap.get(referenceKey);
+
+        if (Fn.isNil(referenceCallbacks))
+        {
+            referenceCallbacks = [];
+
+            this.referenceCallbackMap.set(referenceKey, referenceCallbacks);
+        }
+
+        referenceCallbacks.push(referenceCallback);
+
         return;
     }
 
     /**
-     * Configures generic maps based on current generic arguments.
+     * Resolves callbacks for provided reference key.
      * 
-     * @returns {SerializerContext<TType>} Serializer context.
+     * Called by reference handlers when circular references can be resolved.
+     * 
+     * @param {ReferenceKey} referenceKey Reference key.
+     * 
+     * @returns {void}
      */
-    private configureGenericMaps(): SerializerContext<TType>
+    public resolveReferenceCallbacks(referenceKey: ReferenceKey): void
     {
-        const genericArguments = this.genericArguments;
+        const referenceCallbacks = this.referenceCallbackMap.get(referenceKey);
 
-        this.genericTypeMetadataMap.clear();
-        this.genericSerializerContextMap.clear();
-
-        if (Fn.isNil(genericArguments))
+        if (Fn.isNil(referenceCallbacks))
         {
-            return this;
+            return;
         }
 
-        for (let i = 0; i < genericArguments.length; i++)
+        for (const referenceCallback of referenceCallbacks)
         {
-            const genericArgument          = genericArguments[i];
-            const genericTypeArgument      = Fn.isArray(genericArgument) ? genericArgument[0] : genericArgument;
-            const genericGenericArguments  = Fn.isArray(genericArgument) ? genericArgument[1] : undefined;
-            const typeMetadata             = this.defineTypeMetadata(genericTypeArgument);
-            const serializerContextOptions = Fn.assign({}, this.serializerContextOptions, { genericArguments: genericGenericArguments }) as SerializerContextOptions<any>;
-            const serializerContext        = typeMetadata.defineSerializerContext(serializerContextOptions);
-
-            this.genericTypeMetadataMap.set(i, typeMetadata);
-            this.genericSerializerContextMap.set(i, serializerContext);
+            referenceCallback();
         }
 
-        return this;
+        return;
     }
 
     /**
-     * Configures serializer context based on provided options.
+     * Defines child serializer context.
      * 
-     * @param {SerializerContextOptions<TType>} serializerContextOptions Serializer context options.
+     * Called by serializers on context change.
      * 
-     * @returns {SerializerContext<TType>} Current instance of serializer context.
+     * @param {Partial<SerializerContextOptions<any>>} childSerializerContextOptions Partial of serializer context options to override.
+     * 
+     * @returns {SerializerContext<any>} Child serializer context.
      */
-    public configure(serializerContextOptions: SerializerContextOptions<TType>): SerializerContext<TType>
+    public defineChildSerializerContext(childSerializerContextOptions: Partial<SerializerContextOptions<any>>): SerializerContext<any>
     {
-        if (!Fn.isUndefined(serializerContextOptions.customData))
+        const serializerContextOptions = Object.assign({}, this.serializerContextOptions, childSerializerContextOptions);
+
+        return new SerializerContext(serializerContextOptions);
+    }
+
+    /**
+     * Defines generic serializer context.
+     * 
+     * Called by serializers which work with generics.
+     * 
+     * @param {number} genericIndex Generic index.
+     * 
+     * @returns {SerializerContext<any>} Generic serializer context.
+     */
+    public defineGenericSerializerContext(genericIndex: number): SerializerContext<any>
+    {
+        const genericArguments = this.genericArguments;
+
+        if (Fn.isNil(genericArguments))
         {
-            this.customData = serializerContextOptions.customData;
+            throw new Error(`${this.path}: Cannot define generic arguments! This is usually caused by invalid configuration!`);
         }
 
-        if (!Fn.isUndefined(serializerContextOptions.defaultValue)) 
+        const genericArgument = genericArguments[genericIndex];
+
+        if (Fn.isNil(genericArgument))
         {
-            this.defaultValue = serializerContextOptions.defaultValue;
+            throw new Error(`${this.path}: Cannot define generic argument for index ${genericIndex}! This is usually caused by invalid configuration!`);
         }
 
-        if (!Fn.isUndefined(serializerContextOptions.factory)) 
-        {
-            this.factory = serializerContextOptions.factory;
-        }
+        const genericTypeArgument     = Fn.isArray(genericArgument) ? genericArgument[0] : genericArgument;
+        const genericGenericArguments = Fn.isArray(genericArgument) ? genericArgument[1] : undefined;
+        const typeMetadata            = this.defineTypeMetadata(genericTypeArgument);
 
-        if (!Fn.isUndefined(serializerContextOptions.genericArguments)) 
-        {
-            this.genericArguments = serializerContextOptions.genericArguments;
-        }
-
-        if (!Fn.isUndefined(serializerContextOptions.injector))
-        {
-            this.injector = serializerContextOptions.injector;
-        }
-
-        if (!Fn.isUndefined(serializerContextOptions.log))
-        {
-            this.log = serializerContextOptions.log;
-        }
-
-        if (!Fn.isUndefined(serializerContextOptions.namingConvention))
-        {
-            this.namingConvention = serializerContextOptions.namingConvention;
-        }
-
-        if (!Fn.isUndefined(serializerContextOptions.propertyMetadata)) 
-        {
-            this.propertyMetadata = serializerContextOptions.propertyMetadata;
-        }
-
-        if (!Fn.isUndefined(serializerContextOptions.serializer)) 
-        {
-            this.serializer = serializerContextOptions.serializer;
-        }
-
-        if (!Fn.isUndefined(serializerContextOptions.typeMetadata)) 
-        {
-            this.typeMetadata = serializerContextOptions.typeMetadata;
-        }
-
-        if (!Fn.isUndefined(serializerContextOptions.useDefaultValue)) 
-        {
-            this.useDefaultValue = serializerContextOptions.useDefaultValue;
-        }
-
-        if (!Fn.isUndefined(serializerContextOptions.useImplicitConversion)) 
-        {
-            this.useImplicitConversion = serializerContextOptions.useImplicitConversion;
-        }
-
-        return this;
+        return this.defineChildSerializerContext({
+            typeMetadata:     typeMetadata,
+            propertyMetadata: undefined,
+            genericArguments: genericGenericArguments
+        });
     }
 }

@@ -1,7 +1,7 @@
-import { Fn } from './../core/fn';
-import { TypeLike } from './../core/type-like';
-import { Serializer } from './../core/serializer';
-import { SerializerContext } from './../core/serializer-context';
+import { Fn } from '../core/fn';
+import { Serializer } from '../core/serializer';
+import { SerializerContext } from '../core/serializer-context';
+import { TypeLike } from '../core/type-like';
 
 /**
  * String serializer.
@@ -29,12 +29,7 @@ export class StringSerializer implements Serializer<string>
         {
             return x;
         }
-
-        if (Fn.isArray(x))
-        {
-            return x.map(v => this.serialize(v, serializerContext));
-        }
-
+        
         if (serializerContext.useImplicitConversion) 
         {
             return this.convert(x, serializerContext);
@@ -66,11 +61,6 @@ export class StringSerializer implements Serializer<string>
         if (Fn.isNull(x) || Fn.isString(x))
         {
             return x;
-        }
-
-        if (Fn.isArray(x))
-        {
-            return x.map(v => this.deserialize(v, serializerContext));
         }
 
         if (serializerContext.useImplicitConversion) 

@@ -10,6 +10,7 @@ export * from './injector';
 export * from './naming-convention';
 export * from './property-artisan';
 export * from './property';
+export * from './reference-handler';
 export * from './serializable';
 export * from './serializer';
 export * from './type-and-property';

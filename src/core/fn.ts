@@ -131,7 +131,7 @@ export class Fn
      * 
      * @returns {boolean} True when value is object. False otherwise.
      */
-    public static isObject(x: any): x is { [key: string]: any }
+    public static isObject(x: any): x is Record<string, any>
     {
         return x !== null && typeof x === 'object';
     }
@@ -143,7 +143,7 @@ export class Fn
      * 
      * @returns {boolean} True when value is a plain object. False otherwise.
      */
-    public static isPlainObject(x: any): x is { [key: string]: any }
+    public static isPlainObject(x: any): x is Record<string, any>
     {
         return x !== null && typeof x === 'object' && Object.getPrototypeOf(x).isPrototypeOf(Object);
     }
@@ -169,7 +169,7 @@ export class Fn
      */
     public static isCtor(x: any): x is new (...args: any[]) => any
     {
-        return typeof x === 'function' && x.prototype && x.prototype.constructor === x;
+        return typeof x === 'function' && x.prototype && x.prototype.constructor === x && x.name !== '';
     }
 
     /**
@@ -425,6 +425,18 @@ export class Fn
     }
 
     /**
+     * Checks if head of array is array.
+     * 
+     * @param {any[]} x Input array.
+     * 
+     * @returns {boolean} True when head of array is array. False otherwise.
+     */
+    public static isHeadArray(x: any[]): boolean
+    {
+        return this.isArray(x[0]);
+    }
+
+    /**
      * Checks if provided value is empty.
      *
      * @param {any} x Input value.
@@ -433,24 +445,34 @@ export class Fn
      */
     public static isEmpty(x: any): boolean
     {
-        return (!x && x !== 0 || typeof x === typeof {} && (x.length === 0 || Object.keys(x).length === 0));
+        if (this.isNil(x))
+        {
+            return true;
+        }
+
+        if (this.isString(x) || this.isArray(x))
+        {
+            return x.length === 0;
+        }
+
+        if (this.isObject(x))
+        {
+            return Object.keys(x).length === 0;
+        }
+        
+        return false;
     }
 
     /**
-     * Performs deep assign and returns target object.
+     * Performs deep assignment and returns target object.
      *
-     * @param {any} target Target object.
-     * @param {any[]} sources Source objects.
+     * @param {Record<string, any>} target Target object.
+     * @param {Record<string, any>[]} sources Source objects.
      *
-     * @returns {any} Target object.
+     * @returns {Record<string, any>} Target object.
      */
-    public static assign(target: any, ...sources: any[]): any
+    public static assign(target: Record<string, any>, ...sources: Record<string, any>[]): Record<string, any>
     {
-        if (!this.isObject(target) || !sources.every(s => this.isObject(s)))
-        {
-            return target;
-        }
-
         for (const source of sources) 
         {
             for (const key in source)
@@ -488,14 +510,12 @@ export class Fn
      */
     public static nameOf(x: any): string
     {
-        let name = 'Unknown';
-
         if (!Fn.isNil(x) && (Fn.isFunction(x) || Fn.isObject(x)) && Fn.isString(x.name))
         {
-            name = x.name;
+            return x.name;
         }
 
-        return name;
+        return 'Unknown';
     }
 
     /**

@@ -25,6 +25,10 @@ module.exports = {
             import: './src/naming-conventions/index.ts', 
             filename: './naming-conventions/index.js'
         },
+        referenceHandlers: { 
+            import: './src/reference-handlers/index.ts', 
+            filename: './reference-handlers/index.js'
+        },
         serializers: { 
             import: './src/serializers/index.ts', 
             filename: './serializers/index.js'

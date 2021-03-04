@@ -32,52 +32,85 @@ export class MapSerializer implements Serializer<Map<any, any>>
 
         if (Fn.isMap(x))
         {
-            const keyTypeMetadata        = serializerContext.genericTypeMetadataMap.get(0);
-            const keySerializerContext   = serializerContext.genericSerializerContextMap.get(0);
-            const valueTypeMetadata      = serializerContext.genericTypeMetadataMap.get(1);
-            const valueSerializerContext = serializerContext.genericSerializerContextMap.get(1);
-
-            if (Fn.isNil(keyTypeMetadata) || Fn.isNil(valueTypeMetadata) || Fn.isNil(keySerializerContext) || Fn.isNil(valueSerializerContext))
+            return serializerContext.defineReference(x, () =>
             {
-                if (serializerContext.log.errorEnabled)
+                const map                           = x;
+                const array                         = [] as any[];
+                const genericKeySerializerContext   = serializerContext.defineGenericSerializerContext(0);
+                const genericValueSerializerContext = serializerContext.defineGenericSerializerContext(1);
+                
+                let i = -1;
+
+                for (const [k, v] of map.entries())
                 {
-                    serializerContext.log.error(`${serializerContext.path}: Cannot define type metadata during serializing value as map!`, x);
+                    i++;
+
+                    array[i] = {};
+
+                    const keySerializerContext = genericKeySerializerContext.defineChildSerializerContext({ 
+                        path: `${genericKeySerializerContext.path}[${i}]['key']`
+                    });
+
+                    const valueSerializerContext = genericValueSerializerContext.defineChildSerializerContext({
+                        path: `${genericValueSerializerContext.path}[${i}]['value']`
+                    });
+
+                    const key   = keySerializerContext.serialize(k);
+                    const value = valueSerializerContext.serialize(v);
+                
+                    if (!Fn.isFunction(key) && !Fn.isFunction(value))
+                    {
+                        array[i]['key']   = key;
+                        array[i]['value'] = value;
+
+                        continue;
+                    }
+
+                    if (Fn.isFunction(key) && Fn.isFunction(value))
+                    {
+                        keySerializerContext.pushReferenceCallback(k, () =>
+                        {
+                            array[i]['key'] = key();
+                        });
+
+                        valueSerializerContext.pushReferenceCallback(v, () =>
+                        {
+                            array[i]['value'] = value();
+                        });
+
+                        continue;
+                    }
+
+                    if (Fn.isFunction(key) && !Fn.isFunction(value))
+                    {
+                        keySerializerContext.pushReferenceCallback(k, () =>
+                        {
+                            array[i]['key']   = key();
+                            array[i]['value'] = value;
+                        });
+
+                        continue;
+                    }
+
+                    if (!Fn.isFunction(key) && Fn.isFunction(value))
+                    {
+                        valueSerializerContext.pushReferenceCallback(v, () =>
+                        {
+                            array[i]['key']   = key;
+                            array[i]['value'] = value();
+                        });
+
+                        continue;
+                    }
                 }
 
-                return undefined;
-            }
-
-            if (Fn.isNil(keyTypeMetadata.serializer) || Fn.isNil(valueTypeMetadata.serializer))
-            {
-                if (serializerContext.log.errorEnabled)
-                {
-                    serializerContext.log.error(`${serializerContext.path}: Cannot define type metadata serializers during serializing value as map!`, x);
-                }
-
-                return undefined;
-            }
-
-            const mapArray = [] as Record<string, any>[];
-            
-            for (const [key, value] of x.entries())
-            {
-                mapArray.push({
-                    key:   keyTypeMetadata.serializer.serialize(key, keySerializerContext),
-                    value: valueTypeMetadata.serializer.serialize(value, valueSerializerContext)
-                });
-            }
-
-            return mapArray;
-        }
-
-        if (Fn.isArray(x))
-        {
-            return x.map(v => this.serialize(v, serializerContext));
+                return array;
+            });
         }
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as number!`, x);
+            serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as map!`, x);
         }
 
         return undefined;
@@ -103,55 +136,80 @@ export class MapSerializer implements Serializer<Map<any, any>>
             return x;
         }
 
-        if (Fn.isArray(x) && x.every(v => Fn.isObject(v) && !Fn.isArray(v)))
+        if (Fn.isArray(x))
         {
-            const keyTypeMetadata        = serializerContext.genericTypeMetadataMap.get(0);
-            const keySerializerContext   = serializerContext.genericSerializerContextMap.get(0);
-            const valueTypeMetadata      = serializerContext.genericTypeMetadataMap.get(1);
-            const valueSerializerContext = serializerContext.genericSerializerContextMap.get(1);
-
-            if (Fn.isNil(keyTypeMetadata) || Fn.isNil(valueTypeMetadata) || Fn.isNil(keySerializerContext) || Fn.isNil(valueSerializerContext))
+            return serializerContext.restoreReference(x, () =>
             {
-                if (serializerContext.log.errorEnabled)
+                const array                         = x;
+                const map                           = new Map<any, any>();
+                const genericKeySerializerContext   = serializerContext.defineGenericSerializerContext(0);
+                const genericValueSerializerContext = serializerContext.defineGenericSerializerContext(1);
+                
+                for (let i = 0; i < array.length; i++)
                 {
-                    serializerContext.log.error(`${serializerContext.path}: Cannot define type metadata during deserializing value as map!`, x);
+                    const keySerializerContext = genericKeySerializerContext.defineChildSerializerContext({
+                        path: `${genericKeySerializerContext.path}[${i}]['key']` 
+                    });
+
+                    const valueSerializerContext = genericValueSerializerContext.defineChildSerializerContext({
+                        path: `${genericValueSerializerContext.path}[${i}]['value']`
+                    });
+
+                    const k     = array[i]['key'];
+                    const v     = array[i]['value'];
+                    const key   = keySerializerContext.deserialize(k);
+                    const value = valueSerializerContext.deserialize(v);
+                    
+                    if (!Fn.isFunction(key) && !Fn.isFunction(value))
+                    {
+                        map.set(key, value);
+
+                        continue;
+                    }
+
+                    if (Fn.isFunction(key) && Fn.isFunction(value))
+                    {
+                        keySerializerContext.pushReferenceCallback(k, () =>
+                        {
+                            map.set(key(), value());
+                        });
+
+                        valueSerializerContext.pushReferenceCallback(v, () =>
+                        {
+                            map.set(key(), value());
+                        });
+
+                        continue;
+                    }
+
+                    if (Fn.isFunction(key) && !Fn.isFunction(value))
+                    {
+                        keySerializerContext.pushReferenceCallback(k, () =>
+                        {
+                            map.set(key(), value);
+                        });
+
+                        continue;
+                    }
+
+                    if (!Fn.isFunction(key) && Fn.isFunction(value))
+                    {
+                        valueSerializerContext.pushReferenceCallback(v, () =>
+                        {
+                            map.set(key, value());
+                        });
+
+                        continue;
+                    }
                 }
 
-                return undefined;
-            }
-
-            if (Fn.isNil(keyTypeMetadata.serializer) || Fn.isNil(valueTypeMetadata.serializer))
-            {
-                if (serializerContext.log.errorEnabled)
-                {
-                    serializerContext.log.error(`${serializerContext.path}: Cannot define type metadata serializers during deserializing value as map!`, x);
-                }
-
-                return undefined;
-            }
-
-            const mapArray = x;
-            const map      = new Map<any, any>();
-            
-            for (const entry of mapArray)
-            {
-                map.set(
-                    keyTypeMetadata.serializer.deserialize(entry.key, keySerializerContext), 
-                    valueTypeMetadata.serializer.deserialize(entry.value, valueSerializerContext)
-                );
-            }
-
-            return map;
+                return map;
+            });
         }
 
-        if (Fn.isArray(x) && x.every(v => Fn.isArray(v)))
+        if (serializerContext.log.errorEnabled)
         {
-            return x.map(v => this.deserialize(v, serializerContext));
-        }
-
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as number!`, x);
+            serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as map!`, x);
         }
 
         return undefined;

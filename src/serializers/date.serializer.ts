@@ -1,7 +1,7 @@
-import { Fn } from './../core/fn';
-import { TypeLike } from './../core/type-like';
-import { Serializer } from './../core/serializer';
-import { SerializerContext } from './../core/serializer-context';
+import { Fn } from '../core/fn';
+import { Serializer } from '../core/serializer';
+import { SerializerContext } from '../core/serializer-context';
+import { TypeLike } from '../core/type-like';
 
 /**
  * Date serializer.
@@ -35,11 +35,6 @@ export class DateSerializer implements Serializer<Date>
             return x.toISOString();
         }
 
-        if (Fn.isArray(x))
-        {
-            return x.map(v => this.serialize(v, serializerContext));
-        }
-
         if (serializerContext.log.errorEnabled) 
         {
             serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as date!`, x);
@@ -71,11 +66,6 @@ export class DateSerializer implements Serializer<Date>
         if (Fn.isString(x))
         {
             return new Date(x);
-        }
-
-        if (Fn.isArray(x))
-        {
-            return x.map(v => this.deserialize(v, serializerContext));
         }
 
         if (serializerContext.log.errorEnabled) 

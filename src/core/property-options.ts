@@ -7,7 +7,7 @@ import { TypeOptionsBase } from './type-options-base';
  * 
  * @type {PropertyOptions<TType>}
  */
-export interface PropertyOptions<TType> extends TypeOptionsBase<TType>
+export interface PropertyOptions<TType> extends Partial<TypeOptionsBase<TType>>
 {
     /**
      * Property alias.

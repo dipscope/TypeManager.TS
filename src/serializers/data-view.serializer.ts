@@ -1,7 +1,7 @@
-import { Fn } from './../core/fn';
-import { TypeLike } from './../core/type-like';
-import { Serializer } from './../core/serializer';
-import { SerializerContext } from './../core/serializer-context';
+import { Fn } from '../core/fn';
+import { Serializer } from '../core/serializer';
+import { SerializerContext } from '../core/serializer-context';
+import { TypeLike } from '../core/type-like';
 
 /**
  * Data view serializer.
@@ -36,16 +36,6 @@ export class DataViewSerializer implements Serializer<DataView>
             const charCodeArray   = Array.from(arrayBufferView);
 
             return charCodeArray.map(c => String.fromCharCode(c)).join('');
-        }
-
-        if (Fn.isArray(x))
-        {
-            return x.map(v => this.serialize(v, serializerContext));
-        }
-
-        if (serializerContext.useImplicitConversion) 
-        {
-            return this.convert(x, serializerContext);
         }
 
         if (serializerContext.log.errorEnabled) 
@@ -89,42 +79,9 @@ export class DataViewSerializer implements Serializer<DataView>
             return new DataView(arrayBuffer);
         }
 
-        if (Fn.isArray(x))
-        {
-            return x.map(v => this.deserialize(v, serializerContext));
-        }
-
-        if (serializerContext.useImplicitConversion) 
-        {
-            return this.convert(x, serializerContext);
-        }
-
         if (serializerContext.log.errorEnabled) 
         {
             serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as data view!`, x);
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Converts provided value to the target type value.
-     * 
-     * @param {any} x Some value.
-     * @param {SerializerContext<DataView>} serializerContext Serializer context.
-     * 
-     * @returns {DataView|undefined} Converted value or undefined.
-     */
-    private convert(x: any, serializerContext: SerializerContext<DataView>): DataView | undefined
-    {
-        if (Fn.isArrayBuffer(x))
-        {
-            return new DataView(x);
-        }
-        
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.path}: Cannot convert value to data view!`, x);
         }
 
         return undefined;

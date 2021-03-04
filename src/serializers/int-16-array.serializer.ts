@@ -1,7 +1,7 @@
-import { Fn } from './../core/fn';
-import { TypeLike } from './../core/type-like';
-import { Serializer } from './../core/serializer';
-import { SerializerContext } from './../core/serializer-context';
+import { Fn } from '../core/fn';
+import { Serializer } from '../core/serializer';
+import { SerializerContext } from '../core/serializer-context';
+import { TypeLike } from '../core/type-like';
 
 /**
  * Int 16 array serializer.
@@ -35,16 +35,6 @@ export class Int16ArraySerializer implements Serializer<Int16Array>
             return Array.from(x);
         }
 
-        if (Fn.isArray(x))
-        {
-            return x.map(v => this.serialize(v, serializerContext));
-        }
-        
-        if (serializerContext.useImplicitConversion) 
-        {
-            return this.convert(x, serializerContext);
-        }
-
         if (serializerContext.log.errorEnabled) 
         {
             serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as int 16 array!`, x);
@@ -73,47 +63,14 @@ export class Int16ArraySerializer implements Serializer<Int16Array>
             return x;
         }
 
-        if (Fn.isArray(x) && x.every(v => Fn.isNumber(v) && !Number.isNaN(v)))
+        if (Fn.isArray(x))
         {
             return Int16Array.from(x);
-        }
-
-        if (Fn.isArray(x) && x.every(v => Fn.isArray(v)))
-        {
-            return x.map(v => this.deserialize(v, serializerContext));
-        }
-
-        if (serializerContext.useImplicitConversion) 
-        {
-            return this.convert(x, serializerContext);
         }
 
         if (serializerContext.log.errorEnabled) 
         {
             serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as int 16 array!`, x);
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Converts provided value to the target type value.
-     * 
-     * @param {any} x Some value.
-     * @param {SerializerContext<Int16Array>} serializerContext Serializer context.
-     * 
-     * @returns {Int16Array|undefined} Converted value or undefined.
-     */
-    private convert(x: any, serializerContext: SerializerContext<Int16Array>): Int16Array | undefined
-    {
-        if (Fn.isInt8Array(x))
-        {
-            return Int16Array.from(x);
-        }
-        
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.path}: Cannot convert value to int 16 array!`, x);
         }
 
         return undefined;

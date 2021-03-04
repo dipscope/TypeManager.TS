@@ -1,7 +1,7 @@
-import { Fn } from './../core/fn';
-import { TypeLike } from './../core/type-like';
-import { Serializer } from './../core/serializer';
-import { SerializerContext } from './../core/serializer-context';
+import { Fn } from '../core/fn';
+import { Serializer } from '../core/serializer';
+import { SerializerContext } from '../core/serializer-context';
+import { TypeLike } from '../core/type-like';
 
 /**
  * Boolean serializer.
@@ -28,11 +28,6 @@ export class BooleanSerializer implements Serializer<boolean>
         if (Fn.isNull(x) || Fn.isBoolean(x))
         {
             return x;
-        }
-
-        if (Fn.isArray(x))
-        {
-            return x.map((v: any) => this.serialize(v, serializerContext));
         }
 
         if (serializerContext.useImplicitConversion) 
@@ -66,11 +61,6 @@ export class BooleanSerializer implements Serializer<boolean>
         if (Fn.isNull(x) || Fn.isBoolean(x))
         {
             return x;
-        }
-        
-        if (Fn.isArray(x))
-        {
-            return x.map((v: any) => this.deserialize(v, serializerContext));
         }
 
         if (serializerContext.useImplicitConversion) 

@@ -5,14 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.0.0] - 2021-02-**
+## [3.0.0] - 2021-03-**
 
 ### Added
 
-- Naming convention support.
+- Generics support.
 - Circular object reference support.
-- Lead object and circular object serializers.
+- Short property declaration syntax.
+- Naming convention support.
 - Module separation.
+- New set of serializers.
 
 ### Changed
 
@@ -24,12 +26,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Invalid implicit conversion of boolean serializer.
 - Properties were not assigned during deserialization if they already have initialized value.
 
+### Removed
+
+- Multiple decorator and related options as they are no longer required.
+
 ### Migrating from previous version
 
 - If you are using `TypeSerializer`, `TypeFactory`, `TypeInjector` helper decorators or interfaces then rename them to `Serializer`, `Factory`, `Injector` accordingly.
 - Replace all core type and interface imports from `@dipscope/type-manager` to `@dipscope/type-manager/core`.
 - Replace all helper decorator imports from `@dipscope/type-manager/helpers` to `@dipscope/type-manager`.
-- Multiple removed...
+- Change all places where `Property` decorator is used to declare an array of types to a proper generic variant.
 
 ## [2.0.4] - 2021-02-13
 

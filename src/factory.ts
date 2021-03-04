@@ -10,7 +10,7 @@ import { TypeAndProperty } from './type-and-property';
  * 
  * @returns {ClassDecorator&PropertyDecorator} Class and property decorator.
  */
-export function Factory<TType>(factory: Factory<TType>): ClassDecorator & PropertyDecorator
+export function Factory(factory: Factory): ClassDecorator & PropertyDecorator
 {
     return TypeAndProperty({ factory: factory });
 }

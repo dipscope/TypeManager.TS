@@ -12,9 +12,8 @@ import { Metadata } from './metadata';
 import { NamingConvention } from './naming-convention';
 import { PropertyMetadata } from './property-metadata';
 import { PropertyOptions } from './property-options';
+import { ReferenceHandler } from './reference-handler';
 import { Serializer } from './serializer';
-import { SerializerContext } from './serializer-context';
-import { SerializerContextOptions } from './serializer-context-options';
 import { TypeCtor } from './type-ctor';
 import { TypeMetadataResolver } from './type-metadata-resolver';
 import { TypeOptions } from './type-options';
@@ -105,69 +104,27 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
-     * Sets alias.
-     * 
-     * @returns Nothing.
-     */
-    public set alias(alias: Alias | undefined)
-    {
-        this.typeOptions.alias = alias;
-
-        return;
-    }
-
-    /**
      * Gets custom data.
      * 
-     * @returns {CustomData|undefined} Custom data or undefined.
+     * @returns {CustomData} Custom data.
      */
-    public get customData(): CustomData | undefined
+    public get customData(): CustomData
     {
-        const typeCustomData     = this.typeOptionsBase.customData;
+        const customData         = {};
         const typeBaseCustomData = this.typeOptionsBase.customData;
-
-        if (Fn.isNil(typeCustomData) && Fn.isNil(typeBaseCustomData))
-        {
-            return undefined;
-        }
-
-        const customData = {};
-
-        if (Fn.isObject(typeBaseCustomData))
+        const typeCustomData     = this.typeOptions.customData;
+        
+        if (!Fn.isNil(typeBaseCustomData))
         {
             Fn.assign(customData, typeBaseCustomData);
         }
 
-        if (Fn.isObject(typeCustomData))
+        if (!Fn.isNil(typeCustomData))
         {
             Fn.assign(customData, typeCustomData);
         }
 
         return customData;
-    }
-
-    /**
-     * Sets custom data.
-     * 
-     * @returns Nothing.
-     */
-    public set customData(customData: CustomData | undefined)
-    {
-        if (Fn.isNil(customData))
-        {
-            this.typeOptions.customData = customData;
-
-            return;
-        }
-
-        if (Fn.isNil(this.typeOptions.customData))
-        {
-            this.typeOptions.customData = {};
-        }
-
-        Fn.assign(this.typeOptions.customData, customData);
-
-        return;
     }
 
     /**
@@ -188,37 +145,13 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
-     * Sets default value.
-     * 
-     * @returns Nothing.
-     */
-    public set defaultValue(defaultValue: any | undefined)
-    {
-        this.typeOptions.defaultValue = defaultValue;
-
-        return;
-    }
-
-    /**
      * Gets factory.
      * 
-     * @returns {Factory<TType>|undefined} Factory or undefined.
+     * @returns {Factory} Factory.
      */
-    public get factory(): Factory<TType> | undefined
+    public get factory(): Factory
     {
         return this.typeOptions.factory ?? this.typeOptionsBase.factory;
-    }
-
-    /**
-     * Sets factory.
-     * 
-     * @returns Nothing.
-     */
-    public set factory(factory: Factory<TType> | undefined)
-    {
-        this.typeOptions.factory = factory;
-        
-        return;
     }
 
     /**
@@ -232,18 +165,6 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
-     * Sets generic arguments.
-     * 
-     * @returns Nothing.
-     */
-    public set genericArguments(genericArguments: GenericArgument<any>[] | undefined)
-    {
-        this.typeOptions.genericArguments = genericArguments;
-
-        return;
-    }
-
-    /**
      * Gets generic metadatas.
      * 
      * @returns {GenericMetadata<any>[]|undefined} Generic metadatas.
@@ -252,12 +173,12 @@ export class TypeMetadata<TType> extends Metadata
     {
         const genericArguments = this.genericArguments;
 
-        if (!Fn.isNil(genericArguments))
+        if (Fn.isNil(genericArguments))
         {
-            return this.defineGenericMetadatas(genericArguments);
+            return undefined;
         }
 
-        return undefined;
+        return this.defineGenericMetadatas(genericArguments);
     }
 
     /**
@@ -271,65 +192,29 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
-     * Sets injectable value.
-     * 
-     * @returns Nothing.
-     */
-    public set injectable(injectable: boolean | undefined)
-    {
-        this.typeOptions.injectable = injectable;
-        
-        return;
-    }
-
-    /**
      * Gets injector.
      * 
-     * @returns {Injector|undefined} Injector or undefined.
+     * @returns {Injector} Injector.
      */
-    public get injector(): Injector | undefined
+    public get injector(): Injector
     {
         return this.typeOptions.injector ?? this.typeOptionsBase.injector;
     }
 
     /**
-     * Sets injector.
-     * 
-     * @returns Nothing.
-     */
-    public set injector(injector: Injector | undefined)
-    {
-        this.typeOptions.injector = injector;
-        
-        return;
-    }
-
-    /**
      * Gets log.
      * 
-     * @returns {Log|undefined}
+     * @returns {Log} Log instance.
      */
-    public get log(): Log | undefined
+    public get log(): Log
     {
         return this.typeOptions.log ?? this.typeOptionsBase.log;
     }
 
     /**
-     * Sets log.
-     * 
-     * @returns Nothing.
-     */
-    public set log(log: Log | undefined)
-    {
-        this.typeOptions.log = log;
-        
-        return;
-    }
-
-    /**
      * Gets naming convention.
      * 
-     * @returns {NamingConvention|undefined}
+     * @returns {NamingConvention|undefined} Naming convention or undefined.
      */
     public get namingConvention(): NamingConvention | undefined
     {
@@ -337,104 +222,53 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
-     * Sets naming convention.
+     * Gets reference handler.
      * 
-     * @returns Nothing.
+     * @returns {ReferenceHandler} Reference handler.
      */
-    public set namingConvention(namingConvention: NamingConvention | undefined)
+    public get referenceHandler(): ReferenceHandler
     {
-        this.typeOptions.namingConvention = namingConvention;
-        
-        return;
+        return this.typeOptions.referenceHandler ?? this.typeOptionsBase.referenceHandler;
     }
 
     /**
-     * Gets current serializer.
+     * Gets serializer.
      * 
-     * @returns {Serializer<TType>|undefined} Serializer or undefined.
+     * @returns {Serializer<TType>} Serializer.
      */
-    public get serializer(): Serializer<TType> | undefined
+    public get serializer(): Serializer<TType>
     {
         return this.typeOptions.serializer ?? this.typeOptionsBase.serializer;
     }
 
     /**
-     * Sets serializer.
-     * 
-     * @returns Nothing.
-     */
-    public set serializer(serializer: Serializer<TType> | undefined)
-    {
-        this.typeOptions.serializer = serializer;
-        
-        return;
-    }
-
-    /**
      * Gets indicator if default value should be used.
      * 
-     * @returns {boolean|undefined} True when type should use default value. False otherwise.
+     * @returns {boolean} True when type should use default value. False otherwise.
      */
-    public get useDefaultValue(): boolean | undefined
+    public get useDefaultValue(): boolean
     {
         return this.typeOptions.useDefaultValue ?? this.typeOptionsBase.useDefaultValue;
     }
 
     /**
-     * Sets indicator if default value should be used.
-     * 
-     * @returns Nothing.
-     */
-    public set useDefaultValue(useDefaultValue: boolean | undefined)
-    {
-        this.typeOptions.useDefaultValue = useDefaultValue;
-        
-        return;
-    }
-
-    /**
      * Gets indicator if implicit conversion should be used.
      * 
-     * @returns {boolean|undefined} True when type should use implicit conversion. False otherwise.
+     * @returns {boolean} True when type should use implicit conversion. False otherwise.
      */
-    public get useImplicitConversion(): boolean | undefined
+    public get useImplicitConversion(): boolean
     {
         return this.typeOptions.useImplicitConversion ?? this.typeOptionsBase.useImplicitConversion;
     }
 
     /**
-     * Sets indicator if implicit conversion should be used.
+     * Reflects inject metadata.
      * 
-     * @returns Nothing.
+     * Used to configure inject metadata based on reflect metadata as inject decorators may be omitted.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public set useImplicitConversion(useImplicitConversion: boolean | undefined)
-    {
-        this.typeOptions.useImplicitConversion = useImplicitConversion;
-        
-        return;
-    }
-
-    /**
-     * Defines serializer context of type metadata.
-     * 
-     * @param {SerializerContextOptions<TType>} serializerContextOptions Serializer context options.
-     * 
-     * @returns {SerializerContext<TType>} Serializer context of current type metadata.
-     */
-    public defineSerializerContext(serializerContextOptions: SerializerContextOptions<TType>): SerializerContext<TType>
-    {
-        serializerContextOptions.typeMetadata     = this;
-        serializerContextOptions.propertyMetadata = undefined;
-
-        return new SerializerContext(this.typeMetadataResolver, serializerContextOptions);
-    }
-
-    /**
-     * Extracts reflect metadata.
-     * 
-     * @returns {TypeMetadata<TType>}
-     */
-    public extractReflectMetadata(): TypeMetadata<TType>
+    public reflectInjectMetadata(): TypeMetadata<TType>
     {
         if (this.typeCtor.length === 0)
         {
@@ -468,7 +302,7 @@ export class TypeMetadata<TType> extends Metadata
 
         if (Fn.isNil(propertyMetadata))
         {
-            propertyMetadata = new PropertyMetadata(this.typeMetadataResolver, this, propertyName, propertyOptions);
+            propertyMetadata = new PropertyMetadata(this, propertyName, propertyOptions);
             
             this.propertyMetadataMap.set(propertyName, propertyMetadata);
 
@@ -492,7 +326,7 @@ export class TypeMetadata<TType> extends Metadata
 
         if (Fn.isNil(injectMetadata))
         {
-            injectMetadata = new InjectMetadata(this.typeMetadataResolver, this, injectIndex, injectOptions);
+            injectMetadata = new InjectMetadata(this, injectIndex, injectOptions);
             
             this.injectMetadataMap.set(injectIndex, injectMetadata);
 
@@ -547,62 +381,67 @@ export class TypeMetadata<TType> extends Metadata
     {
         if (!Fn.isUndefined(typeOptions.alias)) 
         {
-            this.alias = typeOptions.alias;
+            this.typeOptions.alias = typeOptions.alias;
         }
 
         if (!Fn.isUndefined(typeOptions.customData))
         {
-            this.customData = typeOptions.customData;
+            this.typeOptions.customData = typeOptions.customData;
         }
 
         if (!Fn.isUndefined(typeOptions.defaultValue)) 
         {
-            this.defaultValue = typeOptions.defaultValue;
+            this.typeOptions.defaultValue = typeOptions.defaultValue;
         }
 
         if (!Fn.isUndefined(typeOptions.factory)) 
         {
-            this.factory = typeOptions.factory;
+            this.typeOptions.factory = typeOptions.factory;
         }
 
         if (!Fn.isUndefined(typeOptions.genericArguments)) 
         {
-            this.genericArguments = typeOptions.genericArguments;
+            this.typeOptions.genericArguments = typeOptions.genericArguments;
         }
 
         if (!Fn.isUndefined(typeOptions.injectable))
         {
-            this.injectable = typeOptions.injectable;
+            this.typeOptions.injectable = typeOptions.injectable;
         }
 
         if (!Fn.isUndefined(typeOptions.injector))
         {
-            this.injector = typeOptions.injector;
+            this.typeOptions.injector = typeOptions.injector;
         }
 
         if (!Fn.isUndefined(typeOptions.log))
         {
-            this.log = typeOptions.log;
+            this.typeOptions.log = typeOptions.log;
         }
 
         if (!Fn.isUndefined(typeOptions.namingConvention))
         {
-            this.namingConvention = typeOptions.namingConvention;
+            this.typeOptions.namingConvention = typeOptions.namingConvention;
+        }
+
+        if (!Fn.isUndefined(typeOptions.referenceHandler))
+        {
+            this.typeOptions.referenceHandler = typeOptions.referenceHandler;
         }
 
         if (!Fn.isUndefined(typeOptions.serializer)) 
         {
-            this.serializer = typeOptions.serializer;
+            this.typeOptions.serializer = typeOptions.serializer;
         }
 
         if (!Fn.isUndefined(typeOptions.useDefaultValue)) 
         {
-            this.useDefaultValue = typeOptions.useDefaultValue;
+            this.typeOptions.useDefaultValue = typeOptions.useDefaultValue;
         }
 
         if (!Fn.isUndefined(typeOptions.useImplicitConversion)) 
         {
-            this.useImplicitConversion = typeOptions.useImplicitConversion;
+            this.typeOptions.useImplicitConversion = typeOptions.useImplicitConversion;
         }
 
         if (!Fn.isUndefined(typeOptions.propertyOptionsMap))

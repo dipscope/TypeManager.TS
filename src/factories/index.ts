@@ -1,1 +1,1 @@
-export * from './object.factory';
+export * from './type.factory';

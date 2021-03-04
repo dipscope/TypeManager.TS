@@ -4,4 +4,4 @@
  * 
  * @type {TypeLike<TType>}
  */
-export type TypeLike<TType> = TType | TypeLike<TType>[] | null | undefined;
+export type TypeLike<TType> = TType | null | undefined;

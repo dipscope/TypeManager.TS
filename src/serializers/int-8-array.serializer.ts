@@ -1,7 +1,7 @@
-import { Fn } from './../core/fn';
-import { TypeLike } from './../core/type-like';
-import { Serializer } from './../core/serializer';
-import { SerializerContext } from './../core/serializer-context';
+import { Fn } from '../core/fn';
+import { Serializer } from '../core/serializer';
+import { SerializerContext } from '../core/serializer-context';
+import { TypeLike } from '../core/type-like';
 
 /**
  * Int 8 array serializer.
@@ -35,11 +35,6 @@ export class Int8ArraySerializer implements Serializer<Int8Array>
             return Array.from(x);
         }
 
-        if (Fn.isArray(x))
-        {
-            return x.map(v => this.serialize(v, serializerContext));
-        }
-
         if (serializerContext.log.errorEnabled) 
         {
             serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as int 8 array!`, x);
@@ -68,14 +63,9 @@ export class Int8ArraySerializer implements Serializer<Int8Array>
             return x;
         }
 
-        if (Fn.isArray(x) && x.every(v => Fn.isNumber(v) && !Number.isNaN(v)))
+        if (Fn.isArray(x))
         {
             return Int8Array.from(x);
-        }
-
-        if (Fn.isArray(x) && x.every(v => Fn.isArray(v)))
-        {
-            return x.map(v => this.deserialize(v, serializerContext));
         }
 
         if (serializerContext.log.errorEnabled) 

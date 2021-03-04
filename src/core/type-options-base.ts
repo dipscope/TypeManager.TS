@@ -4,6 +4,7 @@ import { GenericArgument } from './generic-argument';
 import { Injector } from './injector';
 import { Log } from './log';
 import { NamingConvention } from './naming-convention';
+import { ReferenceHandler } from './reference-handler';
 import { Serializer } from './serializer';
 
 /**
@@ -11,7 +12,7 @@ import { Serializer } from './serializer';
  * 
  * @type {TypeOptionsBase<TType>}
  */
-export interface TypeOptionsBase<TType>
+export interface TypeOptionsBase<TType> extends Record<string, any>
 {
     /**
      * Custom developer data.
@@ -23,7 +24,8 @@ export interface TypeOptionsBase<TType>
     /**
      * Default value for undefined ones.
      * 
-     * Assigned only when use default value option is true.
+     * Can be a lazy function which returns a value. Assigned only when 
+     * use default value option is true.
      * 
      * @type {any}
      */
@@ -39,23 +41,23 @@ export interface TypeOptionsBase<TType>
     /**
      * Factory used to build instances of type.
      * 
-     * @type {Factory<TType>}
+     * @type {Factory}
      */
-    factory?: Factory<TType>;
+    factory: Factory;
 
     /**
      * Injector used to resolve types.
      * 
      * @type {Injector}
      */
-    injector?: Injector;
+    injector: Injector;
 
     /**
      * Log instance with specified log level.
      * 
      * @type {Log}
      */
-    log?: Log;
+    log: Log;
 
     /**
      * Naming convention.
@@ -65,18 +67,25 @@ export interface TypeOptionsBase<TType>
     namingConvention?: NamingConvention;
 
     /**
+     * Reference handler.
+     * 
+     * @type {ReferenceHandler}
+     */
+    referenceHandler: ReferenceHandler;
+
+    /**
      * Serializer used to serialize and deserialize a type.
      * 
      * @type {Serializer<TType>}
      */
-    serializer?: Serializer<TType>;
+    serializer: Serializer<TType>;
 
     /**
      * Use default value assignment for undefined values?
      * 
      * @type {boolean}
      */
-    useDefaultValue?: boolean;
+    useDefaultValue: boolean;
 
     /**
      * Use implicit conversion when provided value can be converted
@@ -84,5 +93,5 @@ export interface TypeOptionsBase<TType>
      * 
      * @type {boolean}
      */
-    useImplicitConversion?: boolean;
+    useImplicitConversion: boolean;
 }
