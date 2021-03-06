@@ -425,18 +425,6 @@ export class Fn
     }
 
     /**
-     * Checks if head of array is array.
-     * 
-     * @param {any[]} x Input array.
-     * 
-     * @returns {boolean} True when head of array is array. False otherwise.
-     */
-    public static isHeadArray(x: any[]): boolean
-    {
-        return this.isArray(x[0]);
-    }
-
-    /**
      * Checks if provided value is empty.
      *
      * @param {any} x Input value.

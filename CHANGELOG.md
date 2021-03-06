@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.0.0] - 2021-03-**
+## [3.0.0] - 2021-03-06
 
 ### Added
 
@@ -32,10 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Migrating from previous version
 
-- If you are using `TypeSerializer`, `TypeFactory`, `TypeInjector` helper decorators or interfaces then rename them to `Serializer`, `Factory`, `Injector` accordingly.
 - Replace all core type and interface imports from `@dipscope/type-manager` to `@dipscope/type-manager/core`.
 - Replace all helper decorator imports from `@dipscope/type-manager/helpers` to `@dipscope/type-manager`.
 - Change all places where `Property` decorator is used to declare an array of types to a proper generic variant.
+- If you are using `TypeSerializer`, `TypeFactory`, `TypeInjector` helper decorators or interfaces then rename them to `Serializer`, `Factory`, `Injector` accordingly.
+- If you are using `typeAlias` or `typeResolver` property options replace them to `typeArgument`.
 
 ## [2.0.4] - 2021-02-13
 

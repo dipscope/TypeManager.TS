@@ -21,7 +21,6 @@ Type manager is a parsing package for TypeScript which will help you to transfor
     * [Injector decorator](#injector-decorator)
     * [Injectable decorator](#injectable-decorator)
     * [Serializable and deserializable decorator](#serializable-and-deserializable-decorator)
-    * [Multiple decorator](#multiple-decorator)
     * [Default value decorator](#default-value-decorator)
     * [Use default value decorator](#use-default-value-decorator)
     * [Use implicit conversion decorator](#use-implicit-conversion-decorator)
@@ -29,7 +28,7 @@ Type manager is a parsing package for TypeScript which will help you to transfor
     * [Configuring global options](#configuring-global-options)
     * [Configuring options per type](#configuring-options-per-type)
     * [Configuring naming convention](#configuring-naming-convention)
-    * [Configuring object serialization](#configuring-object-serialization)
+    * [Configuring reference handler](#configuring-reference-handler)
 * [Advanced usage](#advanced-usage)
     * [Defining custom data](#defining-custom-data)
     * [Defining custom serializer](#defining-custom-serializer)
@@ -37,6 +36,8 @@ Type manager is a parsing package for TypeScript which will help you to transfor
     * [Defining custom factory](#defining-custom-factory)
     * [Defining custom naming convention](#defining-custom-naming-convention)
 * [Use cases](#use-cases)
+    * [Built in serializers](#built-in-serializers)
+    * [Generic types](#generic-types)
     * [Dependency injection and immutable types](#dependency-injection-and-immutable-types)
     * [Different case usage in class and JSON](#different-case-usage-in-class-and-json)
     * [Circular object references](#circular-object-references)
@@ -210,7 +211,7 @@ const user        = userManager.deserialize(userObject);
 user instanceof User; // True.
 ```
 
-Besides base functionality for serialization and deserialization this allows you to get metadata or preserve configuration state of a type at runtime.
+Besides base functionality for serialization and deserialization this allows you to get metadata.
 
 ### Type decorator
 
@@ -226,7 +227,7 @@ export class User
 }
 ```
 
-This will register a new type with default object serializer assigned to it. You can define how each class should be treated by providing optional configure options as a first argument.
+This will register a new type with default type serializer assigned to it. You can define how each class should be treated by providing optional configure options as a first argument.
 
 ```typescript
 import { Type } from '@dipscope/type-manager';
@@ -260,9 +261,21 @@ export class User
 }
 ```
 
-This will register a `name` property for a `User`. Each property has a type associated with it. In our case this is a `string`. By default if no configure options are provided decorator will try to resolve a property type using [reflect-metadata](https://github.com/rbuckton/reflect-metadata). If you are not using reflect metadata then such configuration will result a property type to be `unknown` and it will be serialized and deserialized directly. In some cases this can be desired behaviour but in others not. Depending on your case there are two possible ways to configure the property options.
+This will register a `name` property for a `User`. Each property has a type associated with it. In our case this is a `string`. By default if no configure options are provided decorator will try to resolve a property type using [reflect-metadata](https://github.com/rbuckton/reflect-metadata). If you are not using reflect metadata then such configuration will result a property type to be `unknown` and you will get an error during serialization. For such a case you have to explicitly define a property type.
 
-If you are using [reflect-metadata](https://github.com/rbuckton/reflect-metadata) or your are fine with direct serialization then provide an options as a first argument.
+```typescript
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type()
+export class User
+{
+    @Property(String) public name: string;
+}
+```
+
+Depending on your use case there are two possible ways to configure additional property options.
+
+If you are using [reflect-metadata](https://github.com/rbuckton/reflect-metadata) then provide options as a first argument.
 
 ```typescript
 import 'reflect-metadata';
@@ -275,7 +288,7 @@ export class User
 }
 ```
 
-If property type cannot be resolved automatically but you are still want to use concrete serializers provide a type resolver as a first argument and optional configure options as second.
+If types defined explicitly then provide options as a second argument.
 
 ```typescript
 import { Type, Property } from '@dipscope/type-manager';
@@ -283,11 +296,40 @@ import { Type, Property } from '@dipscope/type-manager';
 @Type()
 export class User
 {
-    @Property(() => String, { alias: 'username' }) public name: string;
+    @Property(String, { alias: 'username' }) public name: string;
 }
 ```
 
-This explicitly defines a `String` property type for `name` to be string and configure to use `username` property when deserializing from object. There are plenty of configure options, so check `PropertyOptions` definition or section with [helper decorators](#defining-helper-decorators) below. For example you can make some properties serializable only or define custom property serialization.
+This option configures an alias so `username` property will be used instead of `name` when deserializing from object. There are plenty of configure options, so check `PropertyOptions` definition or section with [helper decorators](#defining-helper-decorators) below. For example you can make some properties serializable only or define custom property serialization.
+
+Now let's have a look at more complex definitions with generic types. That are `Array<TType>`, `Map<TKey, TValue>` and others. To declare one of this you have to use extra argument available for `Property` decorator. Generic arguments are always passed as array to exactly see them within a source code.
+
+If you are using [reflect-metadata](https://github.com/rbuckton/reflect-metadata) then provide generics as a first argument so configure options will become the second.
+
+```typescript
+import 'reflect-metadata';
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type()
+export class User
+{
+    @Property([String, Number], { alias: 'myMap' }) public map: Map<string, number>;
+}
+```
+
+If types defined explicitly then provide generics as a second argument so configure options will become the third.
+
+```typescript
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type()
+export class User
+{
+    @Property(Map, [String, Number], { alias: 'myMap' }) public map: Map<string, number>;
+}
+```
+
+This is the full set of arguments available for the property. Basically when using [reflect-metadata](https://github.com/rbuckton/reflect-metadata) you have just to omit the first argument.
 
 Handling relation types not differs from built in property types, so if you are using [reflect-metadata](https://github.com/rbuckton/reflect-metadata) the definition can be the following.
 
@@ -310,7 +352,7 @@ export class User
 }
 ```
 
-Array relations should always declare a type resolver as reflect metadata return type is an `Array`.
+With array of relations you have to use generics.
 
 ```typescript
 import 'reflect-metadata';
@@ -327,11 +369,11 @@ export class UserStatus
 export class User
 {
     @Property() public name: string;
-    @Property(() => UserStatus) public userStatuses: UserStatus[];
+    @Property([UserStatus]) public userStatuses: UserStatus[];
 }
 ```
 
-If types cannot be resolved then the most simple definition will be the following.
+If types defined explicitly then definition will be the following.
 
 ```typescript
 import { Type, Property } from '@dipscope/type-manager';
@@ -339,19 +381,19 @@ import { Type, Property } from '@dipscope/type-manager';
 @Type()
 export class UserStatus
 {
-    @Property() public name: string;
-    @Property() public title: string;
+    @Property(String) public name: string;
+    @Property(String) public title: string;
 }
 
 @Type()
 export class User
 {
-    @Property() public name: string;
-    @Property(() => UserStatus) public userStatus: UserStatus;
+    @Property(String) public name: string;
+    @Property(UserStatus) public userStatus: UserStatus;
 }
 ```
 
-Note that in this case all properties without type resolvers will be handled directly. If you want absolutely the same behaviour as with reflect metadata then you have to define complete configuration.
+Then for array of relations it will be the following.
 
 ```typescript
 import { Type, Property } from '@dipscope/type-manager';
@@ -359,19 +401,19 @@ import { Type, Property } from '@dipscope/type-manager';
 @Type()
 export class UserStatus
 {
-    @Property(() => String) public name: string;
-    @Property(() => String) public title: string;
+    @Property(String) public name: string;
+    @Property(String) public title: string;
 }
 
 @Type()
 export class User
 {
-    @Property(() => String) public name: string;
-    @Property(() => UserStatus) public userStatus: UserStatus;
+    @Property(String) public name: string;
+    @Property(Array, [UserStatus]) public userStatuses: UserStatus[];
 }
 ```
 
- If any type defines an alias - it can be used as a type resolver.
+If any type defines an alias - it can be used as a type resolver.
 
 ```typescript
 import { Type, Property } from '@dipscope/type-manager';
@@ -381,32 +423,48 @@ import { Type, Property } from '@dipscope/type-manager';
 })
 export class UserStatus
 {
-    @Property(() => String) public name: string;
-    @Property(() => String) public title: string;
+    @Property(String) public name: string;
+    @Property(String) public title: string;
 }
 
 @Type()
 export class User
 {
-    @Property(() => String) public name: string;
+    @Property(String) public name: string;
     @Property('UserStatus') public userStatus: UserStatus;
 }
 ```
 
-Type aliases are useful to handle circular references if you are declaring your types in a separate files. However even without type aliases circular references will work correctly because of the lazy evaluation but you can receive warnings from some checking tools.
+If you have circular reference or your type declared later an extended syntax can be used to lazily define a type.
+
+```typescript
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type()
+export class User
+{
+    @Property(() => UserStatus) public userStatus: UserStatus;
+}
+
+@Type()
+export class UserStatus
+{
+    @Property(() => String) public title: string;
+}
+```
+
+One great thing to know about arguments for property type and generics is that you can pass lazy function, type directly or type alias. Which definition to use is completely on your choice and dependent from certain use cases.
 
 ### Inject decorator
 
 Inject decorator controls your type dependency and declared right before a constructor parameter.
 
 ```typescript
-import { Type, Property, Inject } from '@dipscope/type-manager';
+import { Type, Inject } from '@dipscope/type-manager';
 
 @Type()
 export class User
 {
-    @Property(() => String) public readonly name: string;
-
     public constructor(@Inject('name') name: string, @Inject(UserService) userService: UserService)
     {
         this.name = name;
@@ -442,13 +500,11 @@ In most cases you will work in environment where dependency injection system is 
 If you are using [reflect-metadata](https://github.com/rbuckton/reflect-metadata) the injection of services can be simplified.
 
 ```typescript
-import { Type, Property, Inject } from '@dipscope/type-manager';
+import { Type, Inject } from '@dipscope/type-manager';
 
 @Type()
 export class User
 {
-    @Property() public readonly name: string;
-
     public constructor(@Inject('name') name: string, userService: UserService)
     {
         this.name = name;
@@ -477,7 +533,7 @@ import { Type, Property, Alias } from '@dipscope/type-manager';
 @Alias('User')
 export class User
 {
-    @Property(() => String) @Alias('username') public name: string;
+    @Property(String) @Alias('username') public name: string;
 }
 ```
 
@@ -491,7 +547,7 @@ import { Type, Property } from '@dipscope/type-manager';
 })
 export class User
 {
-    @Property(() => String, { alias: 'username' }) public name: string;
+    @Property(String, { alias: 'username' }) public name: string;
 }
 ```
 
@@ -510,7 +566,7 @@ import { Type, Property, CustomData } from '@dipscope/type-manager';
 @CustomData({ rank: 1 })
 export class User
 {
-    @Property(() => String) @CustomData({ order: 1 }) public name: string;
+    @Property(String) @CustomData({ order: 1 }) public name: string;
 }
 ```
 
@@ -524,7 +580,7 @@ import { Type, Property } from '@dipscope/type-manager';
 })
 export class User
 {
-    @Property(() => String, { customData: { order: 1 } }) public name: string;
+    @Property(String, { customData: { order: 1 } }) public name: string;
 }
 ```
 
@@ -541,7 +597,7 @@ import { Type, Property, Factory } from '@dipscope/type-manager';
 @Factory(new UserFactory())
 export class User
 {
-    @Property(() => String) public name: string;
+    @Property(String) public name: string;
 }
 ```
 
@@ -555,7 +611,7 @@ import { Type, Property } from '@dipscope/type-manager';
 })
 export class User
 {
-    @Property(() => String) public name: string;
+    @Property(String) public name: string;
 }
 ```
 
@@ -572,7 +628,7 @@ import { Type, Property, Serializer } from '@dipscope/type-manager';
 @Serializer(new UserSerializer())
 export class User
 {
-    @Property(() => String) @Serializer(new UserNameSerializer()) public name: string;
+    @Property(String) @Serializer(new UserNameSerializer()) public name: string;
 }
 ```
 
@@ -586,7 +642,7 @@ import { Type, Property } from '@dipscope/type-manager';
 })
 export class User
 {
-    @Property(() => String, { serializer: new UserNameSerializer() }) public name: string;
+    @Property(String, { serializer: new UserNameSerializer() }) public name: string;
 }
 ```
 
@@ -603,7 +659,7 @@ import { Type, Property, Injector } from '@dipscope/type-manager';
 @Injector(new UserInjector())
 export class User
 {
-    @Property(() => String) public name: string;
+    @Property(String) public name: string;
 }
 ```
 
@@ -617,7 +673,7 @@ import { Type, Property } from '@dipscope/type-manager';
 })
 export class User
 {
-    @Property(() => String) public name: string;
+    @Property(String) public name: string;
 }
 ```
 
@@ -659,7 +715,7 @@ import { Type, Property, Inject } from '@dipscope/type-manager';
 @Type()
 export class User
 {
-    @Property(() => String) public name: string;
+    @Property(String) public name: string;
 
     public constructor(@Inject(UserService) userService: UserService)
     {
@@ -682,8 +738,8 @@ import { Type, Property, Serializable, Deserializable } from '@dipscope/type-man
 @Type()
 export class User
 {
-    @Property(() => String) @Serializable() public name: string;
-    @Property(() => String) @Deserializable() public email: string;
+    @Property(String) @Serializable() public name: string;
+    @Property(String) @Deserializable() public email: string;
 }
 ```
 
@@ -695,56 +751,12 @@ import { Type, Property } from '@dipscope/type-manager';
 @Type()
 export class User
 {
-    @Property(() => String, { serializable: true }) public name: string;
-    @Property(() => String, { deserializable: true }) public email: string;
+    @Property(String, { serializable: true }) public name: string;
+    @Property(String, { deserializable: true }) public email: string;
 }
 ```
 
 By default all properties are serializable and deserializable.
-
-### Multiple decorator
-
-This decorator used to indicate that certain property is an array when using without reflect metadata.
-
-```typescript
-import { Type, Property, Multiple } from '@dipscope/type-manager';
-
-@Type()
-export class UserStatus
-{
-    @Property(() => String) public name: string;
-    @Property(() => String) public title: string;
-}
-
-@Type()
-export class User
-{
-    @Property(() => String) public name: string;
-    @Property(() => UserStatus) @Multiple() public userStatuses: UserStatus[];
-}
-```
-
-Such declaration is an alternative for:
-
-```typescript
-import { Type, Property } from '@dipscope/type-manager';
-
-@Type()
-export class UserStatus
-{
-    @Property(() => String) public name: string;
-    @Property(() => String) public title: string;
-}
-
-@Type()
-export class User
-{
-    @Property(() => String) public name: string;
-    @Property(() => UserStatus, { multiple: true }) public userStatuses: UserStatus[];
-}
-```
-
-In most cases JSON will be parsed properly even without this option. However when using default values is enabled this may be critical to emit array for undefined property.
 
 ### Default value decorator
 
@@ -757,7 +769,7 @@ import { Type, Property, DefaultValue } from '@dipscope/type-manager';
 @DefaultValue(() => new User())
 export class User
 {
-    @Property(() => String) @DefaultValue('BestName') public name: string;
+    @Property(String) @DefaultValue('BestName') public name: string;
 }
 ```
 
@@ -771,7 +783,7 @@ import { Type, Property } from '@dipscope/type-manager';
 })
 export class User
 {
-    @Property(() => String, { defaultValue: 'BestName' }) public name: string;
+    @Property(String, { defaultValue: 'BestName' }) public name: string;
 }
 ```
 
@@ -788,7 +800,7 @@ import { Type, Property, UseDefaultValue } from '@dipscope/type-manager';
 @UseDefaultValue()
 export class User
 {
-    @Property(() => String) @UseDefaultValue(false) public name: string;
+    @Property(String) @UseDefaultValue(false) public name: string;
 }
 ```
 
@@ -802,7 +814,7 @@ import { Type, Property } from '@dipscope/type-manager';
 })
 export class User
 {
-    @Property(() => String, { useDefaultValue: false }) public name: string;
+    @Property(String, { useDefaultValue: false }) public name: string;
 }
 ```
 
@@ -818,7 +830,7 @@ import { Type, Property, UseImplicitConversion } from '@dipscope/type-manager';
 @Type()
 export class User
 {
-    @Property(() => String) @UseImplicitConversion() public name: string;
+    @Property(String) @UseImplicitConversion() public name: string;
 }
 ```
 
@@ -830,7 +842,7 @@ import { Type, Property } from '@dipscope/type-manager';
 @Type()
 export class User
 {
-    @Property(() => String, { useImplicitConversion: true }) public name: string;
+    @Property(String, { useImplicitConversion: true }) public name: string;
 }
 ```
 
@@ -871,21 +883,21 @@ Here is an example of declarative configuration which can be used for 3rd party 
 import { TypeManagerOptions } from '@dipscope/type-manager';
 import { TypeOptions, TypeCtor, PropertyOptions } from '@dipscope/type-manager/core';
 
-const dateTimeOptions: TypeOptions = {
+const dateTimeOptions: TypeOptions<DateTime> = {
     alias: 'DateTime',
     serializer: new DateTimeSerializer()
 };
 
-const userOptions: TypeOptions = {
+const userOptions: TypeOptions<User> = {
     alias: 'User',
-    propertyOptionsMap: new Map<string, PropertyOptions>(
-        ['name', { serializable: true, alias: 'username' }],
-        ['createdAt', { typeResolver: () => DateTime }]
+    propertyOptionsMap: new Map<string, PropertyOptions<any>>(
+        ['name', { typeArgument: String, serializable: true, alias: 'username' }],
+        ['createdAt', { typeArgument: DateTime }]
     )
 };
 
 const typeManagerOptions: TypeManagerOptions = {
-    typeOptionsMap: new Map<TypeCtor, TypeOptions>(
+    typeOptionsMap: new Map<TypeCtor<any>, TypeOptions<any>>(
         [DateTime, dateTimeOptions],
         [User, userOptions]
     )
@@ -933,10 +945,10 @@ import { Type, Property } from '@dipscope/type-manager';
 @Type()
 export class User
 {
-    @Property(() => String) public name: string;
-    @Property(() => DateTime) public createdAt: DateTime;
+    @Property(String) public name: string;
+    @Property(DateTime) public createdAt: DateTime;
 }
-``` 
+```
 
 ### Configuring naming convention
 
@@ -948,9 +960,9 @@ import { Type, Property } from '@dipscope/type-manager';
 @Type()
 export class User
 {
-    @Property(() => String) public name: string;
-    @Property(() => Number) public loginCount: number;
-    @Property(() => DateTime) public createdAt: DateTime;
+    @Property(String) public name: string;
+    @Property(Number) public loginCount: number;
+    @Property(DateTime) public createdAt: DateTime;
 }
 ```
 
@@ -1006,9 +1018,9 @@ import { Type, Property, Alias } from '@dipscope/type-manager';
 @Type()
 export class User
 {
-    @Property(() => String) public name: string;
-    @Property(() => Number) @Alias('login_count') public loginCount: number;
-    @Property(() => DateTime) @Alias('created_at') public createdAt: DateTime;
+    @Property(String) public name: string;
+    @Property(Number) @Alias('login_count') public loginCount: number;
+    @Property(DateTime) @Alias('created_at') public createdAt: DateTime;
 }
 ```
 
@@ -1043,13 +1055,13 @@ TypeManager.configure(typeManagerOptions);
 
 Now all property names will be converted to snake case while reading them from JSON. If you have not found suitable naming convention you can easily implement your own. Read more about [creating a custom naming convention](#defining-custom-naming-convention) in the separate section.
 
-### Configuring object serialization
+### Configuring reference handler
 
-We have several object serializers: default, circular and lead. Each of them can be used globally or per type. Their behaviour is absolutely the same until it comes to handling circular references.
+Reference handler defines how references to the same objects including a circular one should be treated. We have several reference handlers: direct, lead and path. Each of them can be used globally or per type.
 
-* Default object serializer preserves circular references without making any special changes;
-* Circular object serializer preserves circular references using JSONPath notation;
-* Lead object serializer preserves only the first occurrence and when circular reference is detected it will be set to undefined;
+* Direct reference handler preserves object references without making any special changes;
+* Path reference handler preserves object references using JSONPath notation;
+* Lead reference handler preserves object references excluding a circular one. When circular reference is detected it will be set to undefined;
 
 There is nothing better to show the difference than code. For example we have two classes which reference each other:
 
@@ -1084,28 +1096,28 @@ company.user = user;
 const result = userManager.serialize(user);
 ```
 
-Here are results returned by different object serializers:
+Here are results returned by different reference handlers:
 
 ```typescript
-// Default object serializer...
+// Direct reference handler...
 { company: { user: result } };
 
-// Circular object serializer...
+// Path reference handler...
 { company: { user: { $ref: '$' } } };
 
-// Lead object serializer...
+// Lead reference handler...
 { company: { user: undefined };
 ```
 
-As you can see `DefaultObjectSerializer` does not make changes to your data and completely fine until you have to convert circular reference structure to a string. `JSON.stringify` method which we are using under the hood does not support such conversions currently so you will encounter an error. In this case you can select another serializer. For example `CircularObjectSerializer` which produces JSON string using JSONPath format for circular references supported by many libraries. Or you can simply ignore circular reference when it should be converted to a string and use `LeadObjectSerializer`. To change default object serializer you have to use `TypeManager` configure methods.
+As you can see `DirectReferenceHandler` does not make changes to your data and completely fine until you have to convert circular reference structure to a string. `JSON.stringify` method which we are using under the hood does not support such conversions currently so you will encounter an error. In this case you can select another reference handler. For example `PathReferenceHandler` which produces JSON string using JSONPath format for circular references supported by many libraries. Or you can simply ignore circular reference when it should be converted to a string and use `LeadReferenceHandler`. To change default reference handler you have to use `TypeManager` configure methods.
 
 ```typescript
 import { TypeManagerOptions } from '@dipscope/type-manager';
 import { TypeOptionsBase } from '@dipscope/type-manager/core';
-import { CircularObjectSerializer } from '@dipscope/type-manager/serializers';
+import { PathReferenceHandler } from '@dipscope/type-manager/reference-handlers';
 
 const typeOptionsBase: TypeOptionsBase = {
-    serializer: new CircularObjectSerializer()
+    referenceHandler: new PathReferenceHandler()
 };
 
 const typeManagerOptions: TypeManagerOptions = {
@@ -1132,7 +1144,7 @@ import { Type, Property, CustomData } from '@dipscope/type-manager';
 @CustomData({ rank: 1 })
 class User
 {
-    @Property() @CustomData({ priority: 10 }) public name?: string;
+    @Property(String) @CustomData({ priority: 10 }) public name: string;
 }
 ```
 
@@ -1181,11 +1193,6 @@ export class DateTimeSerializer implements Serializer<DateTime>
             return x.toIsoString();
         }
 
-        if (Fn.isArray(x))
-        {
-            return x.map(v => this.serialize(v, serializerContext));
-        }
-
         if (serializerContext.log.errorEnabled) 
         {
             serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as date time!`, x);
@@ -1210,11 +1217,6 @@ export class DateTimeSerializer implements Serializer<DateTime>
         {
             return DateTime.fromIsoString(x);
         }
-        
-        if (Fn.isArray(x))
-        {
-            return x.map((v: any) => this.deserialize(v, serializerContext));
-        }
 
         if (serializerContext.log.errorEnabled) 
         {
@@ -1226,7 +1228,7 @@ export class DateTimeSerializer implements Serializer<DateTime>
 }
 ```
 
-This example follows internal conventions and gives you a picture of how real serializer may look like. `TypeManager` does not perform any checks and just passes values directly to serializer. Thats why input values can be undefined, null, array or other depending from what is stored inside certain property. `TypeLike` is an internal type to declare this behaviour. 
+This example follows internal conventions and gives you a picture of how real serializer may look like. `TypeManager` does not perform any checks and just passes values directly to serializer. Thats why input values can be undefined, null or others depending from what is stored inside certain property. `TypeLike` is an internal type to declare this behaviour. 
 
 Serializer implementation is fully responsible for return result. You can get default values, custom data and other options specified in your configuration from current serializer context and react accordingly. For example you can check if implicit conversion is enabled and convert any value to the target one.
 
@@ -1299,18 +1301,18 @@ Now types will be resolved using framework injector.
 
 ### Defining custom factory
 
-When you want to apply additional logic to how types are constructed you can specify custom factory globally or per type. Let's say you want to init some properties based on your custom data specified for a type. You can do this by extending default `ObjectFactory`.
+When you want to apply additional logic to how types are constructed you can specify custom factory globally or per type. Let's say you want to init some properties based on your custom data specified for a type. You can do this by extending default `TypeFactory`.
 
 ```typescript
 import { TypeContext, Injector } from '@dipscope/type-manager/core';
-import { ObjectFactory } from '@dipscope/type-manager/factories';
+import { TypeFactory } from '@dipscope/type-manager/factories';
 
-export class CustomObjectFactory extends ObjectFactory
+export class CustomTypeFactory extends TypeFactory
 {
-    public build(typeContext: TypeContext<Record<string, any>>, injector: Injector): Record<string, any>
+    public build<TType>(typeContext: TypeContext<TType>, injector: Injector): TType
     {
-        // Build type.
-        const type = super.build(typeContext, injector);
+        // Build any type.
+        const type = super.build(typeContext, injector) as any;
         
         // Resolve custom data.
         const typeMetadata = typeContext.typeMetadata;
@@ -1334,7 +1336,7 @@ import { Type, Factory, CustomData } from '@dipscope/type-manager';
 
 @Type()
 @CustomData({ rank: 1 })
-@Factory(new CustomObjectFactory())
+@Factory(new CustomTypeFactory())
 export class User
 {
     ...
@@ -1349,12 +1351,12 @@ import { TypeManager } from '@dipscope/type-manager';
 // Overriding only for user type.
 TypeManager.configureTypeOptions(User, {
     customData: { rank: 1 },
-    factory: new CustomObjectFactory()
+    factory: new CustomTypeFactory()
 });
 
 // Overriding for any type.
 TypeManager.configureTypeOptionsBase({
-    factory: new CustomObjectFactory()
+    factory: new CustomTypeFactory()
 });
 ```
 
@@ -1407,6 +1409,35 @@ Now property names will be resolved using your custom naming convention.
 
 This section describes concrete use cases to separate them from the main documentation part. We will point to a concrete place you should read to setup what is necessary.
 
+### Built in serializers
+
+Here is a list of types with built in serializers. 
+
+* Array;
+* ArrayBuffer;
+* Boolean;
+* DataView;
+* Date;
+* Float32Array;
+* Float64Array;
+* Int8Array;
+* Int16Array;
+* Int32Array;
+* Map;
+* Number;
+* Set;
+* String;
+* Uint8Array;
+* Uint8ClampedArray;
+* Uint16Array;
+* Uint32Array;
+
+For these you don't have to do anything to make them work. You are free to [create a custom serializer](#defining-custom-serializer) or override built in one if it does not cover your use case.
+
+### Generic types
+
+Generic types are supported but you have to properly define them. Read [property decorator](#property-decorator) section for more info.
+
 ### Dependency injection and immutable types
 
 Follow the steps described in [inject decorator](#inject-decorator) section. To integrate our injection system with you yours check [defining custom injector](#defining-custom-injector) section.
@@ -1417,7 +1448,7 @@ If your cases differs between class and JSON. For example camelCase vs snake_cas
 
 ### Circular object references
 
-We have a great support for circular references with different behaviour when they are detected. Read [configuring object serialization](#configuring-object-serialization) section for more info.
+We have a great support for circular references with different behaviour when they are detected. Read [configuring reference handler](#configuring-reference-handler) section for more info.
 
 ### Integration with Angular
 
@@ -1426,6 +1457,8 @@ With `Angular` you do not need to install [reflect-metadata](https://github.com/
 To make `Angular` injector work for you a custom `Injector` needs to be implemented. Check [defining custom injector](#defining-custom-injector) section for more info.
 
 ## Notes
+
+See information about breaking changes, release notes and migration steps between versions [here](https://github.com/dipscope/TypeManager.TS/blob/master/CHANGELOG.md).
 
 Thanks for checking this package. If you like it please give repo a star.
 

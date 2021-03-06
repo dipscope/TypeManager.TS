@@ -31,7 +31,7 @@ export class TypeManager<TType>
      * 
      * @type {TypeMetadata<Array<any>>}
      */
-    public readonly arrayMetadata: TypeMetadata<Array<any>>;
+    private readonly arrayMetadata: TypeMetadata<Array<any>>;
 
     /**
      * Constructor.
@@ -186,12 +186,12 @@ export class TypeManager<TType>
     private defineSerializerContext(x: any, typeMetadata: TypeMetadata<any>, genericArguments?: GenericArgument<any>[]): SerializerContext<any>
     {
         return new SerializerContext({
-            $: x,
-            genericArguments: genericArguments,
-            path: '$',
+            $:                    x,
+            genericArguments:     genericArguments,
+            path:                 '$',
             referenceCallbackMap: new WeakMap<ReferenceKey, ReferenceCallback[]>(),
-            referenceMap: new WeakMap<ReferenceKey, ReferenceValue>(),
-            typeMetadata: typeMetadata
+            referenceMap:         new WeakMap<ReferenceKey, ReferenceValue>(),
+            typeMetadata:         typeMetadata
         });
     }
 

@@ -202,10 +202,10 @@ export class TypeArtisan
             }
     
             Object.defineProperty(prototype, metadataKey, {
-                enumerable: false,
+                enumerable:   false,
                 configurable: false,
-                writable: false,
-                value: typeMetadata
+                writable:     false,
+                value:        typeMetadata
             });
         }
         
