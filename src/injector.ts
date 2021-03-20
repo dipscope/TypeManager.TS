@@ -1,16 +1,16 @@
 import { Injector } from './core/injector';
-import { TypeAndProperty } from './type-and-property';
+import { Type } from './type';
 
 /**
  * Injector decorator.
  * 
- * Used to define custom injector for type and property.
+ * Used to define custom injector for a type.
  * 
  * @param {Injector} injector Injector.
  * 
- * @returns {ClassDecorator&PropertyDecorator} Class and property decorator.
+ * @returns {ClassDecorator} Class decorator.
  */
-export function Injector(injector: Injector): ClassDecorator & PropertyDecorator
+export function Injector(injector: Injector): ClassDecorator
 {
-    return TypeAndProperty({ injector: injector });
+    return Type({ injector: injector });
 }

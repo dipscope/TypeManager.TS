@@ -5,7 +5,7 @@ class User
     public constructor(
         @Inject('name') public name: string, 
         @Inject(String) public email: string,
-        @Inject({ typeCtor: String, key: 'group' }) public group: string
+        @Inject({ typeFn: String, key: 'group' }) public group: string
     )
     {
         return;
@@ -29,18 +29,18 @@ describe('Inject decorator', () =>
         const userGroupMetadata = userMetadata.injectMetadataMap.get(2);
 
         expect(userNameMetadata).toBeDefined();
-        expect(userNameMetadata?.index).toBe(0);
+        expect(userNameMetadata?.injectIndex).toBe(0);
         expect(userNameMetadata?.injectOptions.key).toBe('name');
-        expect(userNameMetadata?.injectOptions.typeCtor).toBeUndefined();
+        expect(userNameMetadata?.injectOptions.typeFn).toBeUndefined();
 
         expect(userEmailMetadata).toBeDefined();
-        expect(userEmailMetadata?.index).toBe(1);
+        expect(userEmailMetadata?.injectIndex).toBe(1);
         expect(userEmailMetadata?.injectOptions.key).toBeUndefined();
-        expect(userEmailMetadata?.injectOptions.typeCtor).toBeDefined();
+        expect(userEmailMetadata?.injectOptions.typeFn).toBeDefined();
 
         expect(userGroupMetadata).toBeDefined();
-        expect(userGroupMetadata?.index).toBe(2);
+        expect(userGroupMetadata?.injectIndex).toBe(2);
         expect(userGroupMetadata?.injectOptions.key).toBe('group');
-        expect(userGroupMetadata?.injectOptions.typeCtor).toBeDefined();
+        expect(userGroupMetadata?.injectOptions.typeFn).toBeDefined();
     });
 });

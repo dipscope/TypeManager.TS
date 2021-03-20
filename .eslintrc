@@ -23,6 +23,7 @@
         "@typescript-eslint/brace-style": ["error", "allman"],
         "@typescript-eslint/comma-dangle": ["error", "never"],
         "@typescript-eslint/quotes": ["error", "single"],
-        "@typescript-eslint/default-param-last": ["error"]
+        "@typescript-eslint/default-param-last": ["error"],
+        "@typescript-eslint/ban-types": ["error", { "types": { "Function": false }, "extendDefaults": true }]
     }
 }

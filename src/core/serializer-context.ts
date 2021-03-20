@@ -1,4 +1,6 @@
 import { CustomData } from './custom-data';
+import { Discriminant } from './discriminant';
+import { Discriminator } from './discriminator';
 import { Factory } from './factory';
 import { Fn } from './fn';
 import { GenericArgument } from './generic-argument';
@@ -16,6 +18,7 @@ import { ReferenceValueInitializer } from './reference-value-initializer';
 import { ReferenceValueResolver } from './reference-value-resolver';
 import { Serializer } from './serializer';
 import { SerializerContextOptions } from './serializer-context-options';
+import { TypeFn } from './type-fn';
 import { TypeLike } from './type-like';
 import { TypeMetadata } from './type-metadata';
 
@@ -99,13 +102,43 @@ export class SerializerContext<TType> extends Metadata
     }
 
     /**
+     * Gets discriminant.
+     * 
+     * @returns {Discriminant} Discriminant.
+     */
+    public get discriminant(): Discriminant
+    {
+        return this.typeMetadata.discriminant;
+    }
+
+    /**
+     * Gets discriminant map.
+     * 
+     * @returns {Map<TypeFn<any>, Discriminant>} Discriminant map.
+     */
+    public get discriminantMap(): Map<TypeFn<any>, Discriminant>
+    {
+        return this.typeMetadata.discriminantMap;
+    }
+
+    /**
+     * Gets discriminator.
+     * 
+     * @returns {Discriminator} Discriminator.
+     */
+    public get discriminator(): Discriminator
+    {
+        return this.typeMetadata.discriminator;
+    }
+
+    /**
      * Gets factory.
      * 
      * @returns {Factory} Factory.
      */
     public get factory(): Factory
     {
-        return this.propertyMetadata?.factory ?? this.typeMetadata.factory;
+        return this.typeMetadata.factory;
     }
 
     /**
@@ -142,7 +175,7 @@ export class SerializerContext<TType> extends Metadata
      */
     public get injector(): Injector
     {
-        return this.propertyMetadata?.injector ?? this.typeMetadata.injector;
+        return this.typeMetadata.injector;
     }
 
     /**
@@ -152,7 +185,7 @@ export class SerializerContext<TType> extends Metadata
      */
     public get log(): Log
     {
-        return this.propertyMetadata?.log ?? this.typeMetadata.log;
+        return this.typeMetadata.log;
     }
 
     /**
@@ -164,10 +197,10 @@ export class SerializerContext<TType> extends Metadata
     {
         if (Fn.isNil(this.propertyMetadata))
         {
-            return this.typeMetadata.name;
+            return this.typeMetadata.typeName;
         }
 
-        return `${this.propertyMetadata.declaringTypeMetadata.name}.${this.propertyMetadata.name}`;
+        return `${this.propertyMetadata.declaringTypeMetadata.typeName}.${this.propertyMetadata.propertyName}`;
     }
 
     /**
@@ -191,6 +224,16 @@ export class SerializerContext<TType> extends Metadata
     }
 
     /**
+     * Gets indicator if context is polymorphic.
+     * 
+     * @returns {boolean} True when context is polymorphic. False otherwise.
+     */
+    public get polymorphic(): boolean
+    {
+        return this.typeMetadata.polymorphic;
+    }
+
+    /**
      * Gets property metadata.
      * 
      * @returns {PropertyMetadata<any, TType>|undefined} Property metadata or undefined.
@@ -198,6 +241,16 @@ export class SerializerContext<TType> extends Metadata
     public get propertyMetadata(): PropertyMetadata<any, TType> | undefined
     {
         return this.serializerContextOptions.propertyMetadata;
+    }
+
+    /**
+     * Gets indicator if discriminator should be preserved.
+     * 
+     * @returns {boolean} True when discriminator should be preserved. False otherwise.
+     */
+    public get preserveDiscriminator(): boolean 
+    {
+        return this.typeMetadata.preserveDiscriminator;
     }
 
     /**
@@ -423,8 +476,69 @@ export class SerializerContext<TType> extends Metadata
 
         return this.defineChildSerializerContext({
             typeMetadata:     typeMetadata,
-            propertyMetadata: undefined,
-            genericArguments: genericGenericArguments
+            genericArguments: genericGenericArguments,
+            propertyMetadata: undefined
         });
+    }
+
+    /**
+     * Defines polymorphic serializer context by type function.
+     * 
+     * @param {TypeFn<any>} typeFn Type function.
+     * 
+     * @returns {SerializerContext<any>} Polymorphic serializer context.
+     */
+    private definePolymorphicSerializerContextByTypeFn(typeFn: TypeFn<any>): SerializerContext<any>
+    {
+        const discriminant = this.discriminantMap.get(typeFn);
+
+        if (Fn.isNil(discriminant))
+        {
+            throw new Error(`${this.path}: Cannot define discriminant of polymorphic type! This is usually caused by invalid configuration!`);
+        }
+
+        const typeMetadata = this.defineTypeMetadata(typeFn);
+
+        return this.defineChildSerializerContext({
+            typeMetadata: typeMetadata
+        });
+    }
+
+    /**
+     * Defines polymorphic serializer context by discriminant.
+     * 
+     * @param {Record<string, any>} record Some record.
+     * 
+     * @returns {SerializerContext<any>} Polymorphic serializer context.
+     */
+    private definePolymorphicSerializerContextByDiscriminant(record: Record<string, any>): SerializerContext<any>
+    {
+        for (const [typeCtor, discriminant] of this.discriminantMap)
+        {
+            const typeMetadata = this.defineTypeMetadata(typeCtor);
+
+            if (record[typeMetadata.discriminator] === discriminant)
+            {
+                return this.defineChildSerializerContext({
+                    typeMetadata: typeMetadata
+                });
+            }
+        }
+        
+        throw new Error(`${this.path}: Cannot define discriminant of polymorphic type! This is usually caused by invalid configuration!`);
+    }
+
+    /**
+     * Defines polymorphic serializer context.
+     * 
+     * Called by serializers which work with polymorphic types.
+     * 
+     * @param {TypeFn<any>|Record<string, any>} x Type function or record.
+     * 
+     * @returns {SerializerContext<any>} Polymorphic serializer context.
+     */
+    public definePolymorphicSerializerContext(x: TypeFn<any> | Record<string, any>): SerializerContext<any>
+    {
+        return Fn.isCtor(x) ? this.definePolymorphicSerializerContextByTypeFn(x) : this.definePolymorphicSerializerContextByDiscriminant(x);
     }
 }

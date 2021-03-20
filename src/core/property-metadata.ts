@@ -1,18 +1,16 @@
 import { Alias } from './alias';
 import { CustomData } from './custom-data';
-import { Factory } from './factory';
 import { Fn } from './fn';
 import { GenericArgument } from './generic-argument';
 import { GenericMetadata } from './generic-metadata';
-import { Injector } from './injector';
-import { Log } from './log';
 import { Metadata } from './metadata';
 import { NamingConvention } from './naming-convention';
+import { PropertyName } from './property-name';
 import { PropertyOptions } from './property-options';
 import { ReferenceHandler } from './reference-handler';
 import { Serializer } from './serializer';
 import { TypeArgument } from './type-argument';
-import { TypeCtor } from './type-ctor';
+import { TypeFn } from './type-fn';
 import { TypeMetadata } from './type-metadata';
 
 /**
@@ -30,20 +28,20 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     public readonly declaringTypeMetadata: TypeMetadata<TDeclaringType>;
 
     /**
-     * Property name as declared in type.
-     * 
-     * @type {string}
-     */
-    public readonly name: string;
-
-    /**
-     * Type constructor defined using reflect metadata.
+     * Type function defined using reflect metadata.
      * 
      * Used as a fallback when type argument is not defined.
      * 
-     * @type {TypeCtor<TType>}
+     * @type {TypeFn<TType>}
      */
-    public readonly reflectTypeCtor: TypeCtor<TType>;
+    public readonly reflectTypeFn: TypeFn<TType>;
+
+    /**
+     * Property name as declared in type.
+     * 
+     * @type {PropertyName}
+     */
+    public readonly propertyName: PropertyName;
 
     /**
      * Property options.
@@ -56,16 +54,16 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * Constructor.
      * 
      * @param {TypeMetadata<TDeclaringType>} declaringTypeMetadata Type metadata to which property metadata belongs to.
-     * @param {string} name Property name.
+     * @param {PropertyName} propertyName Property name.
      * @param {PropertyOptions<TType>} propertyOptions Property options.
      */
-    public constructor(declaringTypeMetadata: TypeMetadata<TDeclaringType>, name: string, propertyOptions: PropertyOptions<TType>)
+    public constructor(declaringTypeMetadata: TypeMetadata<TDeclaringType>, propertyName: PropertyName, propertyOptions: PropertyOptions<TType>)
     {
         super(declaringTypeMetadata.typeMetadataResolver);
 
         this.declaringTypeMetadata = declaringTypeMetadata;
-        this.name                  = name;
-        this.reflectTypeCtor       = Fn.extractReflectMetadata('design:type', declaringTypeMetadata.typeCtor.prototype, name);
+        this.propertyName          = propertyName;
+        this.reflectTypeFn         = Fn.extractReflectMetadata('design:type', declaringTypeMetadata.typeFn.prototype, propertyName);
         this.propertyOptions       = {};
         
         this.configure(propertyOptions);
@@ -135,23 +133,13 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     }
 
     /**
-     * Gets factory.
-     * 
-     * @returns {Factory} Factory.
-     */
-    public get factory(): Factory
-    {
-        return this.propertyOptions.factory ?? this.typeMetadata.factory;
-    }
-
-    /**
      * Gets generic arguments.
      * 
      * @returns {GenericArgument<any>[]|undefined} Generic arguments or undefined.
      */
     public get genericArguments(): GenericArgument<any>[] | undefined
     {
-        return this.propertyOptions.genericArguments ?? this.typeMetadata?.genericArguments;
+        return this.propertyOptions.genericArguments ?? this.typeMetadata.genericArguments;
     }
 
     /**
@@ -169,26 +157,6 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
         }
 
         return this.defineGenericMetadatas(genericArguments);
-    }
-
-    /**
-     * Gets injector.
-     * 
-     * @returns {Injector} Injector.
-     */
-    public get injector(): Injector
-    {
-        return this.propertyOptions.injector ?? this.typeMetadata.injector;
-    }
-
-    /**
-     * Gets log.
-     * 
-     * @returns {Log} Log.
-     */
-    public get log(): Log
-    {
-        return this.propertyOptions.log ?? this.typeMetadata.log;
     }
 
     /**
@@ -258,11 +226,11 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public get typeMetadata(): TypeMetadata<TType>
     {
-        const typeArgument = this.typeArgument ?? this.reflectTypeCtor;
+        const typeArgument = this.typeArgument ?? this.reflectTypeFn;
 
         if (Fn.isNil(typeArgument))
         {
-            throw new Error(`${this.declaringTypeMetadata.name}.${this.name}: Cannot resolve property type metadata! This is usually caused by invalid configuration!`);
+            throw new Error(`${this.declaringTypeMetadata.typeName}.${this.propertyName}: Cannot resolve property type metadata! This is usually caused by invalid configuration!`);
         }
 
         return this.defineTypeMetadata(typeArgument);
@@ -317,24 +285,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
             this.propertyOptions.deserializable = propertyOptions.deserializable;
         }
 
-        if (!Fn.isUndefined(propertyOptions.factory))
-        {
-            this.propertyOptions.factory = propertyOptions.factory;
-        }
-
         if (!Fn.isUndefined(propertyOptions.genericArguments)) 
         {
             this.propertyOptions.genericArguments = propertyOptions.genericArguments;
-        }
-
-        if (!Fn.isUndefined(propertyOptions.injector))
-        {
-            this.propertyOptions.injector = propertyOptions.injector;
-        }
-
-        if (!Fn.isUndefined(propertyOptions.log))
-        {
-            this.propertyOptions.log = propertyOptions.log;
         }
 
         if (!Fn.isUndefined(propertyOptions.namingConvention))

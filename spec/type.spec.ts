@@ -24,7 +24,7 @@ describe('Type decorator', () =>
     it('should register type metadata', () =>
     {
         const userMetadata = TypeArtisan.extractTypeMetadata(User);
-        const typeCtor     = TypeArtisan.typeCtorMap.get('User:Type');
+        const typeFn       = TypeArtisan.typeFnMap.get('User:Type');
 
         expect(userMetadata.typeOptions.alias).toBe('User:Type');
         expect(userMetadata.typeOptions.customData).toBeDefined();
@@ -38,7 +38,7 @@ describe('Type decorator', () =>
         expect(userMetadata.typeOptions.injector).toBeInstanceOf(SingletonInjector);
         expect(userMetadata.typeOptions.serializer).toBeInstanceOf(TypeSerializer);
 
-        expect(typeCtor).toBeDefined();
-        expect(typeCtor).toBe(userMetadata.typeCtor);
+        expect(typeFn).toBeDefined();
+        expect(typeFn).toBe(userMetadata.typeFn);
     });
 });

@@ -1,9 +1,9 @@
+import { TypeFn } from './core';
 import { Alias } from './core/alias';
 import { Fn } from './core/fn';
 import { Log } from './core/log';
 import { LogLevel } from './core/log-level';
 import { TypeArgument } from './core/type-argument';
-import { TypeCtor } from './core/type-ctor';
 import { TypeMetadata } from './core/type-metadata';
 import { TypeOptions } from './core/type-options';
 import { TypeOptionsBase } from './core/type-options-base';
@@ -38,22 +38,17 @@ import { Uint8ClampedArraySerializer } from './serializers/uint-8-clamped-array.
 export class TypeArtisan
 {
     /**
-     * Type metadata key which is used to store data in prototypes.
-     * 
-     * @type {string}
-     */
-    public static readonly typeMetadataKey: string = '__TMTypeMetadata__';
-    
-    /**
      * Global options of any type.
      * 
      * @type {TypeOptionsBase<any>}
      */
     public static readonly typeOptionsBase: TypeOptionsBase<any> = {
         defaultValue:          undefined,
+        discriminator:         '__type__',
         factory:               new TypeFactory(),
         injector:              new SingletonInjector(),
         log:                   new Log(LogLevel.Error),
+        preserveDiscriminator: false,
         referenceHandler:      new DirectReferenceHandler(),
         serializer:            new TypeSerializer(),
         useDefaultValue:       false,
@@ -65,9 +60,9 @@ export class TypeArtisan
      * 
      * Overrides global type options.
      * 
-     * @type {Map<TypeCtor<any>, TypeOptions<any>>}
+     * @type {Map<TypeFn<any>, TypeOptions<any>>}
      */
-    public static readonly typeOptionsMap: Map<TypeCtor<any>, TypeOptions<any>> = new Map<TypeCtor<any>, TypeOptions<any>>([
+    public static readonly typeOptionsMap: Map<TypeFn<any>, TypeOptions<any>> = new Map<TypeFn<any>, TypeOptions<any>>([
         [ArrayBuffer,       { serializer: new ArrayBufferSerializer(),       defaultValue: undefined }],
         [Array,             { serializer: new ArraySerializer(),             defaultValue: () => []  }],
         [Boolean,           { serializer: new BooleanSerializer(),           defaultValue: false     }],
@@ -89,11 +84,11 @@ export class TypeArtisan
     ]);
 
     /**
-     * Type constructor map for types with aliases.
+     * Type function map for types with aliases.
      * 
-     * @type {Map<Alias, TypeCtor<any>>}
+     * @type {Map<Alias, TypeFn<any>>}
      */
-    public static readonly typeCtorMap: Map<Alias, TypeCtor<any>> = new Map<Alias, TypeCtor<any>>();
+    public static readonly typeFnMap: Map<Alias, TypeFn<any>> = new Map<Alias, TypeFn<any>>();
     
     /**
      * Configures global type options.
@@ -112,25 +107,25 @@ export class TypeArtisan
     /**
      * Configures type options.
      * 
-     * @param {TypeCtor<TType>} typeCtor Type constructor function.
+     * @param {TypeFn<TType>} typeFn Type function.
      * @param {TypeOptions<TType>} typeOptions Type options.
      * 
      * @returns {void}
      */
-    public static configureTypeOptions<TType>(typeCtor: TypeCtor<TType>, typeOptions: TypeOptions<TType>): void
+    public static configureTypeOptions<TType>(typeFn: TypeFn<TType>, typeOptions: TypeOptions<TType>): void
     {
-        let definedTypeOptions = this.typeOptionsMap.get(typeCtor);
+        let definedTypeOptions = this.typeOptionsMap.get(typeFn);
 
         if (Fn.isNil(definedTypeOptions))
         {
             definedTypeOptions = {};
 
-            this.typeOptionsMap.set(typeCtor, definedTypeOptions);
+            this.typeOptionsMap.set(typeFn, definedTypeOptions);
         }
 
         Fn.assign(definedTypeOptions, typeOptions);
 
-        this.defineTypeMetadata(typeCtor, typeOptions);
+        this.defineTypeMetadata(typeFn, typeOptions);
 
         return;
     }
@@ -138,37 +133,37 @@ export class TypeArtisan
     /**
      * Configures type options per type.
      * 
-     * @param {Map<TypeCtor<TType>, TypeOptions<TType>>} typeOptionsMap Type options map.
+     * @param {Map<TypeFn<TType>, TypeOptions<TType>>} typeOptionsMap Type options map.
      * 
      * @returns {void}
      */
-    public static configureTypeOptionsMap<TType>(typeOptionsMap: Map<TypeCtor<TType>, TypeOptions<TType>>): void
+    public static configureTypeOptionsMap<TType>(typeOptionsMap: Map<TypeFn<TType>, TypeOptions<TType>>): void
     {
-        typeOptionsMap.forEach((typeOptions, typeCtor) => 
+        typeOptionsMap.forEach((typeOptions, typeFn) => 
         {
-            this.configureTypeOptions(typeCtor, typeOptions);
+            this.configureTypeOptions(typeFn, typeOptions);
         });
 
         return;
     }
 
     /**
-     * Declares type metadata for provided type constructor based on general configuration.
+     * Declares type metadata for provided type function based on general configuration.
      * 
-     * @param {TypeCtor<TType>} typeCtor Type constructor function.
+     * @param {TypeFn<TType>} typeFn Type function.
      * 
      * @returns {TypeMetadata<TType>} Type metadata.
      */
-    public static declareTypeMetadata<TType>(typeCtor: TypeCtor<TType>): TypeMetadata<TType>
+    public static declareTypeMetadata<TType>(typeFn: TypeFn<TType>): TypeMetadata<TType>
     {
         const typeOptionsBase      = this.typeOptionsBase;
-        const typeOptions          = this.typeOptionsMap.get(typeCtor);
+        const typeOptions          = this.typeOptionsMap.get(typeFn);
         const typeMetadataResolver = this.resolveTypeMetadata.bind(this);
-        const typeMetadata         = new TypeMetadata(typeMetadataResolver, typeCtor, typeOptionsBase, typeOptions ?? {});
+        const typeMetadata         = new TypeMetadata(typeMetadataResolver, typeFn, typeOptionsBase, typeOptions ?? {});
 
         if (!Fn.isNil(typeMetadata.alias))
         {
-            this.typeCtorMap.set(typeMetadata.alias, typeMetadata.typeCtor);
+            this.typeFnMap.set(typeMetadata.alias, typeMetadata.typeFn);
         }
 
         return typeMetadata;
@@ -177,31 +172,20 @@ export class TypeArtisan
     /**
      * Defines type metadata for the type prototype.
      * 
-     * @param {TypeCtor<TType>} typeCtor Type constructor function.
+     * @param {TypeFn<TType>} typeFn Type function.
      * @param {TypeOptions<TType>} typeOptions Type options.
      * 
      * @returns {TypeMetadata<TType>} Type metadata for provided type constructor.
      */
-    public static defineTypeMetadata<TType>(typeCtor: TypeCtor<TType>, typeOptions: TypeOptions<TType> = {}): TypeMetadata<TType>
+    public static defineTypeMetadata<TType>(typeFn: TypeFn<TType>, typeOptions: TypeOptions<TType> = {}): TypeMetadata<TType>
     {
-        const prototype       = typeCtor.prototype;
-        const metadataKey     = this.typeMetadataKey;
-        const metadataDefined = prototype.hasOwnProperty(metadataKey);
-        const typeMetadata    = metadataDefined ? prototype[metadataKey] as TypeMetadata<TType> : this.declareTypeMetadata(typeCtor);
+        const prototype       = typeFn.prototype;
+        const metadataDefined = prototype.hasOwnProperty(TypeMetadata.key);
+        const typeMetadata    = metadataDefined ? prototype[TypeMetadata.key] as TypeMetadata<TType> : this.declareTypeMetadata(typeFn);
 
         if (!metadataDefined)
         {
-            const typeMetadataParent = prototype[metadataKey] as TypeMetadata<any>;
-
-            if (typeMetadataParent)
-            {
-                for (const propertyMetadata of typeMetadataParent.propertyMetadataMap.values())
-                {
-                    typeMetadata.propertyMetadataMap.set(propertyMetadata.name, propertyMetadata);
-                }
-            }
-    
-            Object.defineProperty(prototype, metadataKey, {
+            Object.defineProperty(prototype, TypeMetadata.key, {
                 enumerable:   false,
                 configurable: false,
                 writable:     false,
@@ -211,7 +195,7 @@ export class TypeArtisan
         
         if (!Fn.isNil(typeOptions.alias))
         {
-            this.typeCtorMap.set(typeOptions.alias, typeMetadata.typeCtor);
+            this.typeFnMap.set(typeOptions.alias, typeMetadata.typeFn);
         }
 
         return typeMetadata.configure(typeOptions);
@@ -220,16 +204,15 @@ export class TypeArtisan
     /**
      * Extracts type metadata from provided type constructor.
      * 
-     * @param {TypeCtor<TType>} typeCtor Type constructor function.
+     * @param {TypeFn<TType>} typeFn Type function.
      * 
      * @returns {TypeMetadata<TType>} Type metadata for provided type constructor.
      */
-    public static extractTypeMetadata<TType>(typeCtor: TypeCtor<TType>): TypeMetadata<TType>
+    public static extractTypeMetadata<TType>(typeFn: TypeFn<TType>): TypeMetadata<TType>
     {
-        const prototype       = typeCtor.prototype;
-        const metadataKey     = this.typeMetadataKey;
-        const metadataDefined = prototype.hasOwnProperty(metadataKey);
-        const typeMetadata    = metadataDefined ? prototype[metadataKey] as TypeMetadata<TType> : this.defineTypeMetadata(typeCtor);
+        const prototype       = typeFn.prototype;
+        const metadataDefined = prototype.hasOwnProperty(TypeMetadata.key);
+        const typeMetadata    = metadataDefined ? prototype[TypeMetadata.key] as TypeMetadata<TType> : this.defineTypeMetadata(typeFn);
 
         return typeMetadata;
     }
@@ -241,13 +224,13 @@ export class TypeArtisan
      */
     public static resolveTypeMetadata<TType>(typeArgument: TypeArgument<TType>): TypeMetadata<TType>
     {
-        const typeCtor = Fn.isString(typeArgument) ? this.typeCtorMap.get(typeArgument) : (Fn.isCtor(typeArgument) ? typeArgument : typeArgument());
+        const typeFn = Fn.isString(typeArgument) ? this.typeFnMap.get(typeArgument) : (Fn.isArrowFunction(typeArgument) ? typeArgument() : typeArgument);
 
-        if (Fn.isNil(typeCtor))
+        if (Fn.isNil(typeFn))
         {
             throw new Error(`Cannot resolve type metadata for provided type argument: ${JSON.stringify(typeArgument)}! This is usually caused by invalid configuration!`);
         }
 
-        return this.extractTypeMetadata(typeCtor);
+        return this.extractTypeMetadata(typeFn);
     }
 }

@@ -13,7 +13,7 @@ import { TypeMetadata } from './type-metadata';
 export interface SerializerContextOptions<TType>
 {
     /**
-     * Serializer context root. 
+     * Serializer context root.
      * 
      * This is a value passed to the root serializer.
      * 
@@ -61,7 +61,7 @@ export interface SerializerContextOptions<TType>
      * @type {WeakMap<ReferenceKey, ReferenceValue>}
      */
     referenceMap: WeakMap<ReferenceKey, ReferenceValue>;
-
+    
     /**
      * Type metadata attached to a context.
      * 

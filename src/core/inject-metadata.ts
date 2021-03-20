@@ -1,7 +1,8 @@
 import { Fn } from './fn';
+import { InjectIndex } from './inject-index';
 import { InjectOptions } from './inject-options';
 import { Metadata } from './metadata';
-import { TypeCtor } from './type-ctor';
+import { TypeFn } from './type-fn';
 import { TypeMetadata } from './type-metadata';
 
 /**
@@ -19,20 +20,20 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
     public readonly declaringTypeMetadata: TypeMetadata<TDeclaringType>;
 
     /**
-     * Index of injection within a type constructor function.
+     * Type function defined using reflect metadata.
      * 
-     * @type {number}
+     * Used as a fallback when type function is not defined.
+     * 
+     * @type {TypeFn<TType>}
      */
-    public readonly index: number;
+    public readonly reflectTypeFn: TypeFn<TType>;
 
     /**
-     * Type constructor defined using reflect metadata.
+     * Index of injection within a type constructor function.
      * 
-     * Used as a fallback when type constructor is not defined.
-     * 
-     * @type {TypeCtor<TType>}
+     * @type {InjectIndex}
      */
-    public readonly reflectTypeCtor: TypeCtor<TType>;
+    public readonly injectIndex: InjectIndex;
 
     /**
      * Inject options.
@@ -45,16 +46,16 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
      * Constructor.
      * 
      * @param {TypeMetadata<TDeclaringType>} declaringTypeMetadata Type metadata to which inject metadata belongs to.
-     * @param {number} index Index of injection within a type constructor function.
+     * @param {InjectIndex} injectIndex Index of injection within a type constructor function.
      * @param {InjectOptions<TType>} injectOptions Inject options.
      */
-    public constructor(declaringTypeMetadata: TypeMetadata<TDeclaringType>, index: number, injectOptions: InjectOptions<TType>)
+    public constructor(declaringTypeMetadata: TypeMetadata<TDeclaringType>, injectIndex: InjectIndex, injectOptions: InjectOptions<TType>)
     {
         super(declaringTypeMetadata.typeMetadataResolver);
 
         this.declaringTypeMetadata = declaringTypeMetadata;
-        this.index                 = index;
-        this.reflectTypeCtor       = (Fn.extractOwnReflectMetadata('design:paramtypes', declaringTypeMetadata.typeCtor) ?? [])[index];
+        this.reflectTypeFn         = (Fn.extractOwnReflectMetadata('design:paramtypes', declaringTypeMetadata.typeFn) ?? [])[injectIndex];
+        this.injectIndex           = injectIndex;
         this.injectOptions         = {};
 
         this.configure(injectOptions);
@@ -73,13 +74,13 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
     }
 
     /**
-     * Gets type constructor.
+     * Gets type function.
      * 
-     * @returns {TypeCtor<TType>|undefined} Type constructor or undefined.
+     * @returns {TypeFn<TType>|undefined} Type constructor or undefined.
      */
-    public get typeCtor(): TypeCtor<TType> | undefined
+    public get typeFn(): TypeFn<TType> | undefined
     {
-        return this.injectOptions.typeCtor ?? this.reflectTypeCtor;
+        return this.injectOptions.typeFn ?? this.reflectTypeFn;
     }
 
     /**
@@ -89,14 +90,14 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
      */
     public get typeMetadata(): TypeMetadata<TType>
     {
-        const typeCtor = this.typeCtor;
+        const typeFn = this.typeFn;
 
-        if (Fn.isNil(typeCtor))
+        if (Fn.isNil(typeFn))
         {
-            throw new Error(`${this.declaringTypeMetadata.name}[${this.index}]: Cannot resolve constructor injection type metadata! This is usually caused by invalid configuration!`);
+            throw new Error(`${this.declaringTypeMetadata.typeName}[${this.injectIndex}]: Cannot resolve constructor injection type metadata! This is usually caused by invalid configuration!`);
         }
 
-        return this.defineTypeMetadata(typeCtor);
+        return this.defineTypeMetadata(typeFn);
     }
 
     /**
@@ -113,9 +114,9 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
             this.injectOptions.key = injectOptions.key;
         }
 
-        if (!Fn.isUndefined(injectOptions.typeCtor)) 
+        if (!Fn.isUndefined(injectOptions.typeFn)) 
         {
-            this.injectOptions.typeCtor = injectOptions.typeCtor;
+            this.injectOptions.typeFn = injectOptions.typeFn;
         }
 
         return this;

@@ -1,4 +1,4 @@
-import { TypeCtor } from './core/type-ctor';
+import { TypeFn } from './core';
 import { TypeOptions } from './core/type-options';
 import { TypeOptionsBase } from './core/type-options-base';
 
@@ -21,7 +21,7 @@ export interface TypeManagerOptions
      * 
      * Overrides global type options.
      * 
-     * @type {Map<TypeCtor<any>, TypeOptions<any>>}
+     * @type {Map<TypeFn<any>, TypeOptions<any>>}
      */
-    typeOptionsMap?: Map<TypeCtor<any>, TypeOptions<any>>;
+    typeOptionsMap?: Map<TypeFn<any>, TypeOptions<any>>;
 }

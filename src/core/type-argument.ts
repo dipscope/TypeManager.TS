@@ -1,5 +1,5 @@
 import { Alias } from './alias';
-import { TypeCtor } from './type-ctor';
+import { TypeFn } from './type-fn';
 import { TypeResolver } from './type-resolver';
 
 /**
@@ -7,4 +7,4 @@ import { TypeResolver } from './type-resolver';
  * 
  * @type {TypeArgument<TType>}
  */
-export type TypeArgument<TType> = Alias | TypeCtor<TType> | TypeResolver<TType>;
+export type TypeArgument<TType> = Alias | TypeFn<TType> | TypeResolver<TType>;

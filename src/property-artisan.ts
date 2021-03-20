@@ -1,4 +1,5 @@
 import { PropertyMetadata } from './core/property-metadata';
+import { PropertyName } from './core/property-name';
 import { PropertyOptions } from './core/property-options';
 import { TypeCtor } from './core/type-ctor';
 import { TypeArtisan } from './type-artisan';
@@ -14,14 +15,14 @@ export class PropertyArtisan
      * Defines property metadata for a certain type constructor.
      * 
      * @param {TypeCtor<TDeclaringType>} declaringTypeCtor Declaring type constructor function.
-     * @param {string} propertyName Property name.
+     * @param {PropertyName} propertyName Property name.
      * @param {PropertyOptions<TType>} propertyOptions Property options.
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Property metadata for provided type constructor.
      */
     public static definePropertyMetadata<TDeclaringType, TType>(
         declaringTypeCtor: TypeCtor<TDeclaringType>, 
-        propertyName: string, 
+        propertyName: PropertyName, 
         propertyOptions: PropertyOptions<TType>
     ): PropertyMetadata<TDeclaringType, TType>
     {

@@ -1,16 +1,16 @@
 import { Factory } from './core/factory';
-import { TypeAndProperty } from './type-and-property';
+import { Type } from './type';
 
 /**
  * Factory decorator.
  * 
- * Used to define custom factory for type and property.
+ * Used to define custom factory for a type.
  * 
- * @param {Factory<TType>} factory Factory.
+ * @param {Factory} factory Factory.
  * 
- * @returns {ClassDecorator&PropertyDecorator} Class and property decorator.
+ * @returns {ClassDecorator} Class decorator.
  */
-export function Factory(factory: Factory): ClassDecorator & PropertyDecorator
+export function Factory(factory: Factory): ClassDecorator
 {
-    return TypeAndProperty({ factory: factory });
+    return Type({ factory: factory });
 }

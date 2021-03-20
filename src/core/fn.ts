@@ -161,6 +161,18 @@ export class Fn
     }
 
     /**
+     * Checks if value is an arrow function.
+     * 
+     * @param {any} x Input value.
+     * 
+     * @returns {boolean} True when value is an arrow function. False otherwise.
+     */
+    public static isArrowFunction(x: any): x is (...args: any[]) => any
+    {
+        return typeof x === 'function' && x.prototype && x.prototype.constructor === x && x.name === '';
+    }
+
+    /**
      * Checks if value is a constructor.
      * 
      * @param {any} x Input value.

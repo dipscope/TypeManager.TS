@@ -1,6 +1,7 @@
 import { Fn } from './core/fn';
 import { InjectOptions } from './core/inject-options';
 import { TypeCtor } from './core/type-ctor';
+import { TypeFn } from './core/type-fn';
 import { InjectArtisan } from './inject-artisan';
 
 /**
@@ -19,9 +20,9 @@ export function Inject<TType>(x: TypeCtor<TType> | InjectOptions<TType> | string
         injectOptions.key = x;
     }
 
-    if (Fn.isUndefined(injectOptions.typeCtor) && Fn.isCtor(x))
+    if (Fn.isUndefined(injectOptions.typeFn) && Fn.isFunction(x))
     {
-        injectOptions.typeCtor = x as TypeCtor<TType>;
+        injectOptions.typeFn = x as TypeFn<TType>;
     }
 
     return function (target: any, propertyName: string | symbol, injectIndex: number): void

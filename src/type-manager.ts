@@ -4,7 +4,7 @@ import { ReferenceCallback } from './core/reference-callback';
 import { ReferenceKey } from './core/reference-key';
 import { ReferenceValue } from './core/reference-value';
 import { SerializerContext } from './core/serializer-context';
-import { TypeCtor } from './core/type-ctor';
+import { TypeFn } from './core/type-fn';
 import { TypeLike } from './core/type-like';
 import { TypeMetadata } from './core/type-metadata';
 import { TypeOptions } from './core/type-options';
@@ -36,11 +36,11 @@ export class TypeManager<TType>
     /**
      * Constructor.
      * 
-     * @param {TypeCtor<TType>} typeCtor Type constructor function.
+     * @param {TypeFn<TType>} typeFn Type function.
      */
-    public constructor(typeCtor: TypeCtor<TType>)
+    public constructor(typeFn: TypeFn<TType>)
     {
-        this.typeMetadata  = TypeArtisan.extractTypeMetadata(typeCtor);
+        this.typeMetadata  = TypeArtisan.extractTypeMetadata(typeFn);
         this.arrayMetadata = TypeArtisan.extractTypeMetadata(Array);
 
         return;
@@ -63,14 +63,14 @@ export class TypeManager<TType>
     /**
      * Configures type options.
      * 
-     * @param {TypeCtor<any>} typeCtor Type constructor function.
+     * @param {TypeFn<any>} typeFn Type function.
      * @param {TypeOptions<any>} typeOptions Type options.
      * 
      * @returns {void}
      */
-    public static configureTypeOptions(typeCtor: TypeCtor<any>, typeOptions: TypeOptions<any>): void 
+    public static configureTypeOptions(typeFn: TypeFn<any>, typeOptions: TypeOptions<any>): void 
     {
-        TypeArtisan.configureTypeOptions(typeCtor, typeOptions);
+        TypeArtisan.configureTypeOptions(typeFn, typeOptions);
 
         return;
     }
@@ -78,11 +78,11 @@ export class TypeManager<TType>
     /**
      * Configures type options per type.
      * 
-     * @param {Map<TypeCtor<any>, TypeOptions<any>>} typeOptionsMap Type options map.
+     * @param {Map<TypeFn<any>, TypeOptions<any>>} typeOptionsMap Type options map.
      * 
      * @returns {void}
      */
-    public static configureTypeOptionsMap(typeOptionsMap: Map<TypeCtor<any>, TypeOptions<any>>): void
+    public static configureTypeOptionsMap(typeOptionsMap: Map<TypeFn<any>, TypeOptions<any>>): void
     {
         TypeArtisan.configureTypeOptionsMap(typeOptionsMap);
 
@@ -114,64 +114,64 @@ export class TypeManager<TType>
     /**
      * Serializes provided value based on the type constructor function.
      * 
-     * @param {TypeCtor<TType>} typeCtor Type constructor function.
+     * @param {TypeFn<TType>} typeFn Type function.
      * @param {TypeLike<TType>} x Input value.
      * 
      * @returns {TypeLike<any>} Object created from provided input value or undefined. 
      */
-    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: undefined): undefined;
-    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: null): null;
-    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: TType[]): any[];
-    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: TType): any;
-    public static serialize<TType>(typeCtor: TypeCtor<TType>, x: TypeLike<TType | TType[]>): TypeLike<any>
+    public static serialize<TType>(typeFn: TypeFn<TType>, x: undefined): undefined;
+    public static serialize<TType>(typeFn: TypeFn<TType>, x: null): null;
+    public static serialize<TType>(typeFn: TypeFn<TType>, x: TType[]): any[];
+    public static serialize<TType>(typeFn: TypeFn<TType>, x: TType): any;
+    public static serialize<TType>(typeFn: TypeFn<TType>, x: TypeLike<TType | TType[]>): TypeLike<any>
     {
-        return new TypeManager(typeCtor).serialize(x as any);
+        return new TypeManager(typeFn).serialize(x as any);
     }
 
     /**
      * Deserializes provided value based on the type constructor function.
      * 
-     * @param {TypeCtor<TType>} typeCtor Type constructor function.
+     * @param {TypeFn<TType>} typeFn Type constructor function.
      * @param {TypeLike<any>} x Input value.
      * 
      * @returns {TypeLike<TType>} Type created from provided input value or undefined.
      */
-    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: undefined): undefined;
-    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: null): null;
-    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: any[]): TType[];
-    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: any): TType;
-    public static deserialize<TType>(typeCtor: TypeCtor<TType>, x: TypeLike<any>): TypeLike<TType | TType[]>
+    public static deserialize<TType>(typeFn: TypeFn<TType>, x: undefined): undefined;
+    public static deserialize<TType>(typeFn: TypeFn<TType>, x: null): null;
+    public static deserialize<TType>(typeFn: TypeFn<TType>, x: any[]): TType[];
+    public static deserialize<TType>(typeFn: TypeFn<TType>, x: any): TType;
+    public static deserialize<TType>(typeFn: TypeFn<TType>, x: TypeLike<any>): TypeLike<TType | TType[]>
     {
-        return new TypeManager(typeCtor).deserialize(x as any);
+        return new TypeManager(typeFn).deserialize(x as any);
     }
 
     /**
      * Converts provided value to a JavaScript Object Notation (JSON) string.
      * 
-     * @param {TypeCtor<TType>} typeCtor Type constructor function.
+     * @param {TypeFn<TType>} typeFn Type function.
      * @param {any} x Input value, usually an object or array, to be converted.
      * @param {Function|number[]|string[]} replacer A function that transforms the results or an array of strings and numbers that acts as an approved list.
      * @param {string|number} space Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
      * 
      * @returns {string} JSON string.
      */
-    public static stringify<TType>(typeCtor: TypeCtor<TType>, x: any, replacer?: (this: any, key: string, value: any) => any | number[] | string[] | null, space?: string | number): string
+    public static stringify<TType>(typeFn: TypeFn<TType>, x: any, replacer?: (this: any, key: string, value: any) => any | number[] | string[] | null, space?: string | number): string
     {
-        return JSON.stringify(this.serialize(typeCtor, x), replacer, space);
+        return JSON.stringify(this.serialize(typeFn, x), replacer, space);
     }
 
     /**
      * Converts a JavaScript Object Notation (JSON) string into a type.
      * 
-     * @param {TypeCtor<TType>} typeCtor Type constructor function.
+     * @param {TypeFn<TType>} typeFn Type constructor function.
      * @param {string} x A valid JSON string.
      * @param {Function} reviver A function that transforms the results. This function is called for each member of the object.
      * 
      * @returns {TypeLike<TType>} Type created from provided input value or undefined.
      */
-    public static parse<TType>(typeCtor: TypeCtor<TType>, x: string, reviver?: (this: any, key: string, value: any) => any): TypeLike<TType>
+    public static parse<TType>(typeFn: TypeFn<TType>, x: string, reviver?: (this: any, key: string, value: any) => any): TypeLike<TType>
     {
-        return this.deserialize(typeCtor, JSON.parse(x, reviver));
+        return this.deserialize(typeFn, JSON.parse(x, reviver));
     }
 
     /**
@@ -187,11 +187,11 @@ export class TypeManager<TType>
     {
         return new SerializerContext({
             $:                    x,
-            genericArguments:     genericArguments,
             path:                 '$',
             referenceCallbackMap: new WeakMap<ReferenceKey, ReferenceCallback[]>(),
             referenceMap:         new WeakMap<ReferenceKey, ReferenceValue>(),
-            typeMetadata:         typeMetadata
+            typeMetadata:         typeMetadata,
+            genericArguments:     genericArguments
         });
     }
 
@@ -210,7 +210,7 @@ export class TypeManager<TType>
     {
         if (Fn.isArray(x))
         {
-            return this.arrayMetadata.serializer.serialize(x, this.defineSerializerContext(x, this.arrayMetadata, [this.typeMetadata.typeCtor]));
+            return this.arrayMetadata.serializer.serialize(x, this.defineSerializerContext(x, this.arrayMetadata, [this.typeMetadata.typeFn]));
         }
 
         return this.typeMetadata.serializer.serialize(x,  this.defineSerializerContext(x, this.typeMetadata));
@@ -231,7 +231,7 @@ export class TypeManager<TType>
     {
         if (Fn.isArray(x))
         {
-            return this.arrayMetadata.serializer.deserialize(x, this.defineSerializerContext(x, this.arrayMetadata, [this.typeMetadata.typeCtor]));
+            return this.arrayMetadata.serializer.deserialize(x, this.defineSerializerContext(x, this.arrayMetadata, [this.typeMetadata.typeFn]));
         }
 
         return this.typeMetadata.serializer.deserialize(x,  this.defineSerializerContext(x, this.typeMetadata));

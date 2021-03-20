@@ -1,8 +1,8 @@
-import { TypeCtor } from './type-ctor';
+import { TypeFn } from './type-fn';
 
 /**
  * Type resolver.
  * 
  * @type {TypeResolver<TType>}
  */
-export type TypeResolver<TType> = () => TypeCtor<TType>;
+export type TypeResolver<TType> = () => TypeFn<TType>;

@@ -1,6 +1,6 @@
 import { CustomData } from './custom-data';
+import { Discriminator } from './discriminator';
 import { Factory } from './factory';
-import { GenericArgument } from './generic-argument';
 import { Injector } from './injector';
 import { Log } from './log';
 import { NamingConvention } from './naming-convention';
@@ -12,7 +12,7 @@ import { Serializer } from './serializer';
  * 
  * @type {TypeOptionsBase<TType>}
  */
-export interface TypeOptionsBase<TType> extends Record<string, any>
+export interface TypeOptionsBase<TType>
 {
     /**
      * Custom developer data.
@@ -20,6 +20,13 @@ export interface TypeOptionsBase<TType> extends Record<string, any>
      * @type {CustomData}
      */
     customData?: CustomData;
+
+    /**
+     * Discriminator.
+     * 
+     * @type {Discriminator}
+     */
+    discriminator: Discriminator;
 
     /**
      * Default value for undefined ones.
@@ -30,13 +37,6 @@ export interface TypeOptionsBase<TType> extends Record<string, any>
      * @type {any}
      */
     defaultValue?: any;
-
-    /**
-     * Generic arguments.
-     * 
-     * @type {GenericArgument<any>[]}
-     */
-    genericArguments?: GenericArgument<any>[];
 
     /**
      * Factory used to build instances of type.
@@ -65,6 +65,14 @@ export interface TypeOptionsBase<TType> extends Record<string, any>
      * @type {NamingConvention}
      */
     namingConvention?: NamingConvention;
+
+    /**
+     * Preserve discriminator in object during serialization 
+     * and deserialization?
+     * 
+     * @type {boolean}
+     */
+    preserveDiscriminator: boolean;
 
     /**
      * Reference handler.

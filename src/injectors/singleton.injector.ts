@@ -27,7 +27,7 @@ export class SingletonInjector implements Injector
     {
         if (!typeMetadata.injectable)
         {
-            throw new Error(`${typeMetadata.name}: cannot resolve type! Have you registered it as injectable?`);
+            throw new Error(`${typeMetadata.typeName}: cannot resolve type! Have you registered it as injectable?`);
         }
 
         const instance = this.instanceMap.get(typeMetadata);
@@ -49,14 +49,21 @@ export class SingletonInjector implements Injector
      */
     private init<TType>(typeMetadata: TypeMetadata<TType>): TType
     {
+        const typeCtor = Fn.isCtor(typeMetadata.typeFn) ? typeMetadata.typeFn : undefined;
+
+        if (Fn.isNil(typeCtor))
+        {
+            throw new Error(`${typeMetadata.typeName}: Cannot inject instance of abstract type!`);
+        }
+
         const args: any[] = [];
 
         for (const injectMetadata of typeMetadata.injectMetadataMap.values())
         {
-            args[injectMetadata.index] = this.get(injectMetadata.typeMetadata);
+            args[injectMetadata.injectIndex] = this.get(injectMetadata.typeMetadata);
         }
 
-        const instance = new typeMetadata.typeCtor(...args);
+        const instance = new typeCtor(...args);
 
         this.instanceMap.set(typeMetadata, instance);
 

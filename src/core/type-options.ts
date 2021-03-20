@@ -1,5 +1,9 @@
 import { Alias } from './alias';
+import { Discriminant } from './discriminant';
+import { GenericArgument } from './generic-argument';
+import { InjectIndex } from './inject-index';
 import { InjectOptions } from './inject-options';
+import { PropertyName } from './property-name';
 import { PropertyOptions } from './property-options';
 import { TypeOptionsBase } from './type-options-base';
 
@@ -20,6 +24,20 @@ export interface TypeOptions<TType> extends Partial<TypeOptionsBase<TType>>
     alias?: Alias;
 
     /**
+     * Discriminant.
+     * 
+     * @type {Discriminant}
+     */
+    discriminant?: Discriminant;
+
+    /**
+     * Generic arguments.
+     * 
+     * @type {GenericArgument<any>[]}
+     */
+    genericArguments?: GenericArgument<any>[];
+
+    /**
      * Injectable type?
      * 
      * @type {boolean}
@@ -27,16 +45,16 @@ export interface TypeOptions<TType> extends Partial<TypeOptionsBase<TType>>
     injectable?: boolean;
 
     /**
-     * Inject options related to this type. Map key is an injection index.
+     * Inject options related to this type.
      * 
-     * @type {Map<number, InjectOptions<any>>}
+     * @type {Map<InjectIndex, InjectOptions<any>>}
      */
-    injectOptionsMap?: Map<number, InjectOptions<any>>;
+    injectOptionsMap?: Map<InjectIndex, InjectOptions<any>>;
 
     /**
      * Property options related to this type. Map key is a property name.
      * 
-     * @type {Map<string, PropertyOptions<any>>}
+     * @type {Map<PropertyName, PropertyOptions<any>>}
      */
-    propertyOptionsMap?: Map<string, PropertyOptions<any>>;
+    propertyOptionsMap?: Map<PropertyName, PropertyOptions<any>>;
 }

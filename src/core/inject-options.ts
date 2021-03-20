@@ -1,4 +1,4 @@
-import { TypeCtor } from './type-ctor';
+import { TypeFn } from './type-fn';
 
 /**
  * Inject options.
@@ -19,7 +19,7 @@ export interface InjectOptions<TType>
      * Type of injection. Used if key is not specified. Will be resolved using 
      * type injector.
      * 
-     * @type {TypeCtor<TType>}
+     * @type {TypeFn<TType>}
      */
-    typeCtor?: TypeCtor<TType>;
+    typeFn?: TypeFn<TType>;
 }

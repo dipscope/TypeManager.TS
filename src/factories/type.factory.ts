@@ -21,7 +21,13 @@ export class TypeFactory implements Factory
     public build<TType>(typeContext: TypeContext<TType>, injector: Injector): TType
     {
         const typeMetadata = typeContext.typeMetadata;
-        const typeCtor     = typeMetadata.typeCtor;
+        const typeCtor     = Fn.isCtor(typeMetadata.typeFn) ? typeMetadata.typeFn : undefined;
+
+        if (Fn.isNil(typeCtor))
+        {
+            throw new Error(`${typeMetadata.typeName}: Cannot build instance of abstract type!`);
+        }
+        
         const injectedKeys = [];
         const args         = new Array<any>(typeCtor.length).fill(undefined);
 
@@ -31,14 +37,14 @@ export class TypeFactory implements Factory
 
             if (!Fn.isNil(argKey))
             {
-                args[injectMetadata.index] = typeContext.get(argKey)?.value;
+                args[injectMetadata.injectIndex] = typeContext.get(argKey)?.value;
 
                 injectedKeys.push(argKey);
 
                 continue;
             }
 
-            args[injectMetadata.index] = injector.get(injectMetadata.typeMetadata);
+            args[injectMetadata.injectIndex] = injector.get(injectMetadata.typeMetadata);
         }
 
         const type = new typeCtor(...args) as any;
@@ -47,9 +53,9 @@ export class TypeFactory implements Factory
         {
             const propertyMetadata = typeContextEntry.propertyMetadata;
 
-            if (!Fn.isNil(propertyMetadata) && !Fn.isUndefined(typeContextEntry.value) && !injectedKeys.includes(propertyMetadata.name))
+            if (!Fn.isNil(propertyMetadata) && !Fn.isUndefined(typeContextEntry.value) && !injectedKeys.includes(propertyMetadata.propertyName))
             {
-                type[propertyMetadata.name] = typeContextEntry.value;
+                type[propertyMetadata.propertyName] = typeContextEntry.value;
             }
         }
 
