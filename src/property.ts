@@ -1,7 +1,7 @@
 import { GenericArgument, TypeArgument } from './core';
 import { Fn } from './core/fn';
 import { PropertyOptions } from './core/property-options';
-import { PropertyArtisan } from './property-artisan';
+import { TypeManager } from './type-manager';
 
 /**
  * Property decorator.
@@ -67,7 +67,7 @@ export function Property<TType>(
             throw new Error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a method property!`);
         }
 
-        PropertyArtisan.definePropertyMetadata(target.constructor, propertyName, propertyOptions);
+        TypeManager.defineTypeMetadata(target.constructor).configurePropertyMetadata(propertyName, propertyOptions);
 
         return;
     };

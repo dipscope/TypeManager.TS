@@ -1,4 +1,4 @@
-import { DefaultValue, Property, Type, TypeArtisan } from '../src';
+import { DefaultValue, Property, Type, TypeManager } from '../src';
 
 @Type()
 @DefaultValue(() => new User())
@@ -11,7 +11,7 @@ describe('Default value decorator', () =>
 {
     it('should register default value for a type', () =>
     {
-        const userMetadata = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata = TypeManager.extractTypeMetadata(User);
 
         expect(userMetadata.typeOptions.defaultValue).toBeDefined();
         expect(userMetadata.typeOptions.defaultValue()).toBeInstanceOf(User);
@@ -19,7 +19,7 @@ describe('Default value decorator', () =>
 
     it('should register default value for a property', () =>
     {
-        const userMetadata     = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata     = TypeManager.extractTypeMetadata(User);
         const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
         expect(userNameMetadata).toBeDefined();

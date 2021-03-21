@@ -2,7 +2,7 @@ import { Fn } from './core/fn';
 import { InjectOptions } from './core/inject-options';
 import { TypeCtor } from './core/type-ctor';
 import { TypeFn } from './core/type-fn';
-import { InjectArtisan } from './inject-artisan';
+import { TypeManager } from './type-manager';
 
 /**
  * Inject decorator.
@@ -37,7 +37,7 @@ export function Inject<TType>(x: TypeCtor<TType> | InjectOptions<TType> | string
             throw new Error(`${Fn.nameOf(target)}.${String(propertyName)}: inject decorator cannot be applied to a property!`);
         }
 
-        InjectArtisan.defineInjectMetadata(target, injectIndex, injectOptions);
+        TypeManager.defineTypeMetadata(target).configureInjectMetadata(injectIndex, injectOptions);
 
         return;
     };

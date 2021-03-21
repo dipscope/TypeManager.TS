@@ -38,7 +38,7 @@ export interface SerializerContextOptions<TType>
     path: string;
 
     /**
-     * Property metadata attached to a context.
+     * Property metadata.
      * 
      * @type {PropertyMetadata<any, TType>}
      */
@@ -63,7 +63,7 @@ export interface SerializerContextOptions<TType>
     referenceMap: WeakMap<ReferenceKey, ReferenceValue>;
     
     /**
-     * Type metadata attached to a context.
+     * Type metadata.
      * 
      * @type {TypeMetadata<TType>}
      */

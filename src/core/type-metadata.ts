@@ -32,13 +32,6 @@ import { TypeOptionsBase } from './type-options-base';
 export class TypeMetadata<TType> extends Metadata
 {
     /**
-     * Key to query type metadata from the prototypes.
-     * 
-     * @type {string}
-     */
-    public static readonly key: string = '__TMTypeMetadata__';
-
-    /**
      * Parent type metadata.
      * 
      * @type {TypeMetadata<any>}
@@ -110,20 +103,28 @@ export class TypeMetadata<TType> extends Metadata
      * @param {TypeFn<any>} typeFn Type function.
      * @param {TypeOptionsBase<TType>} typeOptionsBase Type options used by default.
      * @param {TypeOptions<TType>} typeOptions Type options.
+     * @param {TypeMetadata<any>} parentTypeMetadata Parent type metadata.
      */
-    public constructor(typeMetadataResolver: TypeMetadataResolver<any>, typeFn: TypeFn<TType>, typeOptionsBase: TypeOptionsBase<TType>, typeOptions: TypeOptions<TType>)
+    public constructor(
+        typeMetadataResolver: TypeMetadataResolver<any>, 
+        typeFn: TypeFn<TType>, 
+        typeOptionsBase: TypeOptionsBase<TType>, 
+        typeOptions: TypeOptions<TType>, 
+        parentTypeMetadata?: TypeMetadata<any>
+    )
     {
         super(typeMetadataResolver);
 
-        this.parentTypeMetadata = typeFn.prototype[TypeMetadata.key];
         this.typeName           = Fn.nameOf(typeFn);
         this.typeFn             = typeFn;
         this.typeOptionsBase    = typeOptionsBase;
-        this.typeOptions        = {};
+        this.typeOptions        = typeOptions;
+        this.parentTypeMetadata = parentTypeMetadata;
 
         this.deriveParentTypeMetadataProperties();
         this.provideDiscriminant(this.typeFn, this.typeName);
-        this.configure(typeOptions);
+        this.configurePropertyMetadataMap(this.propertyOptionsMap);
+        this.configureInjectMetadataMap(this.injectOptionsMap);
 
         return;
     }
@@ -337,6 +338,44 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
+     * Gets property options map.
+     * 
+     * @returns {Map<PropertyName, PropertyOptions<any>>} Property options map.
+     */
+    public get propertyOptionsMap(): Map<PropertyName, PropertyOptions<any>>
+    {
+        let propertyOptionsMap = this.typeOptions.propertyOptionsMap;
+
+        if (Fn.isNil(propertyOptionsMap))
+        {
+            propertyOptionsMap = new Map<PropertyName, PropertyOptions<any>>();
+
+            this.typeOptions.propertyOptionsMap = propertyOptionsMap;
+        }
+
+        return propertyOptionsMap;
+    }
+
+    /**
+     * Gets inject options map.
+     * 
+     * @returns {Map<InjectIndex, InjectOptions<any>>} Inject options map.
+     */
+    public get injectOptionsMap(): Map<InjectIndex, InjectOptions<any>>
+    {
+        let injectOptionsMap = this.typeOptions.injectOptionsMap;
+
+        if (Fn.isNil(injectOptionsMap))
+        {
+            injectOptionsMap = new Map<InjectIndex, InjectOptions<any>>();
+
+            this.typeOptions.injectOptionsMap = injectOptionsMap;
+        }
+
+        return injectOptionsMap;
+    }
+
+    /**
      * Derives parent type metadata properties.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
@@ -436,8 +475,9 @@ export class TypeMetadata<TType> extends Metadata
         if (Fn.isNil(propertyMetadata))
         {
             propertyMetadata = new PropertyMetadata(this, propertyName, propertyOptions);
-            
+
             this.propertyMetadataMap.set(propertyName, propertyMetadata);
+            this.propertyOptionsMap.set(propertyName, propertyOptions);
 
             return propertyMetadata;
         }
@@ -460,9 +500,10 @@ export class TypeMetadata<TType> extends Metadata
         if (Fn.isNil(injectMetadata))
         {
             injectMetadata = new InjectMetadata(this, injectIndex, injectOptions);
-            
-            this.injectMetadataMap.set(injectIndex, injectMetadata);
 
+            this.injectMetadataMap.set(injectIndex, injectMetadata);
+            this.injectOptionsMap.set(injectIndex, injectOptions);
+            
             return injectMetadata;
         }
 

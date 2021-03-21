@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Enums support.
 - Polymorphic types support.
+- Runtime configuration support.
+
+### Changed
+
+- Newly introduced `TypeFn` is now used instead of `TypeCtor` in configure methods due to adding polymorphic type support.
+- Static methods of `TypeManager` now return static instance to enable method chaining.
 
 ### Migrating from previous version
 

@@ -64,9 +64,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
         this.declaringTypeMetadata = declaringTypeMetadata;
         this.propertyName          = propertyName;
         this.reflectTypeFn         = Fn.extractReflectMetadata('design:type', declaringTypeMetadata.typeFn.prototype, propertyName);
-        this.propertyOptions       = {};
-        
-        this.configure(propertyOptions);
+        this.propertyOptions       = propertyOptions;
 
         return;
     }

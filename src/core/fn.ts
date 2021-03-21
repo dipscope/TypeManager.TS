@@ -471,9 +471,12 @@ export class Fn
      *
      * @returns {Record<string, any>} Target object.
      */
+    public static assign<T, U>(target: T, source: U): T & U;
+    public static assign<T, U, V>(target: T, source1: U, source2: V): T & U & V;
+    public static assign<T, U, V, W>(target: T, source1: U, source2: V, source3: W): T & U & V & W;
     public static assign(target: Record<string, any>, ...sources: Record<string, any>[]): Record<string, any>
     {
-        for (const source of sources) 
+        for (const source of sources)
         {
             for (const key in source)
             {

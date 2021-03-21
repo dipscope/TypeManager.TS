@@ -1,4 +1,4 @@
-import { Injector, Property, Type, TypeArtisan } from '../src';
+import { Injector, Property, Type, TypeManager } from '../src';
 import { SingletonInjector } from '../src/injectors';
 
 @Type()
@@ -12,7 +12,7 @@ describe('Type injector decorator', () =>
 {
     it('should register custom injector for a type', () =>
     {
-        const userMetadata = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata = TypeManager.extractTypeMetadata(User);
 
         expect(userMetadata.typeOptions.injector).toBeInstanceOf(SingletonInjector);
     });

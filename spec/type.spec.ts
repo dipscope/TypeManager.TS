@@ -1,4 +1,4 @@
-import { Type, TypeArtisan } from '../src';
+import { Type, TypeManager } from '../src';
 import { TypeFactory } from '../src/factories';
 import { SingletonInjector } from '../src/injectors';
 import { TypeSerializer } from '../src/serializers';
@@ -23,8 +23,8 @@ describe('Type decorator', () =>
 {
     it('should register type metadata', () =>
     {
-        const userMetadata = TypeArtisan.extractTypeMetadata(User);
-        const typeFn       = TypeArtisan.typeFnMap.get('User:Type');
+        const userMetadata = TypeManager.extractTypeMetadata(User);
+        const typeFn       = TypeManager.typeFnMap.get('User:Type');
 
         expect(userMetadata.typeOptions.alias).toBe('User:Type');
         expect(userMetadata.typeOptions.customData).toBeDefined();

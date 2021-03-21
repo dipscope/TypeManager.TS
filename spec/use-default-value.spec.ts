@@ -1,4 +1,4 @@
-import { Property, Type, TypeArtisan, UseDefaultValue } from '../src';
+import { Property, Type, TypeManager, UseDefaultValue } from '../src';
 
 @Type()
 @UseDefaultValue()
@@ -11,14 +11,14 @@ describe('Use default value decorator', () =>
 {
     it('should enable use of default value for a type', () =>
     {
-        const userMetadata = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata = TypeManager.extractTypeMetadata(User);
 
         expect(userMetadata.typeOptions.useDefaultValue).toBeTrue();
     });
 
     it('should enable use of default value for a property', () =>
     {
-        const userMetadata     = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata     = TypeManager.extractTypeMetadata(User);
         const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
         expect(userNameMetadata).toBeDefined();

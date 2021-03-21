@@ -67,9 +67,9 @@ export class SerializerContext<TType> extends Metadata
      */
     public get customData(): CustomData
     {
-        const customData         = {};
-        const typeCustomData     = this.typeMetadata.customData;
-        const propertyCustomData = this.propertyMetadata?.customData;
+        const customData                = {};
+        const typeCustomData            = this.typeMetadata.customData;
+        const propertyCustomData        = this.propertyMetadata?.customData;
 
         if (!Fn.isNil(typeCustomData))
         {

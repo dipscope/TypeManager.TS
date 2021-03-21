@@ -1,4 +1,4 @@
-import { Inject, TypeArtisan } from '../src';
+import { Inject, TypeManager } from '../src';
 
 class User
 {
@@ -16,14 +16,14 @@ describe('Inject decorator', () =>
 {
     it('should register type metadata', () =>
     {
-        const userMetadata = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata = TypeManager.extractTypeMetadata(User);
 
         expect(userMetadata).toBeDefined();
     });
 
     it('should register inject metadata', () =>
     {
-        const userMetadata      = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata      = TypeManager.extractTypeMetadata(User);
         const userNameMetadata  = userMetadata.injectMetadataMap.get(0);
         const userEmailMetadata = userMetadata.injectMetadataMap.get(1);
         const userGroupMetadata = userMetadata.injectMetadataMap.get(2);

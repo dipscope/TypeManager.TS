@@ -1,4 +1,4 @@
-import { CustomData, Property, Type, TypeArtisan } from '../src';
+import { CustomData, Property, Type, TypeManager } from '../src';
 
 @Type()
 @CustomData({ rank: 1 })
@@ -11,14 +11,14 @@ describe('Custom data decorator', () =>
 {
     it('should register custom data for a type', () =>
     {
-        const userMetadata = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata = TypeManager.extractTypeMetadata(User);
 
         expect(userMetadata.typeOptions.customData?.rank).toBe(1);
     });
 
     it('should register custom data for a property', () =>
     {
-        const userMetadata     = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata     = TypeManager.extractTypeMetadata(User);
         const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
         expect(userNameMetadata).toBeDefined();

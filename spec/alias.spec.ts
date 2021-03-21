@@ -1,4 +1,4 @@
-import { Alias, Property, Type, TypeArtisan } from '../src';
+import { Alias, Property, Type, TypeManager } from '../src';
 
 @Type()
 @Alias('User:Alias')
@@ -11,14 +11,14 @@ describe('Alias decorator', () =>
 {
     it('should register alias for a type', () =>
     {
-        const userMetadata = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata = TypeManager.extractTypeMetadata(User);
 
         expect(userMetadata.typeOptions.alias).toBe('User:Alias');
     });
 
     it('should register alias for a property', () =>
     {
-        const userMetadata     = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata     = TypeManager.extractTypeMetadata(User);
         const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
         expect(userNameMetadata).toBeDefined();

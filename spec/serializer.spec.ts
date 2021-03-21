@@ -1,4 +1,4 @@
-import { Property, Serializer, Type, TypeArtisan } from '../src';
+import { Property, Serializer, Type, TypeManager } from '../src';
 import { StringSerializer, TypeSerializer } from '../src/serializers';
 
 @Type()
@@ -12,14 +12,14 @@ describe('Type serializer decorator', () =>
 {
     it('should register custom serializer for a type', () =>
     {
-        const userMetadata = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata = TypeManager.extractTypeMetadata(User);
 
         expect(userMetadata.typeOptions.serializer).toBeInstanceOf(TypeSerializer);
     });
 
     it('should register custom serializer for a property', () =>
     {
-        const userMetadata     = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata     = TypeManager.extractTypeMetadata(User);
         const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
         expect(userNameMetadata).toBeDefined();

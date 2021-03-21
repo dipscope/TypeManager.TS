@@ -1,4 +1,4 @@
-import { Property, TypeArtisan } from '../src';
+import { Property, TypeManager } from '../src';
 import { TypeSerializer } from '../src/serializers';
 
 class User
@@ -16,14 +16,14 @@ describe('Property decorator', () =>
 {
     it('should register type metadata', () =>
     {
-        const userMetadata = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata = TypeManager.extractTypeMetadata(User);
 
         expect(userMetadata).toBeDefined();
     });
 
     it('should register property metadata', () =>
     {
-        const userMetadata           = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata           = TypeManager.extractTypeMetadata(User);
         const userNameMetadata       = userMetadata.propertyMetadataMap.get('name');
         const userEmailMetadata      = userMetadata.propertyMetadataMap.get('email');
         const userGroupMetadata      = userMetadata.propertyMetadataMap.get('group');

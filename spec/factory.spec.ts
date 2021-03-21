@@ -1,4 +1,4 @@
-import { Factory, Property, Type, TypeArtisan } from '../src';
+import { Factory, Property, Type, TypeManager } from '../src';
 import { TypeFactory } from '../src/factories';
 
 @Type()
@@ -12,7 +12,7 @@ describe('Type factory decorator', () =>
 {
     it('should register custom factory for a type', () =>
     {
-        const userMetadata = TypeArtisan.extractTypeMetadata(User);
+        const userMetadata = TypeManager.extractTypeMetadata(User);
 
         expect(userMetadata.typeOptions.factory).toBeInstanceOf(TypeFactory);
     });
