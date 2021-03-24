@@ -180,7 +180,7 @@ export class TypeManager<TType>
      * 
      * @returns {TypeMetadata<TType>} Type metadata.
      */
-    public static declareTypeMetadata<TType>(typeFn: TypeFn<TType>): TypeMetadata<TType>
+    private static declareTypeMetadata<TType>(typeFn: TypeFn<TType>): TypeMetadata<TType>
     {
         let typeOptions = this.typeOptionsMap.get(typeFn);
 
@@ -258,7 +258,7 @@ export class TypeManager<TType>
      * 
      * @type {TypeMetadata<any>} Type metadata for provided type argument.
      */
-    public static resolveTypeMetadata<TType>(typeArgument: TypeArgument<TType>): TypeMetadata<TType>
+    private static resolveTypeMetadata<TType>(typeArgument: TypeArgument<TType>): TypeMetadata<TType>
     {
         const typeFn = Fn.isString(typeArgument) ? this.typeFnMap.get(typeArgument) : (Fn.isArrowFunction(typeArgument) ? typeArgument() : typeArgument);
 
@@ -347,7 +347,7 @@ export class TypeManager<TType>
      * 
      * @returns {SerializerContext<TType>} Serializer context.
      */
-    public static defineSerializerContext<TType>(typeFn: TypeFn<TType>, x: any, genericArguments?: GenericArgument<any>[]): SerializerContext<TType>
+    private static defineSerializerContext<TType>(typeFn: TypeFn<TType>, x: any, genericArguments?: GenericArgument<any>[]): SerializerContext<TType>
     {
         return new SerializerContext({
             $:                    x,
@@ -443,7 +443,7 @@ export class TypeManager<TType>
      * 
      * @returns {TypeMetadata<TType>} Type metadata.
      */
-    public declareTypeMetadata<TType>(typeFn: TypeFn<TType>): TypeMetadata<TType>
+    private declareTypeMetadata<TType>(typeFn: TypeFn<TType>): TypeMetadata<TType>
     {
         let typeOptions = this.typeOptionsMap.get(typeFn);
 
@@ -512,7 +512,7 @@ export class TypeManager<TType>
      * 
      * @type {TypeMetadata<any>} Type metadata for provided type argument.
      */
-    public resolveTypeMetadata<TType>(typeArgument: TypeArgument<TType>): TypeMetadata<TType>
+    private resolveTypeMetadata<TType>(typeArgument: TypeArgument<TType>): TypeMetadata<TType>
     {
         const typeFn = Fn.isString(typeArgument) ? this.typeFnMap.get(typeArgument) : (Fn.isArrowFunction(typeArgument) ? typeArgument() : typeArgument);
 
@@ -639,7 +639,7 @@ export class TypeManager<TType>
      * 
      * @returns {SerializerContext<any>} Serializer context.
      */
-    public defineSerializerContext(x: any, genericArguments?: GenericArgument<any>[]): SerializerContext<TType>
+    private defineSerializerContext(x: any, genericArguments?: GenericArgument<any>[]): SerializerContext<TType>
     {
         return new SerializerContext({
             $:                    x,

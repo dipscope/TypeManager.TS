@@ -8,8 +8,8 @@ import { TypeFn } from './type-fn';
 export interface InjectOptions<TType>
 {
     /**
-     * Parameter key to inject within a type context. If specified
-     * type constructor will be ignored.
+     * Parameter key to inject within a type context. If specified then
+     * type function will be ignored.
      * 
      * @type {string}
      */

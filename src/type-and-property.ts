@@ -17,13 +17,11 @@ export function TypeAndProperty<TType>(x: TypeOptions<TType> & PropertyOptions<T
 {
     return function (target: any, propertyName?: string | symbol): any
     {
-        const usedOnClass = Fn.isNil(propertyName);
-
-        if (usedOnClass)
+        if (Fn.isNil(propertyName))
         {
             return Type(x)(target);
         }
 
-        return Property(x)(target, propertyName!);
+        return Property(x)(target, propertyName);
     }
 }

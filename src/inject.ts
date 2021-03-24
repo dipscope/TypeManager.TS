@@ -1,17 +1,16 @@
 import { Fn } from './core/fn';
 import { InjectOptions } from './core/inject-options';
-import { TypeCtor } from './core/type-ctor';
 import { TypeFn } from './core/type-fn';
 import { TypeManager } from './type-manager';
 
 /**
  * Inject decorator.
  * 
- * @param {TypeCtor<TType>|InjectOptions<TType>|string} x Type constructor, inject options or parameter key from type context.
+ * @param {TypeFn<TType>|InjectOptions<TType>|string} x Type function, inject options or parameter key from type context.
  * 
  * @returns {ParameterDecorator} Parameter decorator.
  */
-export function Inject<TType>(x: TypeCtor<TType> | InjectOptions<TType> | string): ParameterDecorator
+export function Inject<TType>(x: TypeFn<TType> | InjectOptions<TType> | string): ParameterDecorator
 {
     const injectOptions = (Fn.isObject(x) ? x : {}) as InjectOptions<TType>;
 

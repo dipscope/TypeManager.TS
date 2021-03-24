@@ -122,7 +122,7 @@ export class TypeMetadata<TType> extends Metadata
         this.parentTypeMetadata = parentTypeMetadata;
 
         this.deriveParentTypeMetadataProperties();
-        this.provideDiscriminant(this.typeFn, this.typeName);
+        this.configureDiscriminant(this.discriminant);
         this.configurePropertyMetadataMap(this.propertyOptionsMap);
         this.configureInjectMetadataMap(this.injectOptionsMap);
 
@@ -568,11 +568,6 @@ export class TypeMetadata<TType> extends Metadata
             this.typeOptions.defaultValue = typeOptions.defaultValue;
         }
 
-        if (!Fn.isUndefined(typeOptions.discriminant))
-        {
-            this.configureDiscriminant(typeOptions.discriminant);
-        }
-
         if (!Fn.isUndefined(typeOptions.discriminator)) 
         {
             this.typeOptions.discriminator = typeOptions.discriminator;
@@ -631,6 +626,11 @@ export class TypeMetadata<TType> extends Metadata
         if (!Fn.isUndefined(typeOptions.useImplicitConversion)) 
         {
             this.typeOptions.useImplicitConversion = typeOptions.useImplicitConversion;
+        }
+
+        if (!Fn.isUndefined(typeOptions.discriminant))
+        {
+            this.configureDiscriminant(typeOptions.discriminant);
         }
 
         if (!Fn.isUndefined(typeOptions.propertyOptionsMap))

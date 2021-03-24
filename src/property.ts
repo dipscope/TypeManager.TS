@@ -54,7 +54,7 @@ export function Property<TType>(
     {
         if (Fn.isCtor(target))
         {
-            throw new Error(`${Fn.nameOf(target)}.${String(propertyName)}: property decorator cannot be applied to a static property!`);
+            throw new Error(`${Fn.nameOf(target)}.${String(propertyName)}: property decorator cannot be applied to a static member!`);
         }
 
         if (Fn.isSymbol(propertyName))
@@ -62,9 +62,9 @@ export function Property<TType>(
             throw new Error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a symbol!`);
         }
 
-        if (Fn.isFunction(target[propertyName])) 
+        if (Fn.isFunction(target[propertyName]))
         {
-            throw new Error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a method property!`);
+            throw new Error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a method!`);
         }
 
         TypeManager.defineTypeMetadata(target.constructor).configurePropertyMetadata(propertyName, propertyOptions);
