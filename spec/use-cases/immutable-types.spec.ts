@@ -3,8 +3,8 @@ import { Alias, Inject, Property, Type, TypeManager } from '../../src';
 @Type()
 class UserStatus
 {
-    @Property(() => String) public readonly name: string;
-    @Property(() => String) @Alias('label') public readonly title: string;
+    @Property(String) public readonly name: string;
+    @Property(String) @Alias('label') public readonly title: string;
 
     public constructor(@Inject('name') name: string, @Inject('label') title: string)
     {
@@ -18,8 +18,8 @@ class UserStatus
 @Type()
 class User
 {
-    @Property(() => String) public readonly name: string;
-    @Property(() => UserStatus) public readonly userStatus: UserStatus;
+    @Property(String) public readonly name: string;
+    @Property(UserStatus) public readonly userStatus: UserStatus;
 
     public constructor(@Inject('name') name: string, @Inject('userStatus') userStatus: UserStatus)
     {
@@ -34,9 +34,8 @@ describe('Immutable types', () =>
 {
     it('should inject data from JSON context', () =>
     {
-        const userStatusManager = new TypeManager(UserStatus);
-        const userStatusJson    = { name: 'Active', label: 'Active user status' };
-        const userStatus        = userStatusManager.deserialize(userStatusJson);
+        const userStatusJson = { name: 'Active', label: 'Active user status' };
+        const userStatus     = TypeManager.deserialize(UserStatus, userStatusJson);
         
         expect(userStatus).toBeInstanceOf(UserStatus);
         expect(userStatus.name).toBe('Active');
@@ -45,9 +44,8 @@ describe('Immutable types', () =>
 
     it('should inject deserialized JSON data when property metadata is known', () =>
     {
-        const userManager = new TypeManager(User);
-        const userJson    = { name: 'Dmitry', userStatus: { name: 'Active', label: 'Active user status' } };
-        const user        = userManager.deserialize(userJson);
+        const userJson = { name: 'Dmitry', userStatus: { name: 'Active', label: 'Active user status' } };
+        const user     = TypeManager.deserialize(User, userJson);
 
         expect(user).toBeInstanceOf(User);
         expect(user.name).toBe('Dmitry');

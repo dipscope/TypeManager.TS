@@ -70,7 +70,6 @@ describe('Polymorphic types', () =>
             preserveDiscriminator: true 
         });
 
-        const userManager               = new TypeManager(User);
         const user                      = new User();
         const defaultActiveUserStatus   = new DefaultActiveUserStatus();
         const defaultInactiveUserStatus = new DefaultInactiveUserStatus();
@@ -86,7 +85,7 @@ describe('Polymorphic types', () =>
         user.customUserStatuses.push(customInactiveUserStatus);
         user.customUserStatuses.push(customBlokedUserStatus);
 
-        const result = userManager.serialize(user);
+        const result = TypeManager.serialize(User, user);
 
         expect(result).toBeInstanceOf(Object);
         expect(result.__type__).toBe('User');
@@ -104,8 +103,7 @@ describe('Polymorphic types', () =>
             preserveDiscriminator: true 
         });
 
-        const userManager        = new TypeManager(User);
-        const user               = { __type__: 'User', defaultUserStatuses: [] as any[], customUserStatuses: [] as any[] };
+        const user                      = { __type__: 'User', defaultUserStatuses: [] as Record<string, any>[], customUserStatuses: [] as Record<string, any>[] };
         const defaultActiveUserStatus   = { __type__: 'DefaultActiveUserStatus' };
         const defaultInactiveUserStatus = { __type__: 'DefaultInactiveUserStatus' };
         const defaultBlokedUserStatus   = { __type__: 'DefaultBlokedUserStatus' };
@@ -120,7 +118,7 @@ describe('Polymorphic types', () =>
         user.customUserStatuses.push(customInactiveUserStatus);
         user.customUserStatuses.push(customBlokedUserStatus);
 
-        const result = userManager.deserialize(user);
+        const result = TypeManager.deserialize(User, user);
 
         expect(result).toBeInstanceOf(User);
         expect(result.defaultUserStatuses[0]).toBeInstanceOf(DefaultActiveUserStatus);

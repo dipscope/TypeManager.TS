@@ -47,8 +47,10 @@ describe('Type manager', () =>
     afterEach(() =>
     {
         TypeManager.configureTypeOptionsBase({
-            useDefaultValue: false,
-            useImplicitConversion: false
+            preserveDiscriminator: false,
+            useDefaultValue:       false,
+            useImplicitConversion: false,
+            discriminator:         '__type__'
         });
     });
 
@@ -212,5 +214,66 @@ describe('Type manager', () =>
 
         expect(objectD).toBeInstanceOf(String);
         expect(objectD).toBe(objectB);
+    });
+
+    it('should preserve provided configuration', () =>
+    {
+        const groupManager = new TypeManager(Group);
+
+        groupManager.configureTypeOptionsBase({
+            preserveDiscriminator: true,
+            useImplicitConversion: true,
+            discriminator:        '__typename__'
+        });
+
+        groupManager.configureTypeOptions(Group, {
+            defaultValue: () => new Group()
+        });
+
+        TypeManager.configureTypeOptionsBase({
+            preserveDiscriminator: true,
+            discriminator:         '__typestatic__'
+        });
+
+        const group = new Group();
+
+        group.title = 'a';
+
+        const objectA = groupManager.serialize(group);
+        const objectB = TypeManager.serialize(Group, group);
+
+        expect(objectA).toBeInstanceOf(Object);
+        expect(objectA.__typename__).toBeDefined();
+        expect(objectA.title).toBe('a');
+
+        expect(objectB).toBeInstanceOf(Object);
+        expect(objectB.__typestatic__).toBeDefined();
+        expect(objectB.title).toBe('a');
+    });
+
+    it('should not override static configuration', () =>
+    {
+        const groupManager  = new TypeManager(Group);
+        const groupMetadata = TypeManager.extractTypeMetadata(Group); 
+
+        groupManager.configureTypeOptionsBase({
+            preserveDiscriminator: true,
+            useImplicitConversion: true,
+            discriminator:        '__typename__'
+        });
+
+        groupManager.configureTypeOptions(Group, {
+            defaultValue: () => new Group()
+        });
+
+        expect(groupManager.typeMetadata.typeOptionsBase.preserveDiscriminator).toBeTrue();
+        expect(groupManager.typeMetadata.typeOptionsBase.useImplicitConversion).toBeTrue();
+        expect(groupManager.typeMetadata.typeOptionsBase.discriminator).toBe('__typename__');
+        expect(groupManager.typeMetadata.typeOptions.defaultValue).toBeDefined();
+
+        expect(groupMetadata.typeOptionsBase.preserveDiscriminator).toBeFalse();
+        expect(groupMetadata.typeOptionsBase.useImplicitConversion).toBeFalse();
+        expect(groupMetadata.typeOptionsBase.discriminator).toBe('__type__');
+        expect(groupMetadata.typeOptions.defaultValue).toBeUndefined();
     });
 });

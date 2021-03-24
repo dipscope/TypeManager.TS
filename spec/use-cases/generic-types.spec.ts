@@ -27,14 +27,13 @@ describe('Generic types', () =>
 {
     it('should be properly serialized', () =>
     {
-        const userManager = new TypeManager(User);
-        const userX       = new User();
-        const userY       = new User();
-        const messageX    = new Message();
-        const messageY    = new Message();
-        const groupX      = new Group();
-        const groupY      = new Group();
-        const map         = new Map<number, Map<string, boolean>>();
+        const userX    = new User();
+        const userY    = new User();
+        const messageX = new Message();
+        const messageY = new Message();
+        const groupX   = new Group();
+        const groupY   = new Group();
+        const map      = new Map<number, Map<string, boolean>>();
         
         userX.name     = 'userX';
         userY.name     = 'userY';
@@ -65,7 +64,7 @@ describe('Generic types', () =>
 
         messageY.map = map;
 
-        const result = userManager.serialize(userX);
+        const result = TypeManager.serialize(User, userX);
         
         expect(result).toBeInstanceOf(Object);
         expect(result.name).toBe('userX');
@@ -113,14 +112,13 @@ describe('Generic types', () =>
 
     it('should be properly deserialized', () =>
     {
-        const userManager = new TypeManager(User);
-        const userX       = {} as any;
-        const userY       = {} as any;
-        const messageX    = {} as any;
-        const messageY    = {} as any;
-        const groupX      = {} as any;
-        const groupY      = {} as any;
-        const map         = [] as any[];
+        const userX    = {} as Record<string, any>;
+        const userY    = {} as Record<string, any>;
+        const messageX = {} as Record<string, any>;
+        const messageY = {} as Record<string, any>;
+        const groupX   = {} as Record<string, any>;
+        const groupY   = {} as Record<string, any>;
+        const map      = [] as Record<string, any>[];
         
         userX.name     = 'userX';
         userY.name     = 'userY';
@@ -151,7 +149,7 @@ describe('Generic types', () =>
 
         messageY.map = map;
 
-        const result = userManager.deserialize(userX);
+        const result = TypeManager.deserialize(User, userX);
         
         expect(result).toBeInstanceOf(User);
         expect(result.name).toBe('userX');

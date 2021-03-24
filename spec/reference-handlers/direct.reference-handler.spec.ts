@@ -27,32 +27,30 @@ describe('Direct reference handler', () =>
 {
     it('should map circular types to circular objects', () =>
     {
-        const typeManager = new TypeManager(User);
-        const user        = new User();
-        const company     = new Company();
-        const message     = new Message();
+        const user    = new User();
+        const company = new Company();
+        const message = new Message();
 
         user.company    = company;
         company.message = message;
         message.user    = user;
 
-        const result = typeManager.serialize(user);
+        const result = TypeManager.serialize(User, user);
         
         expect(result).toBeInstanceOf(Object);
-        expect(result.company).toBeInstanceOf(Object);
-        expect(result.company.message).toBeInstanceOf(Object);
-        expect(result.company.message.user).toBeInstanceOf(Object);
-        expect(result.company.message.user).toBe(result);
+        expect(result?.company).toBeInstanceOf(Object);
+        expect(result?.company?.message).toBeInstanceOf(Object);
+        expect(result?.company?.message?.user).toBeInstanceOf(Object);
+        expect(result?.company?.message?.user).toBe(result);
     });
 
     it('should map circular objects to circular types', () =>
     {
-        const typeManager = new TypeManager(User);
-        const value       = { company: { message: { user: {} } } };
+        const value = { company: { message: { user: {} } } };
 
         value.company.message.user = value;
 
-        const result = typeManager.deserialize(value);
+        const result = TypeManager.deserialize(User, value);
         
         expect(result).toBeInstanceOf(User);
         expect(result?.company).toBeInstanceOf(Company);
@@ -63,15 +61,13 @@ describe('Direct reference handler', () =>
 
     it('should map circular type array to circular object array', () =>
     {
-        const typeManager = new TypeManager(User);
-
         const user  = new User();
         const array = [] as any[];
 
         array[0] = user;
         array[1] = array;
         
-        const result = typeManager.serialize(array);
+        const result = TypeManager.serialize(User, array);
 
         expect(result[0]).toBeInstanceOf(Object);
         expect(result[1]).toBeInstanceOf(Object);
@@ -80,12 +76,11 @@ describe('Direct reference handler', () =>
 
     it('should map circular object array to circular type array', () =>
     {
-        const typeManager = new TypeManager(User);
-        const value       = [{}];
+        const value = [{}];
 
         value[1] = value;
 
-        const result = typeManager.deserialize(value) as any[];
+        const result = TypeManager.deserialize(User, value) as Record<string, any>[];
         
         expect(result).toBeInstanceOf(Array);
         expect(result[0]).toBeInstanceOf(User);

@@ -19,7 +19,7 @@ enum UserPriorityTextual
 @Injectable()
 class UserService
 {
-    public prop?: string;
+    public property?: string;
 }
 
 @Type()
@@ -32,6 +32,8 @@ class UserStatus
 @Type()
 class User
 {
+    private _email?: string;
+    
     @Property() public name?: string;
     @Property() public userPriorityNumeric?: UserPriorityNumeric;
     @Property() public userPriorityTextual?: UserPriorityTextual;
@@ -41,16 +43,28 @@ class User
     {
         return;
     }
+
+    @Property() public get email(): string
+    {
+        return this._email!;
+    }
+
+    public set email(email: string)
+    {
+        this._email = email;
+
+        return;
+    }
 }
 
 describe('Reflect metadata', () =>
 {
     it('should implicitly register property and constructor argument types', () =>
     {
-        const userManager  = new TypeManager(User);
-        const userMetadata = userManager.typeMetadata;
+        const userMetadata = TypeManager.extractTypeMetadata(User);
         
         expect(userMetadata.propertyMetadataMap.get('name')!.typeMetadata!.typeFn).toBe(String);
+        expect(userMetadata.propertyMetadataMap.get('email')!.typeMetadata!.typeFn).toBe(String);
         expect(userMetadata.propertyMetadataMap.get('userPriorityNumeric')!.typeMetadata!.typeFn).toBe(Number);
         expect(userMetadata.propertyMetadataMap.get('userPriorityTextual')!.typeMetadata!.typeFn).toBe(String);
         expect(userMetadata.propertyMetadataMap.get('userStatuses')!.typeMetadata!.typeFn).toBe(Array);
@@ -59,15 +73,17 @@ describe('Reflect metadata', () =>
 
         const userJson = { 
             name: 'Dmitry', 
+            email: 'dmitry@mail.com',
             userPriorityNumeric: 2, 
             userPriorityTextual: 'Medium', 
             userStatuses: [{ name: 'Active', title: 'Active user status' }] 
         };
 
-        const user = userManager.deserialize(userJson);
+        const user = TypeManager.deserialize(User, userJson);
 
         expect(user).toBeInstanceOf(User);
         expect(user.name).toBe('Dmitry');
+        expect(user.email).toBe('dmitry@mail.com');
         expect(user.userPriorityNumeric).toBe(UserPriorityNumeric.High);
         expect(user.userPriorityTextual).toBe(UserPriorityTextual.Medium);
         expect(user.userStatuses).toBeInstanceOf(Array);

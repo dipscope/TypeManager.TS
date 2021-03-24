@@ -12,7 +12,10 @@ import { TypeSerializer } from '../src/serializers';
     injectable: true,
     factory: new TypeFactory(),
     injector: new SingletonInjector(),
-    serializer: new TypeSerializer()
+    serializer: new TypeSerializer(),
+    discriminator: 'UserDiscriminator',
+    discriminant: 'UserDiscriminant',
+    preserveDiscriminator: true
 })
 class User
 {
@@ -37,6 +40,9 @@ describe('Type decorator', () =>
         expect(userMetadata.typeOptions.factory).toBeInstanceOf(TypeFactory);
         expect(userMetadata.typeOptions.injector).toBeInstanceOf(SingletonInjector);
         expect(userMetadata.typeOptions.serializer).toBeInstanceOf(TypeSerializer);
+        expect(userMetadata.typeOptions.discriminator).toBe('UserDiscriminator');
+        expect(userMetadata.typeOptions.discriminant).toBe('UserDiscriminant');
+        expect(userMetadata.typeOptions.preserveDiscriminator).toBeTrue();
 
         expect(typeFn).toBeDefined();
         expect(typeFn).toBe(userMetadata.typeFn);

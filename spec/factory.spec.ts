@@ -8,7 +8,7 @@ class User
     @Property() public name?: string;
 }
 
-describe('Type factory decorator', () =>
+describe('Factory decorator', () =>
 {
     it('should register custom factory for a type', () =>
     {

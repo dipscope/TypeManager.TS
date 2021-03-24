@@ -27,16 +27,15 @@ describe('Path reference handler', () =>
 {
     it('should map circular types to reference objects', () =>
     {
-        const typeManager = new TypeManager(User);
-        const user        = new User();
-        const company     = new Company();
-        const message     = new Message();
+        const user    = new User();
+        const company = new Company();
+        const message = new Message();
 
         user.company    = company;
         company.message = message;
         message.user    = user;
 
-        const result = typeManager.serialize(user);
+        const result = TypeManager.serialize(User, user);
         
         expect(result).toBeInstanceOf(Object);
         expect(result.company).toBeInstanceOf(Object);
@@ -47,9 +46,8 @@ describe('Path reference handler', () =>
 
     it('should map reference objects to circular types', () =>
     {
-        const typeManager = new TypeManager(User);
-        const value       = { company: { message: { user: { $ref: '$' } } } };
-        const result      = typeManager.deserialize(value);
+        const value  = { company: { message: { user: { $ref: '$' } } } };
+        const result = TypeManager.deserialize(User, value);
         
         expect(result).toBeInstanceOf(User);
         expect(result?.company).toBeInstanceOf(Company);

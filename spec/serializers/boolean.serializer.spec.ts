@@ -5,70 +5,63 @@ describe('Boolean serializer', () =>
     afterEach(() =>
     {
         TypeManager.configureTypeOptionsBase({
-            useDefaultValue: false,
+            useDefaultValue:       false,
             useImplicitConversion: false
         });
     });
 
     it('should serialize undefined to undefined', () =>
     {
-        const typeManager = new TypeManager(Boolean);
-        const value       = undefined;
-        const result      = typeManager.serialize(value);
+        const value  = undefined;
+        const result = TypeManager.serialize(Boolean, value);
         
         expect(result).toBeUndefined();
     });
 
     it('should deserialize undefined to undefined', () =>
     {
-        const typeManager = new TypeManager(Boolean);
-        const value       = undefined;
-        const result      = typeManager.deserialize(value);
+        const value  = undefined;
+        const result = TypeManager.deserialize(Boolean, value);
         
         expect(result).toBeUndefined();
     });
 
     it('should serialize null to null', () =>
     {
-        const typeManager = new TypeManager(Boolean);
-        const value       = null;
-        const result      = typeManager.serialize(value);
+        const value  = null;
+        const result = TypeManager.serialize(Boolean, value);
         
         expect(result).toBeNull();
     });
 
     it('should deserialize null to null', () =>
     {
-        const typeManager = new TypeManager(Boolean);
-        const value       = null;
-        const result      = typeManager.deserialize(value);
+        const value  = null;
+        const result = TypeManager.deserialize(Boolean, value);
         
         expect(result).toBeNull();
     });
 
     it('should serialize boolean to boolean', () =>
     {
-        const typeManager = new TypeManager(Boolean);
-        const value       = true;
-        const result      = typeManager.serialize(value);
+        const value  = true;
+        const result = TypeManager.serialize(Boolean, value);
         
         expect(result).toBeTrue();
     });
 
     it('should deserialize boolean to boolean', () =>
     {
-        const typeManager = new TypeManager(Boolean);
-        const value       = true;
-        const result      = typeManager.deserialize(value);
+        const value  = true;
+        const result = TypeManager.deserialize(Boolean, value);
         
         expect(result).toBeTrue();
     });
 
     it('should serialize boolean array to boolean array', () =>
     {
-        const typeManager = new TypeManager(Boolean);
-        const value       = [true, false];
-        const result      = typeManager.serialize(value);
+        const value  = [true, false];
+        const result = TypeManager.serialize(Boolean, value);
         
         expect(result).toBeInstanceOf(Array);
         expect(result[0]).toBeTrue();
@@ -77,9 +70,8 @@ describe('Boolean serializer', () =>
 
     it('should deserialize boolean array to boolean array', () =>
     {
-        const typeManager = new TypeManager(Boolean);
-        const value       = [true, false];
-        const result      = typeManager.deserialize(value);
+        const value  = [true, false];
+        const result = TypeManager.deserialize(Boolean, value);
         
         expect(result).toBeInstanceOf(Array);
         expect(result[0]).toBeTrue();
@@ -88,11 +80,12 @@ describe('Boolean serializer', () =>
 
     it('should serialize suitable types to boolean when implicit conversion is enabled', () =>
     {
-        TypeManager.configureTypeOptionsBase({ useImplicitConversion: true });
+        TypeManager.configureTypeOptionsBase({ 
+            useImplicitConversion: true 
+        });
 
-        const typeManager = new TypeManager(Boolean);
-        const value       = ['true', 'false', '1', '0', 1, 0] as any[];
-        const result      = typeManager.serialize(value);
+        const value  = ['true', 'false', '1', '0', 1, 0] as any[];
+        const result = TypeManager.serialize(Boolean, value);
         
         expect(result).toBeInstanceOf(Array);
         expect(result[0]).toBeTrue();
@@ -105,11 +98,12 @@ describe('Boolean serializer', () =>
 
     it('should deserialize suitable types to boolean when implicit conversion is enabled', () =>
     {
-        TypeManager.configureTypeOptionsBase({ useImplicitConversion: true });
+        TypeManager.configureTypeOptionsBase({ 
+            useImplicitConversion: true 
+        });
 
-        const typeManager = new TypeManager(Boolean);
-        const value       = ['true', 'false', '1', '0', 1, 0] as any[];
-        const result      = typeManager.deserialize(value);
+        const value  = ['true', 'false', '1', '0', 1, 0] as any[];
+        const result = TypeManager.deserialize(Boolean, value);
         
         expect(result).toBeInstanceOf(Array);
         expect(result[0]).toBeTrue();

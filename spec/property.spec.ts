@@ -4,7 +4,7 @@ import { TypeSerializer } from '../src/serializers';
 class User
 {
     @Property() public name?: string;
-    @Property('String', { alias: 'my@mail.ru' }) public email?: string;
+    @Property({ typeArgument: 'String', alias: 'my@mail.ru' }) public email?: string;
     @Property(() => String, { serializable: true }) public group?: string;
     @Property({ deserializable: true }) public rank?: number;
     @Property('Number', { defaultValue: 10 }) public priority?: number;

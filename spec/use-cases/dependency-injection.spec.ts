@@ -3,7 +3,7 @@ import { Inject, Injectable, Type, TypeManager } from '../../src';
 @Injectable()
 class UserService
 {
-    public prop?: string;
+    public property?: string;
 }
 
 @Type()
@@ -21,10 +21,9 @@ class User
 
 describe('Dependency injection', () =>
 {
-    it('should init services and provide them to the types', () =>
+    it('should init services and provide them to types', () =>
     {
-        const userManager = new TypeManager(User);
-        const user        = userManager.deserialize({});
+        const user = TypeManager.deserialize(User, {});
         
         expect(user).toBeInstanceOf(User);
         expect(user.userService).toBeInstanceOf(UserService);

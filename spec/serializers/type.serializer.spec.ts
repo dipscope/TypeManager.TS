@@ -28,59 +28,54 @@ describe('Type serializer', () =>
     afterEach(() =>
     {
         TypeManager.configureTypeOptionsBase({
-            useDefaultValue: false,
+            useDefaultValue:       false,
             useImplicitConversion: false
         });
     });
 
     it('should serialize undefined to undefined', () =>
     {
-        const typeManager = new TypeManager(User);
-        const value       = undefined;
-        const result      = typeManager.serialize(value);
+        const value  = undefined;
+        const result = TypeManager.serialize(User, value);
         
         expect(result).toBeUndefined();
     });
 
     it('should deserialize undefined to undefined', () =>
     {
-        const typeManager = new TypeManager(User);
-        const value       = undefined;
-        const result      = typeManager.deserialize(value);
+        const value  = undefined;
+        const result = TypeManager.deserialize(User, value);
         
         expect(result).toBeUndefined();
     });
 
     it('should serialize null to null', () =>
     {
-        const typeManager = new TypeManager(User);
-        const value       = null;
-        const result      = typeManager.serialize(value);
+        const value  = null;
+        const result = TypeManager.serialize(User, value);
         
         expect(result).toBeNull();
     });
 
     it('should deserialize null to null', () =>
     {
-        const typeManager = new TypeManager(User);
-        const value       = null;
-        const result      = typeManager.deserialize(value);
+        const value  = null;
+        const result = TypeManager.deserialize(User, value);
         
         expect(result).toBeNull();
     });
 
     it('should serialize circular types to circular objects', () =>
     {
-        const typeManager = new TypeManager(User);
-        const user        = new User();
-        const company     = new Company();
-        const message     = new Message();
+        const user    = new User();
+        const company = new Company();
+        const message = new Message();
 
         user.company    = company;
         company.message = message;
         message.user    = user;
 
-        const result = typeManager.serialize(user);
+        const result = TypeManager.serialize(User, user);
         
         expect(result).toBeInstanceOf(Object);
         expect(result.company).toBeInstanceOf(Object);
@@ -91,12 +86,11 @@ describe('Type serializer', () =>
 
     it('should deserialize circular objects to circular types', () =>
     {
-        const typeManager = new TypeManager(User);
-        const value       = { company: { message: { user: {} } } };
+        const value = { company: { message: { user: {} } } };
 
         value.company.message.user = value;
 
-        const result = typeManager.deserialize(value);
+        const result = TypeManager.deserialize(User, value);
         
         expect(result).toBeInstanceOf(User);
         expect(result?.company).toBeInstanceOf(Company);
@@ -107,15 +101,13 @@ describe('Type serializer', () =>
 
     it('should serialize circular type array to circular object array', () =>
     {
-        const typeManager = new TypeManager(User);
-
         const user  = new User();
         const array = [] as any[];
 
         array[0] = user;
         array[1] = array;
         
-        const result = typeManager.serialize(array);
+        const result = TypeManager.serialize(User, array);
 
         expect(result[0]).toBeInstanceOf(Object);
         expect(result[1]).toBeInstanceOf(Object);
@@ -124,12 +116,11 @@ describe('Type serializer', () =>
 
     it('should deserialize circular object array to circular type array', () =>
     {
-        const typeManager = new TypeManager(User);
-        const value       = [{}];
+        const value = [{}];
 
         value[1] = value;
 
-        const result = typeManager.deserialize(value) as any[];
+        const result = TypeManager.deserialize(User, value) as Record<string, any>[];
         
         expect(result).toBeInstanceOf(Array);
         expect(result[0]).toBeInstanceOf(User);

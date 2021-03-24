@@ -7,24 +7,24 @@ import {
 @NamingConvention(new SnakeCaseNamingConvention())
 class UserStatus
 {
-    @Property(() => String) public createdAt?: string;
-    @Property(() => String) public updatedAt?: string;
+    @Property(String) public createdAt?: string;
+    @Property(String) public updatedAt?: string;
 }
 
 @Type()
 @NamingConvention(new SnakeUpperCaseNamingConvention())
 class User
 {
-    @Property(() => String) public createdAt?: string;
-    @Property(() => UserStatus) @NamingConvention(new CamelCaseNamingConvention()) public userStatus?: UserStatus;
+    @Property(String) public createdAt?: string;
+    @Property(UserStatus) @NamingConvention(new CamelCaseNamingConvention()) public userStatus?: UserStatus;
 }
 
 describe('Naming conventions', () =>
 {
     it('should properly handle names during serialization and deserialization', () =>
     {
-        const userManager = new TypeManager(User);
-        const user        = userManager.deserialize({ CREATED_AT: '1', userStatus: { created_at: '2', updated_at: '3' }})
+        const userJson = { CREATED_AT: '1', userStatus: { created_at: '2', updated_at: '3' }};
+        const user     = TypeManager.deserialize(User, userJson)
         
         expect(user).toBeInstanceOf(User);
         expect(user.createdAt).toBe('1');
@@ -32,7 +32,7 @@ describe('Naming conventions', () =>
         expect(user.userStatus?.createdAt).toBe('2');
         expect(user.userStatus?.updatedAt).toBe('3');
 
-        const object = userManager.serialize(user);
+        const object = TypeManager.serialize(User, user);
 
         expect(object).toBeInstanceOf(Object);
         expect(object.CREATED_AT).toBe('1');

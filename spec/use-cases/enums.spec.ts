@@ -25,13 +25,12 @@ describe('Enums', () =>
 {
     it('should be properly serialized', () =>
     {
-        const userManager = new TypeManager(User);
-        const user        = new User();
+        const user = new User();
         
         user.userPriorityNumeric = UserPriorityNumeric.High;
         user.userPriorityTextual = UserPriorityTextual.Medium;
 
-        const result = userManager.serialize(user);
+        const result = TypeManager.serialize(User, user);
 
         expect(result).toBeInstanceOf(Object);
         expect(result.userPriorityNumeric).toBe(2);
@@ -40,10 +39,12 @@ describe('Enums', () =>
 
     it('should be properly deserialized', () =>
     {
-        const userManager = new TypeManager(User);
-        const user        = { userPriorityNumeric: 2, userPriorityTextual: 'Medium' };
+        const user = {} as Record<string, any>;
 
-        const result = userManager.deserialize(user);
+        user.userPriorityNumeric = 2; 
+        user.userPriorityTextual = 'Medium';
+
+        const result = TypeManager.deserialize(User, user);
 
         expect(result).toBeInstanceOf(User);
         expect(result.userPriorityNumeric).toBe(UserPriorityNumeric.High);
