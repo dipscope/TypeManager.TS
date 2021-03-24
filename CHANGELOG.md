@@ -5,22 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [4.0.0] - 2021-03-**
+## [4.0.0] - 2021-03-24
 
 ### Added
 
-- Enums support.
 - Polymorphic types support.
-- Runtime configuration support.
+- Enums support.
+- Accessors support.
+- Multiple runtime configurations support.
 
 ### Changed
 
-- Newly introduced `TypeFn` is now used instead of `TypeCtor` in configure methods due to adding polymorphic type support.
+- Newly introduced `TypeFn` is now used instead of `TypeCtor` in configure methods due to adding polymorphic types support.
 - Static methods of `TypeManager` now return static instance to enable method chaining.
 
 ### Migrating from previous version
 
-- Rename `TypeCtor` to `TypeFn` and related properties if you are using declarative configuration.
+- Replace `TypeCtor` with `TypeFn` if you are using declarative configuration.
 
 ## [3.0.0] - 2021-03-06
 
