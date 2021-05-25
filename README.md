@@ -1992,7 +1992,7 @@ See information about breaking changes, release notes and migration steps betwee
 
 Thanks for checking this package. If you like it please give repo a star.
 
-Have any improvements in mind? Feel free to create an issue.
+Feel free to create an issue if you find any mistakes in documentation or have any improvements in mind.
 
 I wish you good luck and happy coding! ;)
 
