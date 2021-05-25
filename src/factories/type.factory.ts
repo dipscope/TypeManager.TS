@@ -21,7 +21,7 @@ export class TypeFactory implements Factory
     public build<TType>(typeContext: TypeContext<TType>, injector: Injector): TType
     {
         const typeMetadata = typeContext.typeMetadata;
-        const typeCtor     = Fn.isCtor(typeMetadata.typeFn) ? typeMetadata.typeFn : undefined;
+        const typeCtor = Fn.isCtor(typeMetadata.typeFn) ? typeMetadata.typeFn : undefined;
 
         if (Fn.isNil(typeCtor))
         {
@@ -29,7 +29,7 @@ export class TypeFactory implements Factory
         }
         
         const injectedKeys = [];
-        const args         = new Array<any>(typeCtor.length).fill(undefined);
+        const args = new Array<any>(typeCtor.length).fill(undefined);
 
         for (const injectMetadata of typeMetadata.injectMetadataMap.values())
         {

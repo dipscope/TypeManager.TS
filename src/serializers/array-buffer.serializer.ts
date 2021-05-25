@@ -33,7 +33,7 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
         if (Fn.isArrayBuffer(x))
         {
             const arrayBufferView = new Uint16Array(x);
-            const charCodeArray   = Array.from(arrayBufferView);
+            const charCodeArray = Array.from(arrayBufferView);
 
             return charCodeArray.map(c => String.fromCharCode(c)).join('');
         }
@@ -68,7 +68,7 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
 
         if (Fn.isString(x))
         {
-            const arrayBuffer     = new ArrayBuffer(x.length * 2);
+            const arrayBuffer = new ArrayBuffer(x.length * 2);
             const arrayBufferView = new Uint16Array(arrayBuffer);
         
             for (let i = 0; i < x.length; i++)

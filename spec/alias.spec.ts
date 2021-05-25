@@ -18,7 +18,7 @@ describe('Alias decorator', () =>
 
     it('should register alias for a property', () =>
     {
-        const userMetadata     = TypeManager.extractTypeMetadata(User);
+        const userMetadata = TypeManager.extractTypeMetadata(User);
         const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
         expect(userNameMetadata).toBeDefined();

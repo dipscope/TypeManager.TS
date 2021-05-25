@@ -11,8 +11,8 @@ describe('Serializable decorator', () =>
 {
     it('should register property as serializable', () =>
     {
-        const userMetadata      = TypeManager.extractTypeMetadata(User);
-        const userNameMetadata  = userMetadata.propertyMetadataMap.get('name');
+        const userMetadata = TypeManager.extractTypeMetadata(User);
+        const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
         const userEmailMetadata = userMetadata.propertyMetadataMap.get('email');
 
         expect(userNameMetadata).toBeDefined();

@@ -34,8 +34,8 @@ export class ArraySerializer implements Serializer<Array<any>>
         {
             return serializerContext.defineReference(x, () =>
             {
-                const arrayInput               = x;
-                const arrayOutput              = [];
+                const arrayInput = x;
+                const arrayOutput = [];
                 const genericSerializerContext = serializerContext.defineGenericSerializerContext(0);
                 
                 for (let i = 0; i < arrayInput.length; i++)
@@ -95,8 +95,8 @@ export class ArraySerializer implements Serializer<Array<any>>
         {
             return serializerContext.restoreReference(x, () =>
             {
-                const arrayInput               = x;
-                const arrayOutput              = [];
+                const arrayInput = x;
+                const arrayOutput = [];
                 const genericSerializerContext = serializerContext.defineGenericSerializerContext(0);
                 
                 for (let i = 0; i < arrayInput.length; i++)

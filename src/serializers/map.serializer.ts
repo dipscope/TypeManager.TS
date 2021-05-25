@@ -34,9 +34,9 @@ export class MapSerializer implements Serializer<Map<any, any>>
         {
             return serializerContext.defineReference(x, () =>
             {
-                const map                           = x;
-                const array                         = [] as any[];
-                const genericKeySerializerContext   = serializerContext.defineGenericSerializerContext(0);
+                const map = x;
+                const array = [] as any[];
+                const genericKeySerializerContext = serializerContext.defineGenericSerializerContext(0);
                 const genericValueSerializerContext = serializerContext.defineGenericSerializerContext(1);
                 
                 let i = -1;
@@ -55,7 +55,7 @@ export class MapSerializer implements Serializer<Map<any, any>>
                         path: `${genericValueSerializerContext.path}[${i}]['value']`
                     });
 
-                    const key   = keySerializerContext.serialize(k);
+                    const key = keySerializerContext.serialize(k);
                     const value = valueSerializerContext.serialize(v);
                 
                     if (!Fn.isFunction(key) && !Fn.isFunction(value))
@@ -140,9 +140,9 @@ export class MapSerializer implements Serializer<Map<any, any>>
         {
             return serializerContext.restoreReference(x, () =>
             {
-                const array                         = x;
-                const map                           = new Map<any, any>();
-                const genericKeySerializerContext   = serializerContext.defineGenericSerializerContext(0);
+                const array = x;
+                const map = new Map<any, any>();
+                const genericKeySerializerContext = serializerContext.defineGenericSerializerContext(0);
                 const genericValueSerializerContext = serializerContext.defineGenericSerializerContext(1);
                 
                 for (let i = 0; i < array.length; i++)
@@ -155,9 +155,9 @@ export class MapSerializer implements Serializer<Map<any, any>>
                         path: `${genericValueSerializerContext.path}[${i}]['value']`
                     });
 
-                    const k     = array[i]['key'];
-                    const v     = array[i]['value'];
-                    const key   = keySerializerContext.deserialize(k);
+                    const k = array[i]['key'];
+                    const v = array[i]['value'];
+                    const key = keySerializerContext.deserialize(k);
                     const value = valueSerializerContext.deserialize(v);
                     
                     if (!Fn.isFunction(key) && !Fn.isFunction(value))

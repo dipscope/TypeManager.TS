@@ -57,15 +57,15 @@ export class TypeManager<TType>
      * @type {TypeOptionsBase<any>}
      */
     public static readonly typeOptionsBase: TypeOptionsBase<any> = {
-        defaultValue:          undefined,
-        discriminator:         '__type__',
-        factory:               new TypeFactory(),
-        injector:              new SingletonInjector(),
-        log:                   new Log(LogLevel.Error),
+        defaultValue: undefined,
+        discriminator: '__type__',
+        factory: new TypeFactory(),
+        injector: new SingletonInjector(),
+        log: new Log(LogLevel.Error),
         preserveDiscriminator: false,
-        referenceHandler:      new DirectReferenceHandler(),
-        serializer:            new TypeSerializer(),
-        useDefaultValue:       false,
+        referenceHandler: new DirectReferenceHandler(),
+        serializer: new TypeSerializer(),
+        useDefaultValue: false,
         useImplicitConversion: false
     };
 
@@ -77,24 +77,24 @@ export class TypeManager<TType>
      * @type {Map<TypeFn<any>, TypeOptions<any>>}
      */
     public static readonly typeOptionsMap: Map<TypeFn<any>, TypeOptions<any>> = new Map<TypeFn<any>, TypeOptions<any>>([
-        [ArrayBuffer,       { serializer: new ArrayBufferSerializer(),       defaultValue: undefined }],
-        [Array,             { serializer: new ArraySerializer(),             defaultValue: () => []  }],
-        [Boolean,           { serializer: new BooleanSerializer(),           defaultValue: false     }],
-        [DataView,          { serializer: new DataViewSerializer(),          defaultValue: undefined }],
-        [Date,              { serializer: new DateSerializer(),              defaultValue: undefined }],
-        [Float32Array,      { serializer: new Float32ArraySerializer(),      defaultValue: undefined }],
-        [Float64Array,      { serializer: new Float64ArraySerializer(),      defaultValue: undefined }],
-        [Int8Array,         { serializer: new Int8ArraySerializer(),         defaultValue: undefined }],
-        [Int16Array,        { serializer: new Int16ArraySerializer(),        defaultValue: undefined }],
-        [Int32Array,        { serializer: new Int32ArraySerializer(),        defaultValue: undefined }],
-        [Map,               { serializer: new MapSerializer(),               defaultValue: undefined }],
-        [Number,            { serializer: new NumberSerializer(),            defaultValue: 0         }],
-        [Set,               { serializer: new SetSerializer(),               defaultValue: undefined }],
-        [String,            { serializer: new StringSerializer(),            defaultValue: undefined }],
-        [Uint8Array,        { serializer: new Uint8ArraySerializer(),        defaultValue: undefined }],
+        [ArrayBuffer, { serializer: new ArrayBufferSerializer(), defaultValue: undefined }],
+        [Array, { serializer: new ArraySerializer(), defaultValue: () => [] }],
+        [Boolean, { serializer: new BooleanSerializer(), defaultValue: false }],
+        [DataView, { serializer: new DataViewSerializer(), defaultValue: undefined }],
+        [Date, { serializer: new DateSerializer(), defaultValue: undefined }],
+        [Float32Array, { serializer: new Float32ArraySerializer(), defaultValue: undefined }],
+        [Float64Array, { serializer: new Float64ArraySerializer(), defaultValue: undefined }],
+        [Int8Array, { serializer: new Int8ArraySerializer(), defaultValue: undefined }],
+        [Int16Array, { serializer: new Int16ArraySerializer(), defaultValue: undefined }],
+        [Int32Array, { serializer: new Int32ArraySerializer(), defaultValue: undefined }],
+        [Map, { serializer: new MapSerializer(), defaultValue: undefined }],
+        [Number, { serializer: new NumberSerializer(), defaultValue: 0 }],
+        [Set, { serializer: new SetSerializer(), defaultValue: undefined }],
+        [String, { serializer: new StringSerializer(), defaultValue: undefined }],
+        [Uint8Array, { serializer: new Uint8ArraySerializer(), defaultValue: undefined }],
         [Uint8ClampedArray, { serializer: new Uint8ClampedArraySerializer(), defaultValue: undefined }],
-        [Uint16Array,       { serializer: new Uint16ArraySerializer(),       defaultValue: undefined }],
-        [Uint32Array,       { serializer: new Uint32ArraySerializer(),       defaultValue: undefined }]
+        [Uint16Array, { serializer: new Uint16ArraySerializer(), defaultValue: undefined }],
+        [Uint32Array, { serializer: new Uint32ArraySerializer(), defaultValue: undefined }]
     ]);
 
     /**
@@ -164,11 +164,11 @@ export class TypeManager<TType>
      */
     public constructor(typeFn: TypeFn<TType>, typeManagerOptions?: TypeManagerOptions)
     {
-        this.typeFn             = typeFn;
+        this.typeFn = typeFn;
         this.typeManagerOptions = typeManagerOptions ?? {};
-        this.typeOptionsBase    = this.buildTypeOptionsBase();
-        this.typeOptionsMap     = this.buildTypeOptionsMap();
-        this.typeMetadata       = this.extractTypeMetadata(typeFn);
+        this.typeOptionsBase = this.buildTypeOptionsBase();
+        this.typeOptionsMap = this.buildTypeOptionsMap();
+        this.typeMetadata = this.extractTypeMetadata(typeFn);
 
         return;
     }
@@ -192,10 +192,10 @@ export class TypeManager<TType>
         }
 
         const typeMetadataResolver = this.resolveTypeMetadata.bind(this);
-        const typeOptionsBase      = this.typeOptionsBase;
-        const parentPrototype      = Object.getPrototypeOf(typeFn.prototype) ?? {};
-        const parentTypeMetadata   = parentPrototype[this.typeMetadataKey];
-        const typeMetadata         = new TypeMetadata(typeMetadataResolver, typeFn, typeOptionsBase, typeOptions, parentTypeMetadata);
+        const typeOptionsBase = this.typeOptionsBase;
+        const parentPrototype = Object.getPrototypeOf(typeFn.prototype) ?? {};
+        const parentTypeMetadata = parentPrototype[this.typeMetadataKey];
+        const typeMetadata = new TypeMetadata(typeMetadataResolver, typeFn, typeOptionsBase, typeOptions, parentTypeMetadata);
 
         return typeMetadata;
     }
@@ -210,17 +210,17 @@ export class TypeManager<TType>
      */
     public static defineTypeMetadata<TType>(typeFn: TypeFn<TType>, typeOptions?: TypeOptions<TType>): TypeMetadata<TType>
     {
-        const prototype       = typeFn.prototype;
+        const prototype = typeFn.prototype;
         const metadataDefined = prototype.hasOwnProperty(this.typeMetadataKey);
-        const typeMetadata    = metadataDefined ? prototype[this.typeMetadataKey] as TypeMetadata<TType> : this.declareTypeMetadata(typeFn);
+        const typeMetadata = metadataDefined ? prototype[this.typeMetadataKey] as TypeMetadata<TType> : this.declareTypeMetadata(typeFn);
 
         if (!metadataDefined)
         {
             Object.defineProperty(prototype, this.typeMetadataKey, {
-                enumerable:   false,
+                enumerable: false,
                 configurable: false,
-                writable:     false,
-                value:        typeMetadata
+                writable: false,
+                value: typeMetadata
             });
         }
 
@@ -246,9 +246,9 @@ export class TypeManager<TType>
      */
     public static extractTypeMetadata<TType>(typeFn: TypeFn<TType>): TypeMetadata<TType>
     {
-        const prototype       = typeFn.prototype;
+        const prototype = typeFn.prototype;
         const metadataDefined = prototype.hasOwnProperty(this.typeMetadataKey);
-        const typeMetadata    = metadataDefined ? prototype[this.typeMetadataKey] as TypeMetadata<TType> : this.defineTypeMetadata(typeFn);
+        const typeMetadata = metadataDefined ? prototype[this.typeMetadataKey] as TypeMetadata<TType> : this.defineTypeMetadata(typeFn);
 
         return typeMetadata;
     }
@@ -350,12 +350,12 @@ export class TypeManager<TType>
     private static defineSerializerContext<TType>(typeFn: TypeFn<TType>, x: any, genericArguments?: GenericArgument<any>[]): SerializerContext<TType>
     {
         return new SerializerContext({
-            $:                    x,
-            path:                 '$',
-            typeMetadata:         this.extractTypeMetadata(typeFn),
-            genericArguments:     genericArguments,
+            $: x,
+            path: '$',
+            typeMetadata: this.extractTypeMetadata(typeFn),
+            genericArguments: genericArguments,
             referenceCallbackMap: new WeakMap<ReferenceKey, ReferenceCallback[]>(),
-            referenceMap:         new WeakMap<ReferenceKey, ReferenceValue>()
+            referenceMap: new WeakMap<ReferenceKey, ReferenceValue>()
         });
     }
 
@@ -455,10 +455,10 @@ export class TypeManager<TType>
         }
 
         const typeMetadataResolver = this.resolveTypeMetadata.bind(this);
-        const typeOptionsBase      = this.typeOptionsBase;
-        const parentPrototype      = Object.getPrototypeOf(typeFn.prototype) ?? {};
-        const parentTypeMetadata   = this.typeMetadataMap.get(parentPrototype.constructor);
-        const typeMetadata         = new TypeMetadata(typeMetadataResolver, typeFn, typeOptionsBase, typeOptions, parentTypeMetadata);
+        const typeOptionsBase = this.typeOptionsBase;
+        const parentPrototype = Object.getPrototypeOf(typeFn.prototype) ?? {};
+        const parentTypeMetadata = this.typeMetadataMap.get(parentPrototype.constructor);
+        const typeMetadata = new TypeMetadata(typeMetadataResolver, typeFn, typeOptionsBase, typeOptions, parentTypeMetadata);
 
         return typeMetadata;
     }
@@ -642,12 +642,12 @@ export class TypeManager<TType>
     private defineSerializerContext(x: any, genericArguments?: GenericArgument<any>[]): SerializerContext<TType>
     {
         return new SerializerContext({
-            $:                    x,
-            path:                 '$',
-            typeMetadata:         this.typeMetadata,
-            genericArguments:     genericArguments,
+            $: x,
+            path: '$',
+            typeMetadata: this.typeMetadata,
+            genericArguments: genericArguments,
             referenceCallbackMap: new WeakMap<ReferenceKey, ReferenceCallback[]>(),
-            referenceMap:         new WeakMap<ReferenceKey, ReferenceValue>()
+            referenceMap: new WeakMap<ReferenceKey, ReferenceValue>()
         });
     }
 
@@ -671,7 +671,7 @@ export class TypeManager<TType>
             const arrayMetadata = this.extractTypeMetadata(arrayFn);
 
             const arraySerializerContext = this.defineSerializerContext(x).defineChildSerializerContext({
-                typeMetadata:     arrayMetadata,
+                typeMetadata: arrayMetadata,
                 genericArguments: [this.typeMetadata.typeFn]
             });
 
@@ -701,7 +701,7 @@ export class TypeManager<TType>
             const arrayMetadata = this.extractTypeMetadata(arrayFn);
 
             const arraySerializerContext = this.defineSerializerContext(x).defineChildSerializerContext({
-                typeMetadata:     arrayMetadata,
+                typeMetadata: arrayMetadata,
                 genericArguments: [this.typeMetadata.typeFn]
             });
 

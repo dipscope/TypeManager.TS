@@ -27,13 +27,13 @@ describe('Direct reference handler', () =>
 {
     it('should map circular types to circular objects', () =>
     {
-        const user    = new User();
+        const user = new User();
         const company = new Company();
         const message = new Message();
 
-        user.company    = company;
+        user.company = company;
         company.message = message;
-        message.user    = user;
+        message.user = user;
 
         const result = TypeManager.serialize(User, user);
         
@@ -61,7 +61,7 @@ describe('Direct reference handler', () =>
 
     it('should map circular type array to circular object array', () =>
     {
-        const user  = new User();
+        const user = new User();
         const array = [] as any[];
 
         array[0] = user;

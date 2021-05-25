@@ -39,8 +39,8 @@ export class TypeContextEntry<TDeclaringType, TType>
      */
     public constructor(key: string, value: any, propertyMetadata?: PropertyMetadata<TDeclaringType, TType>)
     {
-        this.key              = key;
-        this.value            = value;
+        this.key = key;
+        this.value = value;
         this.propertyMetadata = propertyMetadata;
 
         return;

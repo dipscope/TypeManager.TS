@@ -5,14 +5,14 @@ describe('Boolean serializer', () =>
     afterEach(() =>
     {
         TypeManager.configureTypeOptionsBase({
-            useDefaultValue:       false,
+            useDefaultValue: false,
             useImplicitConversion: false
         });
     });
 
     it('should serialize undefined to undefined', () =>
     {
-        const value  = undefined;
+        const value = undefined;
         const result = TypeManager.serialize(Boolean, value);
         
         expect(result).toBeUndefined();
@@ -20,7 +20,7 @@ describe('Boolean serializer', () =>
 
     it('should deserialize undefined to undefined', () =>
     {
-        const value  = undefined;
+        const value = undefined;
         const result = TypeManager.deserialize(Boolean, value);
         
         expect(result).toBeUndefined();
@@ -28,7 +28,7 @@ describe('Boolean serializer', () =>
 
     it('should serialize null to null', () =>
     {
-        const value  = null;
+        const value = null;
         const result = TypeManager.serialize(Boolean, value);
         
         expect(result).toBeNull();
@@ -36,7 +36,7 @@ describe('Boolean serializer', () =>
 
     it('should deserialize null to null', () =>
     {
-        const value  = null;
+        const value = null;
         const result = TypeManager.deserialize(Boolean, value);
         
         expect(result).toBeNull();
@@ -44,7 +44,7 @@ describe('Boolean serializer', () =>
 
     it('should serialize boolean to boolean', () =>
     {
-        const value  = true;
+        const value = true;
         const result = TypeManager.serialize(Boolean, value);
         
         expect(result).toBeTrue();
@@ -52,7 +52,7 @@ describe('Boolean serializer', () =>
 
     it('should deserialize boolean to boolean', () =>
     {
-        const value  = true;
+        const value = true;
         const result = TypeManager.deserialize(Boolean, value);
         
         expect(result).toBeTrue();
@@ -60,7 +60,7 @@ describe('Boolean serializer', () =>
 
     it('should serialize boolean array to boolean array', () =>
     {
-        const value  = [true, false];
+        const value = [true, false];
         const result = TypeManager.serialize(Boolean, value);
         
         expect(result).toBeInstanceOf(Array);
@@ -70,7 +70,7 @@ describe('Boolean serializer', () =>
 
     it('should deserialize boolean array to boolean array', () =>
     {
-        const value  = [true, false];
+        const value = [true, false];
         const result = TypeManager.deserialize(Boolean, value);
         
         expect(result).toBeInstanceOf(Array);
@@ -84,7 +84,7 @@ describe('Boolean serializer', () =>
             useImplicitConversion: true 
         });
 
-        const value  = ['true', 'false', '1', '0', 1, 0] as any[];
+        const value = ['true', 'false', '1', '0', 1, 0] as any[];
         const result = TypeManager.serialize(Boolean, value);
         
         expect(result).toBeInstanceOf(Array);
@@ -102,7 +102,7 @@ describe('Boolean serializer', () =>
             useImplicitConversion: true 
         });
 
-        const value  = ['true', 'false', '1', '0', 1, 0] as any[];
+        const value = ['true', 'false', '1', '0', 1, 0] as any[];
         const result = TypeManager.deserialize(Boolean, value);
         
         expect(result).toBeInstanceOf(Array);

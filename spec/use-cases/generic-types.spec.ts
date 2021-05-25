@@ -27,27 +27,27 @@ describe('Generic types', () =>
 {
     it('should be properly serialized', () =>
     {
-        const userX    = new User();
-        const userY    = new User();
+        const userX = new User();
+        const userY = new User();
         const messageX = new Message();
         const messageY = new Message();
-        const groupX   = new Group();
-        const groupY   = new Group();
-        const map      = new Map<number, Map<string, boolean>>();
-        
-        userX.name     = 'userX';
-        userY.name     = 'userY';
+        const groupX = new Group();
+        const groupY = new Group();
+        const map = new Map<number, Map<string, boolean>>();
+
+        userX.name = 'userX';
+        userY.name = 'userY';
         messageX.title = 'messageX',
         messageY.title = 'messageY';
-        groupX.title   = 'groupX';
-        groupY.title   = 'groupY';
+        groupX.title = 'groupX';
+        groupY.title = 'groupY';
 
-        userX.messages  = [];
-        userY.messages  = [];
+        userX.messages = [];
+        userY.messages = [];
         messageX.groups = [];
         messageY.groups = [];
-        groupX.users    = [];
-        groupY.users    = [];
+        groupX.users = [];
+        groupY.users = [];
         
         userX.messages.push(messageX);
         userX.messages.push(messageY);
@@ -112,27 +112,27 @@ describe('Generic types', () =>
 
     it('should be properly deserialized', () =>
     {
-        const userX    = {} as Record<string, any>;
-        const userY    = {} as Record<string, any>;
+        const userX = {} as Record<string, any>;
+        const userY = {} as Record<string, any>;
         const messageX = {} as Record<string, any>;
         const messageY = {} as Record<string, any>;
-        const groupX   = {} as Record<string, any>;
-        const groupY   = {} as Record<string, any>;
-        const map      = [] as Record<string, any>[];
-        
-        userX.name     = 'userX';
-        userY.name     = 'userY';
+        const groupX = {} as Record<string, any>;
+        const groupY = {} as Record<string, any>;
+        const map = [] as Record<string, any>[];
+
+        userX.name = 'userX';
+        userY.name = 'userY';
         messageX.title = 'messageX',
         messageY.title = 'messageY';
-        groupX.title   = 'groupX';
-        groupY.title   = 'groupY';
+        groupX.title = 'groupX';
+        groupY.title = 'groupY';
 
-        userX.messages  = [];
-        userY.messages  = [];
+        userX.messages = [];
+        userY.messages = [];
         messageX.groups = [];
         messageY.groups = [];
-        groupX.users    = [];
-        groupY.users    = []; 
+        groupX.users = [];
+        groupY.users = [];
         
         userX.messages.push(messageX);
         userX.messages.push(messageY);

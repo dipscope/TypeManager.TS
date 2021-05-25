@@ -115,10 +115,10 @@ export class TypeMetadata<TType> extends Metadata
     {
         super(typeMetadataResolver);
 
-        this.typeName           = Fn.nameOf(typeFn);
-        this.typeFn             = typeFn;
-        this.typeOptionsBase    = typeOptionsBase;
-        this.typeOptions        = typeOptions;
+        this.typeName = Fn.nameOf(typeFn);
+        this.typeFn = typeFn;
+        this.typeOptionsBase = typeOptionsBase;
+        this.typeOptions = typeOptions;
         this.parentTypeMetadata = parentTypeMetadata;
 
         this.deriveParentTypeMetadataProperties();
@@ -146,9 +146,9 @@ export class TypeMetadata<TType> extends Metadata
      */
     public get customData(): CustomData
     {
-        const customData         = {};
+        const customData = {};
         const typeBaseCustomData = this.typeOptionsBase.customData;
-        const typeCustomData     = this.typeOptions.customData;
+        const typeCustomData = this.typeOptions.customData;
         
         if (!Fn.isNil(typeBaseCustomData))
         {

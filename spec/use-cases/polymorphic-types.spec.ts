@@ -70,13 +70,13 @@ describe('Polymorphic types', () =>
             preserveDiscriminator: true 
         });
 
-        const user                      = new User();
-        const defaultActiveUserStatus   = new DefaultActiveUserStatus();
+        const user = new User();
+        const defaultActiveUserStatus = new DefaultActiveUserStatus();
         const defaultInactiveUserStatus = new DefaultInactiveUserStatus();
-        const defaultBlokedUserStatus   = new DefaultBlokedUserStatus();
-        const customActiveUserStatus    = new CustomActiveUserStatus();
-        const customInactiveUserStatus  = new CustomInactiveUserStatus();
-        const customBlokedUserStatus    = new CustomBlokedUserStatus();
+        const defaultBlokedUserStatus = new DefaultBlokedUserStatus();
+        const customActiveUserStatus = new CustomActiveUserStatus();
+        const customInactiveUserStatus = new CustomInactiveUserStatus();
+        const customBlokedUserStatus = new CustomBlokedUserStatus();
 
         user.defaultUserStatuses.push(defaultActiveUserStatus);
         user.defaultUserStatuses.push(defaultInactiveUserStatus);
@@ -103,13 +103,13 @@ describe('Polymorphic types', () =>
             preserveDiscriminator: true 
         });
 
-        const user                      = { __type__: 'User', defaultUserStatuses: [] as Record<string, any>[], customUserStatuses: [] as Record<string, any>[] };
-        const defaultActiveUserStatus   = { __type__: 'DefaultActiveUserStatus' };
+        const user = { __type__: 'User', defaultUserStatuses: [] as Record<string, any>[], customUserStatuses: [] as Record<string, any>[] };
+        const defaultActiveUserStatus = { __type__: 'DefaultActiveUserStatus' };
         const defaultInactiveUserStatus = { __type__: 'DefaultInactiveUserStatus' };
-        const defaultBlokedUserStatus   = { __type__: 'DefaultBlokedUserStatus' };
-        const customActiveUserStatus    = { __typename__: 'CustomActiveUS' };
-        const customInactiveUserStatus  = { __typename__: 'CustomInactiveUS' };
-        const customBlokedUserStatus    = { __typename__: 'CustomBlokedUS' };
+        const defaultBlokedUserStatus = { __type__: 'DefaultBlokedUserStatus' };
+        const customActiveUserStatus = { __typename__: 'CustomActiveUS' };
+        const customInactiveUserStatus = { __typename__: 'CustomInactiveUS' };
+        const customBlokedUserStatus = { __typename__: 'CustomBlokedUS' };
 
         user.defaultUserStatuses.push(defaultActiveUserStatus);
         user.defaultUserStatuses.push(defaultInactiveUserStatus);

@@ -19,10 +19,10 @@ describe('Object references', () =>
     it('should be preserved during serialization and deserialization', () =>
     {
         const company = new Company();
-        const user    = new User();
-        
+        const user = new User();
+
         company.creatorUser = user;
-        company.ownerUser   = user;
+        company.ownerUser = user;
         
         const managedCompany = TypeManager.deserialize(Company, TypeManager.serialize(Company, company));
 
@@ -33,10 +33,10 @@ describe('Object references', () =>
     it('should be preserved during circular serialization and deserialization', () =>
     {
         const company = new Company();
-        const user    = new User();
-        
+        const user = new User();
+
         company.ownerUser = user;
-        user.company      = company;
+        user.company = company;
 
         const managedCompany = TypeManager.deserialize(Company, TypeManager.serialize(Company, company));
 

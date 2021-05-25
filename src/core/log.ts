@@ -67,9 +67,9 @@ export class Log
      */
     public info(message: string, ...optionalParams: any[]): void
     {
-        const consoleExists     = !Fn.isNil(console) && Fn.isObject(console);
+        const consoleExists = !Fn.isNil(console) && Fn.isObject(console);
         const consoleInfoExists = consoleExists && Fn.isFunction(console.info);
-        const consoleLogExists  = consoleExists && Fn.isFunction(console.log);
+        const consoleLogExists = consoleExists && Fn.isFunction(console.log);
 
         if (consoleInfoExists)
         {
@@ -93,9 +93,9 @@ export class Log
      */
     public warn(message: any, ...optionalParams: any[]): void
     {
-        const consoleExists     = !Fn.isNil(console) && Fn.isObject(console);
+        const consoleExists = !Fn.isNil(console) && Fn.isObject(console);
         const consoleWarnExists = consoleExists && Fn.isFunction(console.warn);
-        const consoleLogExists  = consoleExists && Fn.isFunction(console.log);
+        const consoleLogExists = consoleExists && Fn.isFunction(console.log);
 
         if (consoleWarnExists)
         {
@@ -119,9 +119,9 @@ export class Log
      */
     public error(message: string, ...optionalParams: any[]): void 
     {
-        const consoleExists      = !Fn.isNil(console) && Fn.isObject(console);
+        const consoleExists = !Fn.isNil(console) && Fn.isObject(console);
         const consoleErrorExists = consoleExists && Fn.isFunction(console.error);
-        const consoleLogExists   = consoleExists && Fn.isFunction(console.log);
+        const consoleLogExists = consoleExists && Fn.isFunction(console.log);
 
         if (consoleErrorExists)
         {

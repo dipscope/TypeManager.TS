@@ -4,6 +4,8 @@
 
 Type manager is a parsing package for `TypeScript` which will help you to transform JSON strings or plain objects into `JavaScript` object instances. It supports [decorators](https://www.typescriptlang.org/docs/handbook/decorators.html) or declarative configuration and allows you to configure parsing of your or 3rd party classes easily.
 
+We recommend to use our [official website](https://dipscope.com/type-manager/what-issues-it-solves) to navigate through available features. You can also use the latest documentation described below.
+
 ## Table of contents
 
 * [What issues it solves?](#what-issues-it-solves)

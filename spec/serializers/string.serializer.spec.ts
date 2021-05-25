@@ -5,14 +5,14 @@ describe('String serializer', () =>
     afterEach(() =>
     {
         TypeManager.configureTypeOptionsBase({
-            useDefaultValue:       false,
+            useDefaultValue: false,
             useImplicitConversion: false
         });
     });
 
     it('should serialize undefined to undefined', () =>
     {
-        const value  = undefined;
+        const value = undefined;
         const result = TypeManager.serialize(String, value);
         
         expect(result).toBeUndefined();
@@ -20,7 +20,7 @@ describe('String serializer', () =>
 
     it('should deserialize undefined to undefined', () =>
     {
-        const value  = undefined;
+        const value = undefined;
         const result = TypeManager.deserialize(String, value);
         
         expect(result).toBeUndefined();
@@ -28,7 +28,7 @@ describe('String serializer', () =>
 
     it('should serialize null to null', () =>
     {
-        const value  = null;
+        const value = null;
         const result = TypeManager.serialize(String, value);
         
         expect(result).toBeNull();
@@ -36,7 +36,7 @@ describe('String serializer', () =>
 
     it('should deserialize null to null', () =>
     {
-        const value  = null;
+        const value = null;
         const result = TypeManager.deserialize(String, value);
         
         expect(result).toBeNull();
@@ -44,7 +44,7 @@ describe('String serializer', () =>
 
     it('should serialize string to string', () =>
     {
-        const value  = 'x';
+        const value = 'x';
         const result = TypeManager.serialize(String, value);
         
         expect(result).toBe('x');
@@ -52,7 +52,7 @@ describe('String serializer', () =>
 
     it('should deserialize string to string', () =>
     {
-        const value  = 'x';
+        const value = 'x';
         const result = TypeManager.deserialize(String, value);
         
         expect(result).toBe('x');
@@ -60,7 +60,7 @@ describe('String serializer', () =>
 
     it('should serialize string array to string array', () =>
     {
-        const value  = ['x', 'y'];
+        const value = ['x', 'y'];
         const result = TypeManager.serialize(String, value);
         
         expect(result).toBeInstanceOf(Array);
@@ -70,7 +70,7 @@ describe('String serializer', () =>
 
     it('should deserialize string array to string array', () =>
     {
-        const value  = ['x', 'y'];
+        const value = ['x', 'y'];
         const result = TypeManager.deserialize(String, value);
         
         expect(result).toBeInstanceOf(Array);
@@ -84,7 +84,7 @@ describe('String serializer', () =>
             useImplicitConversion: true 
         });
 
-        const value  = [12.5, -12.5, true, false] as any[];
+        const value = [12.5, -12.5, true, false] as any[];
         const result = TypeManager.serialize(String, value);
         
         expect(result).toBeInstanceOf(Array);
@@ -100,7 +100,7 @@ describe('String serializer', () =>
             useImplicitConversion: true 
         });
 
-        const value  = [12.5, -12.5, true, false] as any[];
+        const value = [12.5, -12.5, true, false] as any[];
         const result = TypeManager.deserialize(String, value);
         
         expect(result).toBeInstanceOf(Array);

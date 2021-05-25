@@ -34,8 +34,8 @@ export class SetSerializer implements Serializer<Set<any>>
         {
             return serializerContext.defineReference(x, () =>
             {
-                const set                      = x;
-                const array                    = [];
+                const set = x;
+                const array = [];
                 const genericSerializerContext = serializerContext.defineGenericSerializerContext(0);
 
                 let i = -1;
@@ -99,8 +99,8 @@ export class SetSerializer implements Serializer<Set<any>>
         {
             return serializerContext.restoreReference(x, () =>
             {
-                const array                    = x;
-                const set                      = new Set<any>();
+                const array = x;
+                const set = new Set<any>();
                 const genericSerializerContext = serializerContext.defineGenericSerializerContext(0);
 
                 for (let i = 0; i < array.length; i++)

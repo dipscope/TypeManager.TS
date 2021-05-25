@@ -27,13 +27,13 @@ describe('Lead reference handler', () =>
 {
     it('should map circular types to undefined', () =>
     {
-        const user    = new User();
+        const user = new User();
         const company = new Company();
         const message = new Message();
 
-        user.company    = company;
+        user.company = company;
         company.message = message;
-        message.user    = user;
+        message.user = user;
 
         const result = TypeManager.serialize(User, user);
         
@@ -45,12 +45,12 @@ describe('Lead reference handler', () =>
 
     it('should map circular type array to undefined', () =>
     {
-        const user  = new User();
+        const user = new User();
         const array = [] as any[];
 
         array[0] = user;
         array[1] = array;
-        
+
         const result = TypeManager.serialize(User, array);
 
         expect(result[0]).toBeInstanceOf(Object);

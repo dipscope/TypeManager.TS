@@ -27,7 +27,7 @@ describe('Type decorator', () =>
     it('should register type metadata', () =>
     {
         const userMetadata = TypeManager.extractTypeMetadata(User);
-        const typeFn       = TypeManager.typeFnMap.get('User:Type');
+        const typeFn = TypeManager.typeFnMap.get('User:Type');
 
         expect(userMetadata.typeOptions.alias).toBe('User:Type');
         expect(userMetadata.typeOptions.customData).toBeDefined();

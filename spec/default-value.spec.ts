@@ -19,7 +19,7 @@ describe('Default value decorator', () =>
 
     it('should register default value for a property', () =>
     {
-        const userMetadata     = TypeManager.extractTypeMetadata(User);
+        const userMetadata = TypeManager.extractTypeMetadata(User);
         const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
         expect(userNameMetadata).toBeDefined();

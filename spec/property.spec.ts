@@ -23,14 +23,14 @@ describe('Property decorator', () =>
 
     it('should register property metadata', () =>
     {
-        const userMetadata           = TypeManager.extractTypeMetadata(User);
-        const userNameMetadata       = userMetadata.propertyMetadataMap.get('name');
-        const userEmailMetadata      = userMetadata.propertyMetadataMap.get('email');
-        const userGroupMetadata      = userMetadata.propertyMetadataMap.get('group');
-        const userRankMetadata       = userMetadata.propertyMetadataMap.get('rank');
-        const userPriorityMetadata   = userMetadata.propertyMetadataMap.get('priority');
+        const userMetadata = TypeManager.extractTypeMetadata(User);
+        const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
+        const userEmailMetadata = userMetadata.propertyMetadataMap.get('email');
+        const userGroupMetadata = userMetadata.propertyMetadataMap.get('group');
+        const userRankMetadata = userMetadata.propertyMetadataMap.get('rank');
+        const userPriorityMetadata = userMetadata.propertyMetadataMap.get('priority');
         const userLoginCountMetadata = userMetadata.propertyMetadataMap.get('loginCount');
-        const userActiveMetadata     = userMetadata.propertyMetadataMap.get('active');
+        const userActiveMetadata = userMetadata.propertyMetadataMap.get('active');
 
         expect(userNameMetadata).toBeDefined();
         expect(userNameMetadata?.propertyName).toBe('name');

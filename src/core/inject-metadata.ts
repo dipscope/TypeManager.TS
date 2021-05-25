@@ -54,9 +54,9 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
         super(declaringTypeMetadata.typeMetadataResolver);
 
         this.declaringTypeMetadata = declaringTypeMetadata;
-        this.reflectTypeFn         = (Fn.extractOwnReflectMetadata('design:paramtypes', declaringTypeMetadata.typeFn) ?? [])[injectIndex];
-        this.injectIndex           = injectIndex;
-        this.injectOptions         = injectOptions;
+        this.reflectTypeFn = (Fn.extractOwnReflectMetadata('design:paramtypes', declaringTypeMetadata.typeFn) ?? [])[injectIndex];
+        this.injectIndex = injectIndex;
+        this.injectOptions = injectOptions;
 
         return;
     }

@@ -5,14 +5,14 @@ describe('Number serializer', () =>
     afterEach(() =>
     {
         TypeManager.configureTypeOptionsBase({
-            useDefaultValue:       false,
+            useDefaultValue: false,
             useImplicitConversion: false
         });
     });
 
     it('should serialize undefined to undefined', () =>
     {
-        const value  = undefined;
+        const value = undefined;
         const result = TypeManager.serialize(Number, value);
         
         expect(result).toBeUndefined();
@@ -20,7 +20,7 @@ describe('Number serializer', () =>
 
     it('should deserialize undefined to undefined', () =>
     {
-        const value  = undefined;
+        const value = undefined;
         const result = TypeManager.deserialize(Number, value);
         
         expect(result).toBeUndefined();
@@ -28,15 +28,15 @@ describe('Number serializer', () =>
 
     it('should serialize null to null', () =>
     {
-        const value  = null;
+        const value = null;
         const result = TypeManager.serialize(Number, value);
-        
+
         expect(result).toBeNull();
     });
 
     it('should deserialize null to null', () =>
     {
-        const value  = null;
+        const value = null;
         const result = TypeManager.deserialize(Number, value);
         
         expect(result).toBeNull();
@@ -44,7 +44,7 @@ describe('Number serializer', () =>
 
     it('should serialize number to number', () =>
     {
-        const value  = 12.5;
+        const value = 12.5;
         const result = TypeManager.serialize(Number, value);
         
         expect(result).toBe(12.5);
@@ -52,7 +52,7 @@ describe('Number serializer', () =>
 
     it('should deserialize number to number', () =>
     {
-        const value  = 12.5;
+        const value = 12.5;
         const result = TypeManager.deserialize(Number, value);
         
         expect(result).toBe(12.5);
@@ -60,7 +60,7 @@ describe('Number serializer', () =>
 
     it('should serialize number array to number array', () =>
     {
-        const value  = [12.5, -12.5];
+        const value = [12.5, -12.5];
         const result = TypeManager.serialize(Number, value);
         
         expect(result).toBeInstanceOf(Array);
@@ -70,7 +70,7 @@ describe('Number serializer', () =>
 
     it('should deserialize number array to number array', () =>
     {
-        const value  = [12.5, -12.5];
+        const value = [12.5, -12.5];
         const result = TypeManager.deserialize(Number, value);
         
         expect(result).toBeInstanceOf(Array);
@@ -84,7 +84,7 @@ describe('Number serializer', () =>
             useImplicitConversion: true 
         });
 
-        const value  = ['12.5', '-12.5', true, false] as any[];
+        const value = ['12.5', '-12.5', true, false] as any[];
         const result = TypeManager.serialize(Number, value);
         
         expect(result).toBeInstanceOf(Array);
@@ -100,7 +100,7 @@ describe('Number serializer', () =>
             useImplicitConversion: true 
         });
 
-        const value  = ['12.5', '-12.5', true, false] as any[];
+        const value = ['12.5', '-12.5', true, false] as any[];
         const result = TypeManager.deserialize(Number, value);
         
         expect(result).toBeInstanceOf(Array);

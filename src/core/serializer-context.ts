@@ -67,8 +67,8 @@ export class SerializerContext<TType> extends Metadata
      */
     public get customData(): CustomData
     {
-        const customData         = {};
-        const typeCustomData     = this.typeMetadata.customData;
+        const customData = {};
+        const typeCustomData = this.typeMetadata.customData;
         const propertyCustomData = this.propertyMetadata?.customData;
 
         if (!Fn.isNil(typeCustomData))
@@ -470,9 +470,9 @@ export class SerializerContext<TType> extends Metadata
             throw new Error(`${this.path}: Cannot define generic argument for index ${genericIndex}! This is usually caused by invalid configuration!`);
         }
 
-        const genericTypeArgument     = Fn.isArray(genericArgument) ? genericArgument[0] : genericArgument;
+        const genericTypeArgument = Fn.isArray(genericArgument) ? genericArgument[0] : genericArgument;
         const genericGenericArguments = Fn.isArray(genericArgument) ? genericArgument[1] : undefined;
-        const typeMetadata            = this.defineTypeMetadata(genericTypeArgument);
+        const typeMetadata = this.defineTypeMetadata(genericTypeArgument);
 
         return this.defineChildSerializerContext({
             typeMetadata:     typeMetadata,

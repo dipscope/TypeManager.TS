@@ -48,20 +48,20 @@ describe('Type manager', () =>
     {
         TypeManager.configureTypeOptionsBase({
             preserveDiscriminator: false,
-            useDefaultValue:       false,
+            useDefaultValue: false,
             useImplicitConversion: false,
-            discriminator:         '__type__'
+            discriminator: '__type__'
         });
     });
 
     it('should deserialize type when object is provided and vice versa', () =>
     {
         const messageManager = new TypeManager(Message);
-        const baseObject     = { body: 'a', label: 'b', user: { username: 'a', email: 'b', description: null, about: 'g', device: 'h' }, groups: [{ title: 'a' }, { title: 'a' }] };
-        const baseObjects    = [baseObject, baseObject];
-        const entity         = messageManager.deserialize(baseObject);
-        const entities       = messageManager.deserialize(baseObjects);
-        const nullEntity     = messageManager.deserialize(null);
+        const baseObject = { body: 'a', label: 'b', user: { username: 'a', email: 'b', description: null, about: 'g', device: 'h' }, groups: [{ title: 'a' }, { title: 'a' }] };
+        const baseObjects = [baseObject, baseObject];
+        const entity = messageManager.deserialize(baseObject);
+        const entities = messageManager.deserialize(baseObjects);
+        const nullEntity = messageManager.deserialize(null);
 
         expect(entity).toBeInstanceOf(Message);
         expect(entity.body).toBe('aa');
@@ -103,12 +103,12 @@ describe('Type manager', () =>
 
         expect(nullEntity).toBeNull();
 
-        entity.user!.about       = 'g';
+        entity.user!.about = 'g';
         entities[0]!.user!.about = 'g';
         entities[1]!.user!.about = 'g';
 
-        const object     = messageManager.serialize(entity);
-        const objects    = messageManager.serialize(entities);
+        const object = messageManager.serialize(entity);
+        const objects = messageManager.serialize(entities);
         const nullObject = messageManager.serialize(null);
 
         expect(object).toBeInstanceOf(Object);
@@ -155,8 +155,8 @@ describe('Type manager', () =>
     it('should use base type default value when it is enabled', () =>
     {
         const groupManager = new TypeManager(Group);
-        const baseObject   = { title: 'a' };
-        const entity       = groupManager.deserialize(baseObject);
+        const baseObject = { title: 'a' };
+        const entity = groupManager.deserialize(baseObject);
 
         expect(entity).toBeInstanceOf(Group);
         expect(entity.title).toBe('a');
@@ -174,11 +174,11 @@ describe('Type manager', () =>
     it('should produce the same result for serialization functions', () =>
     {
         const groupManager = new TypeManager(Group);
-        const baseObject   = { title: 'a' };
-        const entityA      = groupManager.deserialize(baseObject);
-        const entityB      = groupManager.parse(groupManager.stringify(baseObject)) as Group;
-        const entityC      = TypeManager.deserialize(Group, baseObject);
-        const entityD      = TypeManager.parse(Group, TypeManager.stringify(Group, baseObject)) as Group;
+        const baseObject = { title: 'a' };
+        const entityA = groupManager.deserialize(baseObject);
+        const entityB = groupManager.parse(groupManager.stringify(baseObject)) as Group;
+        const entityC = TypeManager.deserialize(Group, baseObject);
+        const entityD = TypeManager.parse(Group, TypeManager.stringify(Group, baseObject)) as Group;
 
         expect(entityA).toBeInstanceOf(Group);
         expect(entityA.title).toBe('a');
@@ -223,7 +223,7 @@ describe('Type manager', () =>
         groupManager.configureTypeOptionsBase({
             preserveDiscriminator: true,
             useImplicitConversion: true,
-            discriminator:        '__typename__'
+            discriminator: '__typename__'
         });
 
         groupManager.configureTypeOptions(Group, {
@@ -232,7 +232,7 @@ describe('Type manager', () =>
 
         TypeManager.configureTypeOptionsBase({
             preserveDiscriminator: true,
-            discriminator:         '__typestatic__'
+            discriminator: '__typestatic__'
         });
 
         const group = new Group();
@@ -253,13 +253,13 @@ describe('Type manager', () =>
 
     it('should not override static configuration', () =>
     {
-        const groupManager  = new TypeManager(Group);
-        const groupMetadata = TypeManager.extractTypeMetadata(Group); 
+        const groupManager = new TypeManager(Group);
+        const groupMetadata = TypeManager.extractTypeMetadata(Group);
 
         groupManager.configureTypeOptionsBase({
             preserveDiscriminator: true,
             useImplicitConversion: true,
-            discriminator:        '__typename__'
+            discriminator: '__typename__'
         });
 
         groupManager.configureTypeOptions(Group, {

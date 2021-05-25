@@ -19,7 +19,7 @@ describe('Type serializer decorator', () =>
 
     it('should register custom serializer for a property', () =>
     {
-        const userMetadata     = TypeManager.extractTypeMetadata(User);
+        const userMetadata = TypeManager.extractTypeMetadata(User);
         const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
         expect(userNameMetadata).toBeDefined();

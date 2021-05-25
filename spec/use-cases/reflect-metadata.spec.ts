@@ -11,9 +11,9 @@ enum UserPriorityNumeric
 
 enum UserPriorityTextual
 {
-    Low    = 'Low',
+    Low = 'Low',
     Medium = 'Medium',
-    High   = 'High'
+    High = 'High'
 }
 
 @Injectable()
@@ -72,11 +72,11 @@ describe('Reflect metadata', () =>
         expect(userMetadata.injectMetadataMap.get(0)!.typeFn).toBe(UserService);
 
         const userJson = { 
-            name: 'Dmitry', 
+            name: 'Dmitry',
             email: 'dmitry@mail.com',
-            userPriorityNumeric: 2, 
-            userPriorityTextual: 'Medium', 
-            userStatuses: [{ name: 'Active', title: 'Active user status' }] 
+            userPriorityNumeric: 2,
+            userPriorityTextual: 'Medium',
+            userStatuses: [{ name: 'Active', title: 'Active user status' }]
         };
 
         const user = TypeManager.deserialize(User, userJson);

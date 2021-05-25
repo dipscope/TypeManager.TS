@@ -1,5 +1,5 @@
-import { Fn } from './../core/fn';
-import { NamingConvention } from './../core/naming-convention';
+import { Fn } from '../core/fn';
+import { NamingConvention } from '../core/naming-convention';
 
 /**
  * Pascal case naming convention.
@@ -36,7 +36,7 @@ export class PascalCaseNamingConvention implements NamingConvention
             return result;
         }
 
-        const wordLowerCased  = word.toLowerCase();
+        const wordLowerCased = word.toLowerCase();
         const wordPascalCased = `${wordLowerCased[0].toUpperCase()}${wordLowerCased.slice(1)}`;
 
         if (index === 0)

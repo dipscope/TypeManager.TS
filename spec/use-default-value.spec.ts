@@ -18,7 +18,7 @@ describe('Use default value decorator', () =>
 
     it('should enable use of default value for a property', () =>
     {
-        const userMetadata     = TypeManager.extractTypeMetadata(User);
+        const userMetadata = TypeManager.extractTypeMetadata(User);
         const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
         expect(userNameMetadata).toBeDefined();

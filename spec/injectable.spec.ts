@@ -16,7 +16,7 @@ describe('Injectable decorator', () =>
 {
     it('should register a type as injectable', () =>
     {
-        const userServiceMetadata  = TypeManager.extractTypeMetadata(UserService);
+        const userServiceMetadata = TypeManager.extractTypeMetadata(UserService);
         const emailServiceMetadata = TypeManager.extractTypeMetadata(EmailService);
 
         expect(userServiceMetadata.typeOptions.injectable).toBeTrue();

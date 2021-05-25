@@ -18,7 +18,7 @@ describe('Use implicit conversion decorator', () =>
 
     it('should enable use of implicit conversion for a property', () =>
     {
-        const userMetadata     = TypeManager.extractTypeMetadata(User);
+        const userMetadata = TypeManager.extractTypeMetadata(User);
         const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
         expect(userNameMetadata).toBeDefined();

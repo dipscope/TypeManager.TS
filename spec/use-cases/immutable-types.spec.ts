@@ -35,7 +35,7 @@ describe('Immutable types', () =>
     it('should inject data from JSON context', () =>
     {
         const userStatusJson = { name: 'Active', label: 'Active user status' };
-        const userStatus     = TypeManager.deserialize(UserStatus, userStatusJson);
+        const userStatus = TypeManager.deserialize(UserStatus, userStatusJson);
         
         expect(userStatus).toBeInstanceOf(UserStatus);
         expect(userStatus.name).toBe('Active');
@@ -45,7 +45,7 @@ describe('Immutable types', () =>
     it('should inject deserialized JSON data when property metadata is known', () =>
     {
         const userJson = { name: 'Dmitry', userStatus: { name: 'Active', label: 'Active user status' } };
-        const user     = TypeManager.deserialize(User, userJson);
+        const user = TypeManager.deserialize(User, userJson);
 
         expect(user).toBeInstanceOf(User);
         expect(user.name).toBe('Dmitry');

@@ -9,9 +9,9 @@ enum UserPriorityNumeric
 
 enum UserPriorityTextual
 {
-    Low    = 'Low',
+    Low = 'Low',
     Medium = 'Medium',
-    High   = 'High'
+    High = 'High'
 }
 
 @Type()

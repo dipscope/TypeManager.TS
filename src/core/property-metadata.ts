@@ -62,9 +62,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
         super(declaringTypeMetadata.typeMetadataResolver);
 
         this.declaringTypeMetadata = declaringTypeMetadata;
-        this.propertyName          = propertyName;
-        this.reflectTypeFn         = Fn.extractReflectMetadata('design:type', declaringTypeMetadata.typeFn.prototype, propertyName);
-        this.propertyOptions       = propertyOptions;
+        this.propertyName = propertyName;
+        this.reflectTypeFn = Fn.extractReflectMetadata('design:type', declaringTypeMetadata.typeFn.prototype, propertyName);
+        this.propertyOptions = propertyOptions;
 
         return;
     }
@@ -86,8 +86,8 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public get customData(): CustomData
     {
-        const customData         = {};
-        const typeCustomData     = this.typeMetadata.customData;
+        const customData = {};
+        const typeCustomData = this.typeMetadata.customData;
         const propertyCustomData = this.propertyOptions.customData;
 
         if (!Fn.isNil(typeCustomData))

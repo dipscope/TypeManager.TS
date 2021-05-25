@@ -22,11 +22,11 @@ describe('Singleton injector', () =>
 {
     it('should inject and return the same instances of type', () =>
     {
-        const singletonInjector      = new SingletonInjector();
+        const singletonInjector = new SingletonInjector();
         const messageServiceMetadata = TypeManager.extractTypeMetadata(MessageService);
-        const userServiceMetadata    = TypeManager.extractTypeMetadata(UserService);
-        const userService            = singletonInjector.get(userServiceMetadata);
-        const messageService         = singletonInjector.get(messageServiceMetadata);
+        const userServiceMetadata = TypeManager.extractTypeMetadata(UserService);
+        const userService = singletonInjector.get(userServiceMetadata);
+        const messageService = singletonInjector.get(messageServiceMetadata);
 
         expect(userService).toBeInstanceOf(UserService);
         expect(messageService).toBeInstanceOf(MessageService);

@@ -32,7 +32,7 @@ export class PathReferenceHandler implements ReferenceHandler
      */
     public define(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey, referenceValueInitializer: ReferenceValueInitializer): ReferenceValue | ReferenceValueResolver
     {
-        const referenceMap  = serializerContext.referenceMap;
+        const referenceMap = serializerContext.referenceMap;
         const referencePath = referenceMap.get(referenceKey);
 
         if (Fn.isNil(referencePath))
@@ -60,12 +60,12 @@ export class PathReferenceHandler implements ReferenceHandler
      */
     public restore(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey, referenceValueInitializer: ReferenceValueInitializer): ReferenceValue | ReferenceValueResolver
     {
-        const $               = serializerContext.$;
-        const referenceMap    = serializerContext.referenceMap;
-        const object          = referenceKey as any;
-        const referencePath   = object.$ref as string;
+        const $ = serializerContext.$;
+        const referenceMap = serializerContext.referenceMap;
+        const object = referenceKey as any;
+        const referencePath = object.$ref as string;
         const referenceTarget = Fn.isString(referencePath) && Fn.isObject($) && this.pathRegExp.test(referencePath) ? eval(referencePath) : referenceKey;
-        const referenceValue  = referenceMap.get(referenceTarget);
+        const referenceValue = referenceMap.get(referenceTarget);
 
         if (Fn.isNil(referenceValue))
         {

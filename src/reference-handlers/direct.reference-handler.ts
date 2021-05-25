@@ -24,7 +24,7 @@ export class DirectReferenceHandler implements ReferenceHandler
      */
     public define(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey, referenceValueInitializer: ReferenceValueInitializer): ReferenceValue | ReferenceValueResolver
     {
-        const referenceMap   = serializerContext.referenceMap;
+        const referenceMap = serializerContext.referenceMap;
         const referenceValue = referenceMap.get(referenceKey);
 
         if (Fn.isNil(referenceValue))
@@ -59,7 +59,7 @@ export class DirectReferenceHandler implements ReferenceHandler
      */
     public restore(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey, referenceValueInitializer: ReferenceValueInitializer): ReferenceValue | ReferenceValueResolver
     {
-        const referenceMap   = serializerContext.referenceMap;
+        const referenceMap = serializerContext.referenceMap;
         const referenceValue = referenceMap.get(referenceKey);
 
         if (Fn.isNil(referenceValue))

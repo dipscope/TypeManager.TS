@@ -23,8 +23,8 @@ describe('Inject decorator', () =>
 
     it('should register inject metadata', () =>
     {
-        const userMetadata      = TypeManager.extractTypeMetadata(User);
-        const userNameMetadata  = userMetadata.injectMetadataMap.get(0);
+        const userMetadata = TypeManager.extractTypeMetadata(User);
+        const userNameMetadata = userMetadata.injectMetadataMap.get(0);
         const userEmailMetadata = userMetadata.injectMetadataMap.get(1);
         const userGroupMetadata = userMetadata.injectMetadataMap.get(2);
 

@@ -28,14 +28,14 @@ describe('Type serializer', () =>
     afterEach(() =>
     {
         TypeManager.configureTypeOptionsBase({
-            useDefaultValue:       false,
+            useDefaultValue: false,
             useImplicitConversion: false
         });
     });
 
     it('should serialize undefined to undefined', () =>
     {
-        const value  = undefined;
+        const value = undefined;
         const result = TypeManager.serialize(User, value);
         
         expect(result).toBeUndefined();
@@ -43,7 +43,7 @@ describe('Type serializer', () =>
 
     it('should deserialize undefined to undefined', () =>
     {
-        const value  = undefined;
+        const value = undefined;
         const result = TypeManager.deserialize(User, value);
         
         expect(result).toBeUndefined();
@@ -51,7 +51,7 @@ describe('Type serializer', () =>
 
     it('should serialize null to null', () =>
     {
-        const value  = null;
+        const value = null;
         const result = TypeManager.serialize(User, value);
         
         expect(result).toBeNull();
@@ -59,7 +59,7 @@ describe('Type serializer', () =>
 
     it('should deserialize null to null', () =>
     {
-        const value  = null;
+        const value = null;
         const result = TypeManager.deserialize(User, value);
         
         expect(result).toBeNull();
@@ -67,13 +67,13 @@ describe('Type serializer', () =>
 
     it('should serialize circular types to circular objects', () =>
     {
-        const user    = new User();
+        const user = new User();
         const company = new Company();
         const message = new Message();
 
-        user.company    = company;
+        user.company = company;
         company.message = message;
-        message.user    = user;
+        message.user = user;
 
         const result = TypeManager.serialize(User, user);
         
@@ -101,7 +101,7 @@ describe('Type serializer', () =>
 
     it('should serialize circular type array to circular object array', () =>
     {
-        const user  = new User();
+        const user = new User();
         const array = [] as any[];
 
         array[0] = user;

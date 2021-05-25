@@ -58,7 +58,7 @@ export class Metadata
 
         for (const genericArgument of genericArguments)
         {
-            const genericTypeArgument     = Fn.isArray(genericArgument) ? genericArgument[0] : genericArgument;
+            const genericTypeArgument = Fn.isArray(genericArgument) ? genericArgument[0] : genericArgument;
             const genericGenericArguments = Fn.isArray(genericArgument) ? genericArgument[1] : [];
             
             genericMetadatas.push([this.defineTypeMetadata(genericTypeArgument), this.defineGenericMetadatas(genericGenericArguments)]);
