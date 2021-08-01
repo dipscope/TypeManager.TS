@@ -13,13 +13,12 @@ import { SerializerContext } from '../core/serializer-context';
  */
 export class PathReferenceHandler implements ReferenceHandler
 {
-     /**
-     * The eval function is used to locate the values described by JSONPath. This regular expression is used 
-     * to assure that the JSONPath is extremely well formed.
+    /**
+     * Regular expression used to get array key from a certain place of the JSONPath.
      * 
      * @type {RegExp}
      */
-    public readonly pathRegExp: RegExp = new RegExp('^\\$(?:\\[(?:\\d+|"(?:[^\\\\"\\u0000-\\u001f]|\\\\(?:[\\\\"\\/bfnrt]|u[0-9a-zA-Z]{4}))*")\\])*$');
+    private readonly arrayKeyRegExp: RegExp = new RegExp('\\[\\\'?([^\\\'\\[\\]]+)\\\'?\\]', 'g');
 
     /**
      * Defines reference. Called during serialization.
@@ -60,11 +59,8 @@ export class PathReferenceHandler implements ReferenceHandler
      */
     public restore(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey, referenceValueInitializer: ReferenceValueInitializer): ReferenceValue | ReferenceValueResolver
     {
-        const $ = serializerContext.$;
         const referenceMap = serializerContext.referenceMap;
-        const object = referenceKey as any;
-        const referencePath = object.$ref as string;
-        const referenceTarget = Fn.isString(referencePath) && Fn.isObject($) && this.pathRegExp.test(referencePath) ? eval(referencePath) : referenceKey;
+        const referenceTarget = this.defineReferenceTarget(serializerContext, referenceKey);
         const referenceValue = referenceMap.get(referenceTarget);
 
         if (Fn.isNil(referenceValue))
@@ -94,5 +90,70 @@ export class PathReferenceHandler implements ReferenceHandler
         }
 
         return referenceValue;
+    }
+
+    /**
+     * Defines reference target based on reference key.
+     * 
+     * @param {SerializerContext<any>} serializerContext Serializer context.
+     * @param {ReferenceKey} referenceKey Reference which acts as a key. This is basically a deserializing object.
+     * 
+     * @returns {ReferenceKey} Reference which acts as a target key in context of JSONPath.
+     */
+    private defineReferenceTarget(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey): ReferenceKey
+    {
+        const $ = serializerContext.$;
+        const referencePath = referenceKey.$ref;
+
+        if (!Fn.isString(referencePath) || !Fn.isObject($))
+        {
+            return referenceKey;
+        }
+
+        if (referencePath === '$')
+        {
+            return $;
+        }
+
+        const referencePathArray = this.convertReferencePathToArray(referencePath);
+
+        referencePathArray.shift();
+
+        let referenceTarget = $;
+
+        for (let i = 0; i < referencePathArray.length; i++)
+        {
+            referenceTarget = referenceTarget[referencePathArray[i]];
+        }
+
+        return referenceTarget;
+    }
+
+    /**
+     * Converts reference path to array.
+     * 
+     * @param {string} referencePath Reference path.
+     * 
+     * @returns {string[]} Array reference path.
+     */
+    private convertReferencePathToArray(referencePath: string): string[] 
+    {
+		const array = [] as string[];
+        const parts = referencePath.split('.');
+
+        for (const part of parts) 
+        {
+            const keys = part.split(this.arrayKeyRegExp);
+
+            for (const key of keys)
+            {
+                if (key.length > 0) 
+                {
+                    array.push(key);
+                }
+            }
+        }
+
+        return array;
     }
 }
