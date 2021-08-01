@@ -461,6 +461,20 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
+     * Configures custom data.
+     * 
+     * @param {CustomData} customData Custom data.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    private configureCustomData(customData: CustomData): TypeMetadata<TType>
+    {
+        this.typeOptions.customData = Fn.isNil(customData) ? customData : Fn.assign(this.typeOptions.customData ?? {}, customData);
+
+        return this;
+    }
+
+    /**
      * Configures certain property metadata.
      * 
      * @param {PropertyName} propertyName Property name. 
@@ -558,11 +572,6 @@ export class TypeMetadata<TType> extends Metadata
             this.typeOptions.alias = typeOptions.alias;
         }
 
-        if (!Fn.isUndefined(typeOptions.customData))
-        {
-            this.typeOptions.customData = typeOptions.customData;
-        }
-
         if (!Fn.isUndefined(typeOptions.defaultValue)) 
         {
             this.typeOptions.defaultValue = typeOptions.defaultValue;
@@ -626,6 +635,11 @@ export class TypeMetadata<TType> extends Metadata
         if (!Fn.isUndefined(typeOptions.useImplicitConversion)) 
         {
             this.typeOptions.useImplicitConversion = typeOptions.useImplicitConversion;
+        }
+        
+        if (!Fn.isUndefined(typeOptions.customData))
+        {
+            this.configureCustomData(typeOptions.customData);
         }
 
         if (!Fn.isUndefined(typeOptions.discriminant))

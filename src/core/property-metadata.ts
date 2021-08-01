@@ -255,6 +255,20 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     }
 
     /**
+     * Configures custom data.
+     * 
+     * @param {CustomData} customData Custom data.
+     * 
+     * @returns {PropertyMetadata<TDeclaringType, TType>} Instance of property metadata.
+     */
+    private configureCustomData(customData: CustomData): PropertyMetadata<TDeclaringType, TType>
+    {
+        this.propertyOptions.customData = Fn.isNil(customData) ? customData : Fn.assign(this.propertyOptions.customData ?? {}, customData);
+
+        return this;
+    }
+
+    /**
      * Configures property metadata based on provided options.
      * 
      * @param {PropertyOptions<TType>} propertyOptions Property options.
@@ -266,11 +280,6 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
         if (!Fn.isUndefined(propertyOptions.alias))
         {
             this.propertyOptions.alias = propertyOptions.alias;
-        }
-
-        if (!Fn.isUndefined(propertyOptions.customData))
-        {
-            this.propertyOptions.customData = propertyOptions.customData;
         }
 
         if (!Fn.isUndefined(propertyOptions.defaultValue))
@@ -321,6 +330,11 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
         if (!Fn.isUndefined(propertyOptions.useImplicitConversion)) 
         {
             this.propertyOptions.useImplicitConversion = propertyOptions.useImplicitConversion;
+        }
+
+        if (!Fn.isUndefined(propertyOptions.customData))
+        {
+            this.configureCustomData(propertyOptions.customData);
         }
 
         return this;

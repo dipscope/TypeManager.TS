@@ -2,9 +2,10 @@ import { CustomData, Property, Type, TypeManager } from '../src';
 
 @Type()
 @CustomData({ rank: 1 })
+@CustomData({ status: 1 })
 class User
 {
-    @Property() @CustomData({ priority: 10 }) public name?: string;
+    @Property() @CustomData({ priority: 10 }) @CustomData({ status: 1 }) public name?: string;
 }
 
 describe('Custom data decorator', () =>
@@ -14,6 +15,7 @@ describe('Custom data decorator', () =>
         const userMetadata = TypeManager.extractTypeMetadata(User);
 
         expect(userMetadata.typeOptions.customData?.rank).toBe(1);
+        expect(userMetadata.typeOptions.customData?.status).toBe(1);
     });
 
     it('should register custom data for a property', () =>
@@ -23,5 +25,6 @@ describe('Custom data decorator', () =>
 
         expect(userNameMetadata).toBeDefined();
         expect(userNameMetadata?.propertyOptions.customData?.priority).toBe(10);
+        expect(userNameMetadata?.propertyOptions.customData?.status).toBe(1);
     });
 });
