@@ -96,7 +96,7 @@ export class User
 
     public constructor(id: number, name: string)
     {
-        this.id   = id;
+        this.id = id;
         this.name = name;
 
         return;
@@ -199,7 +199,7 @@ export class User
 
 TypeManager.configureTypeOptions(User, {
     propertyOptionsMap: new Map<PropertyName, PropertyOptions<any>>([
-        ['name',  { typeArgument: String }],
+        ['name', { typeArgument: String }],
         ['email', { typeArgument: String }],
     ])
 });
@@ -213,7 +213,7 @@ No matter what style of configuration you have chosen the next step is to call s
 import { TypeManager } from '@dipscope/type-manager';
 
 const userObject = TypeManager.serialize(User, new User());
-const user       = TypeManager.deserialize(User, userObject);
+const user = TypeManager.deserialize(User, userObject);
 
 user instanceof User; // True.
 ```
@@ -224,7 +224,7 @@ Calling serialize creates a plain object and deserialize creates an instance of 
 import { TypeManager } from '@dipscope/type-manager';
 
 const userJson = TypeManager.stringify(User, new User());
-const user     = TypeManager.parse(User, userJson);
+const user = TypeManager.parse(User, userJson);
 
 user instanceof User; // True.
 ```
@@ -237,8 +237,8 @@ Static functions are not the only way to work with a `TypeManager`. You can also
 import { TypeManager } from '@dipscope/type-manager';
 
 const userManager = new TypeManager(User);
-const userObject  = userManager.serialize(new User());
-const user        = userManager.deserialize(userObject);
+const userObject = userManager.serialize(new User());
+const user = userManager.deserialize(userObject);
 
 user instanceof User; // True.
 ```
@@ -517,9 +517,9 @@ export enum UserPriorityNumeric
 
 export enum UserPriorityTextual
 {
-    Low    = 'Low',
+    Low = 'Low',
     Medium = 'Medium',
-    High   = 'High'
+    High = 'High'
 }
 
 @Type()
@@ -544,9 +544,9 @@ export enum UserPriorityNumeric
 
 export enum UserPriorityTextual
 {
-    Low    = 'Low',
+    Low = 'Low',
     Medium = 'Medium',
-    High   = 'High'
+    High = 'High'
 }
 
 @Type()
@@ -1610,7 +1610,7 @@ Somewhere in code you have such a logic:
 ```typescript
 import { TypeManager } from '@dipscope/type-manager';
 
-const user    = new User();
+const user = new User();
 const company = new Company();
 
 user.company = company;
@@ -1677,7 +1677,7 @@ This allows you to get it later in serializers, factories, injectors or your cod
 import { TypeManager } from '@dipscope/type-manager';
 
 const userMetadata = TypeManager.extractTypeMetadata(User);
-const customData   = userMetadata.customData;
+const customData = userMetadata.customData;
 
 // Do something with type custom data...
 
@@ -1838,7 +1838,7 @@ export class CustomTypeFactory extends TypeFactory
         
         // Resolve custom data.
         const typeMetadata = typeContext.typeMetadata;
-        const customData   = typeMetadata.customData;
+        const customData = typeMetadata.customData;
 
         // Process custom data.
         for (const propertyName in customData)
