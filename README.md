@@ -6,6 +6,10 @@ Type manager is a parsing package for `TypeScript` which will help you to transf
 
 We recommend to use our [official website](https://dipscope.com/type-manager/what-issues-it-solves) to navigate through available features. You can also use the latest documentation described below.
 
+## Give a star :star:
+
+If you like or are using this project please give it a star. Thanks!
+
 ## Table of contents
 
 * [What issues it solves?](#what-issues-it-solves)
@@ -1990,11 +1994,11 @@ Polymorphic types are supported. In most cases additional configuration is requi
 
 See information about breaking changes, release notes and migration steps between versions [here](https://github.com/dipscope/TypeManager.TS/blob/master/CHANGELOG.md).
 
-Thanks for checking this package. If you like it please give repo a star.
+Thanks for checking this package.
 
 Feel free to create an issue if you find any mistakes in documentation or have any improvements in mind.
 
-I wish you good luck and happy coding! ;)
+We wish you good luck and happy coding!
 
 ## License
 
