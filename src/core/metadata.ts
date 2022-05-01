@@ -48,18 +48,18 @@ export class Metadata
     /**
      * Defines generic metadatas based on provided generic arguments.
      * 
-     * @param {GenericArgument<any>[]} genericArguments Generic arguments.
+     * @param {Array<GenericArgument<any>>} genericArguments Generic arguments.
      * 
-     * @returns {GenericMetadata<any>[]} Generics metadatas.
+     * @returns {Array<GenericMetadata<any>>} Generics metadatas.
      */
-    protected defineGenericMetadatas(genericArguments: GenericArgument<any>[]): GenericMetadata<any>[]
+    protected defineGenericMetadatas(genericArguments: Array<GenericArgument<any>>): Array<GenericMetadata<any>>
     {
-        const genericMetadatas = [] as GenericMetadata<any>[];
+        const genericMetadatas = new Array<GenericMetadata<any>>();
 
         for (const genericArgument of genericArguments)
         {
             const genericTypeArgument = Fn.isArray(genericArgument) ? genericArgument[0] : genericArgument;
-            const genericGenericArguments = Fn.isArray(genericArgument) ? genericArgument[1] : [];
+            const genericGenericArguments = Fn.isArray(genericArgument) ? genericArgument[1] : new Array<GenericArgument<any>>();
             
             genericMetadatas.push([this.defineTypeMetadata(genericTypeArgument), this.defineGenericMetadatas(genericGenericArguments)]);
         }

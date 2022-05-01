@@ -11,6 +11,7 @@ import { TypeArgument } from './core/type-argument';
 import { TypeFn } from './core/type-fn';
 import { TypeLike } from './core/type-like';
 import { TypeMetadata } from './core/type-metadata';
+import { typeMetadataSymbol } from './core/type-metadata-symbol';
 import { TypeOptions } from './core/type-options';
 import { TypeOptionsBase } from './core/type-options-base';
 import { TypeFactory } from './factories/type.factory';
@@ -45,20 +46,13 @@ import { TypeManagerOptions } from './type-manager-options';
 export class TypeManager<TType>
 {
     /**
-     * Key to query type metadata from the prototypes.
-     * 
-     * @type {string}
-     */
-    public static readonly typeMetadataKey: string = '__TMTypeMetadata__';
-
-    /**
      * Static global options of any type.
      * 
      * @type {TypeOptionsBase<any>}
      */
     public static readonly typeOptionsBase: TypeOptionsBase<any> = {
         defaultValue: undefined,
-        discriminator: '__type__',
+        discriminator: '$type',
         factory: new TypeFactory(),
         injector: new SingletonInjector(),
         log: new Log(LogLevel.Error),
@@ -194,7 +188,7 @@ export class TypeManager<TType>
         const typeMetadataResolver = this.resolveTypeMetadata.bind(this);
         const typeOptionsBase = this.typeOptionsBase;
         const parentPrototype = Object.getPrototypeOf(typeFn.prototype) ?? {};
-        const parentTypeMetadata = parentPrototype[this.typeMetadataKey];
+        const parentTypeMetadata = parentPrototype[typeMetadataSymbol];
         const typeMetadata = new TypeMetadata(typeMetadataResolver, typeFn, typeOptionsBase, typeOptions, parentTypeMetadata);
 
         return typeMetadata;
@@ -211,12 +205,12 @@ export class TypeManager<TType>
     public static defineTypeMetadata<TType>(typeFn: TypeFn<TType>, typeOptions?: TypeOptions<TType>): TypeMetadata<TType>
     {
         const prototype = typeFn.prototype;
-        const metadataDefined = prototype.hasOwnProperty(this.typeMetadataKey);
-        const typeMetadata = metadataDefined ? prototype[this.typeMetadataKey] as TypeMetadata<TType> : this.declareTypeMetadata(typeFn);
+        const metadataDefined = prototype.hasOwnProperty(typeMetadataSymbol);
+        const typeMetadata = metadataDefined ? prototype[typeMetadataSymbol] as TypeMetadata<TType> : this.declareTypeMetadata(typeFn);
 
         if (!metadataDefined)
         {
-            Object.defineProperty(prototype, this.typeMetadataKey, {
+            Object.defineProperty(prototype, typeMetadataSymbol, {
                 enumerable: false,
                 configurable: false,
                 writable: false,
@@ -247,8 +241,8 @@ export class TypeManager<TType>
     public static extractTypeMetadata<TType>(typeFn: TypeFn<TType>): TypeMetadata<TType>
     {
         const prototype = typeFn.prototype;
-        const metadataDefined = prototype.hasOwnProperty(this.typeMetadataKey);
-        const typeMetadata = metadataDefined ? prototype[this.typeMetadataKey] as TypeMetadata<TType> : this.defineTypeMetadata(typeFn);
+        const metadataDefined = prototype.hasOwnProperty(typeMetadataSymbol);
+        const typeMetadata = metadataDefined ? prototype[typeMetadataSymbol] as TypeMetadata<TType> : this.defineTypeMetadata(typeFn);
 
         return typeMetadata;
     }
@@ -343,18 +337,18 @@ export class TypeManager<TType>
      * 
      * @param {TypeFn<TType>} typeFn Type function.
      * @param {any} x Some value.
-     * @param {GenericArgument<any>[]} genericArguments Generic arguments.
+     * @param {Array<GenericArgument<any>>} genericArguments Generic arguments.
      * 
      * @returns {SerializerContext<TType>} Serializer context.
      */
-    private static defineSerializerContext<TType>(typeFn: TypeFn<TType>, x: any, genericArguments?: GenericArgument<any>[]): SerializerContext<TType>
+    private static defineSerializerContext<TType>(typeFn: TypeFn<TType>, x: any, genericArguments?: Array<GenericArgument<any>>): SerializerContext<TType>
     {
         return new SerializerContext({
             $: x,
             path: '$',
             typeMetadata: this.extractTypeMetadata(typeFn),
             genericArguments: genericArguments,
-            referenceCallbackMap: new WeakMap<ReferenceKey, ReferenceCallback[]>(),
+            referenceCallbackMap: new WeakMap<ReferenceKey, Array<ReferenceCallback>>(),
             referenceMap: new WeakMap<ReferenceKey, ReferenceValue>()
         });
     }
@@ -369,9 +363,9 @@ export class TypeManager<TType>
      */
     public static serialize<TType>(typeFn: TypeFn<TType>, x: undefined): undefined;
     public static serialize<TType>(typeFn: TypeFn<TType>, x: null): null;
-    public static serialize<TType>(typeFn: TypeFn<TType>, x: TType[]): any[];
+    public static serialize<TType>(typeFn: TypeFn<TType>, x: Array<TType>): Array<any>;
     public static serialize<TType>(typeFn: TypeFn<TType>, x: TType): any;
-    public static serialize<TType>(typeFn: TypeFn<TType>, x: TypeLike<TType | TType[]>): TypeLike<any>
+    public static serialize<TType>(typeFn: TypeFn<TType>, x: TypeLike<TType | Array<TType>>): TypeLike<any>
     {
         const arrayFn = Array as TypeFn<any[]>;
 
@@ -393,9 +387,9 @@ export class TypeManager<TType>
      */
     public static deserialize<TType>(typeFn: TypeFn<TType>, x: undefined): undefined;
     public static deserialize<TType>(typeFn: TypeFn<TType>, x: null): null;
-    public static deserialize<TType>(typeFn: TypeFn<TType>, x: any[]): TType[];
+    public static deserialize<TType>(typeFn: TypeFn<TType>, x: Array<any>): Array<TType>;
     public static deserialize<TType>(typeFn: TypeFn<TType>, x: any): TType;
-    public static deserialize<TType>(typeFn: TypeFn<TType>, x: TypeLike<any>): TypeLike<TType | TType[]>
+    public static deserialize<TType>(typeFn: TypeFn<TType>, x: TypeLike<any>): TypeLike<TType | Array<TType>>
     {
         const arrayFn = Array as TypeFn<any[]>;
 
@@ -412,12 +406,12 @@ export class TypeManager<TType>
      * 
      * @param {TypeFn<TType>} typeFn Type function.
      * @param {any} x Input value, usually an object or array, to be converted.
-     * @param {Function|number[]|string[]} replacer A function that transforms the results or an array of strings and numbers that acts as an approved list.
+     * @param {Function|Array<number>|Array<string>} replacer A function that transforms the results or an array of strings and numbers that acts as an approved list.
      * @param {string|number} space Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
      * 
      * @returns {string} JSON string.
      */
-    public static stringify<TType>(typeFn: TypeFn<TType>, x: any, replacer?: (this: any, key: string, value: any) => any | number[] | string[] | null, space?: string | number): string
+    public static stringify<TType>(typeFn: TypeFn<TType>, x: any, replacer?: (this: any, key: string, value: any) => any | Array<number> | Array<string> | null, space?: string | number): string
     {
         return JSON.stringify(this.serialize(typeFn, x), replacer, space);
     }
@@ -635,18 +629,18 @@ export class TypeManager<TType>
      * Defines serializer context for x.
      * 
      * @param {any} x Some value.
-     * @param {GenericArgument<any>[]} genericArguments Generic arguments.
+     * @param {Array<GenericArgument<any>>} genericArguments Generic arguments.
      * 
      * @returns {SerializerContext<any>} Serializer context.
      */
-    private defineSerializerContext(x: any, genericArguments?: GenericArgument<any>[]): SerializerContext<TType>
+    private defineSerializerContext(x: any, genericArguments?: Array<GenericArgument<any>>): SerializerContext<TType>
     {
         return new SerializerContext({
             $: x,
             path: '$',
             typeMetadata: this.typeMetadata,
             genericArguments: genericArguments,
-            referenceCallbackMap: new WeakMap<ReferenceKey, ReferenceCallback[]>(),
+            referenceCallbackMap: new WeakMap<ReferenceKey, Array<ReferenceCallback>>(),
             referenceMap: new WeakMap<ReferenceKey, ReferenceValue>()
         });
     }
@@ -660,9 +654,9 @@ export class TypeManager<TType>
      */
     public serialize(x: undefined): undefined;
     public serialize(x: null): null;
-    public serialize(x: TType[]): any[];
+    public serialize(x: Array<TType>): Array<any>;
     public serialize(x: TType): any;
-    public serialize(x: TypeLike<TType | TType[]>): TypeLike<any>
+    public serialize(x: TypeLike<TType | Array<TType>>): TypeLike<any>
     {
         const arrayFn = Array as TypeFn<any[]>;
 
@@ -690,9 +684,9 @@ export class TypeManager<TType>
      */
     public deserialize(x: undefined): undefined;
     public deserialize(x: null): null;
-    public deserialize(x: any[]): TType[];
+    public deserialize(x: Array<any>): Array<TType>;
     public deserialize(x: any): TType;
-    public deserialize(x: TypeLike<any>): TypeLike<TType | TType[]>
+    public deserialize(x: TypeLike<any>): TypeLike<TType | Array<TType>>
     {
         const arrayFn = Array as TypeFn<any[]>;
 
@@ -715,12 +709,12 @@ export class TypeManager<TType>
      * Converts provided value to a JavaScript Object Notation (JSON) string.
      * 
      * @param {any} x Input value, usually an object or array, to be converted.
-     * @param {Function|number[]|string[]} replacer A function that transforms the results or an array of strings and numbers that acts as an approved list.
+     * @param {Function|Array<number>|Array<string>} replacer A function that transforms the results or an array of strings and numbers that acts as an approved list.
      * @param {string|number} space Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
      * 
      * @returns {string} JSON string.
      */
-    public stringify(x: any, replacer?: (this: any, key: string, value: any) => any | number[] | string[] | null, space?: string | number): string
+    public stringify(x: any, replacer?: (this: any, key: string, value: any) => any | Array<number> | Array<string> | null, space?: string | number): string
     {
         return JSON.stringify(this.serialize(x), replacer, space);
     }

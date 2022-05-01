@@ -6,15 +6,15 @@ import { TypeManager } from './type-manager';
 /**
  * Property decorator.
  * 
- * @param {TypeArgument<TType>|GenericArgument<any>[]|PropertyOptions<TType>} x Type argument, generic arguments or property options.
- * @param {GenericArgument<any>[]|PropertyOptions<TType>} y Generic arguments or property options if first parameter is type argument.
+ * @param {TypeArgument<TType>|Array<GenericArgument<any>>|PropertyOptions<TType>} x Type argument, generic arguments or property options.
+ * @param {Array<GenericArgument<any>>|PropertyOptions<TType>} y Generic arguments or property options if first parameter is type argument.
  * @param {PropertyOptions<TType>} z Property options if second parameter are generic arguments.
  * 
  * @returns {PropertyDecorator} Property decorator.
  */
 export function Property<TType>(
-    x?: TypeArgument<TType> | GenericArgument<any>[] | PropertyOptions<TType>, 
-    y?: GenericArgument<any>[] | PropertyOptions<TType>,
+    x?: TypeArgument<TType> | Array<GenericArgument<any>> | PropertyOptions<TType>, 
+    y?: Array<GenericArgument<any>> | PropertyOptions<TType>,
     z?: PropertyOptions<TType>
 ): PropertyDecorator
 {

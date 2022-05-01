@@ -213,9 +213,9 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Gets generic arguments.
      * 
-     * @returns {GenericArgument<any>[]|undefined} Generic arguments or undefined.
+     * @returns {Array<GenericArgument<any>>|undefined} Generic arguments or undefined.
      */
-    public get genericArguments(): GenericArgument<any>[] | undefined
+    public get genericArguments(): Array<GenericArgument<any>> | undefined
     {
         return this.typeOptions.genericArguments;
     }
@@ -223,9 +223,9 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Gets generic metadatas.
      * 
-     * @returns {GenericMetadata<any>[]|undefined} Generic metadatas.
+     * @returns {Array<GenericMetadata<any>>|undefined} Generic metadatas.
      */
-    public get genericMetadatas(): GenericMetadata<any>[] | undefined
+    public get genericMetadatas(): Array<GenericMetadata<any>> | undefined
     {
         const genericArguments = this.genericArguments;
 
@@ -411,7 +411,7 @@ export class TypeMetadata<TType> extends Metadata
             return this;
         }
 
-        const injectTypeFns = (Fn.extractOwnReflectMetadata('design:paramtypes', this.typeFn) ?? []) as TypeFn<any>[];
+        const injectTypeFns = (Fn.extractOwnReflectMetadata('design:paramtypes', this.typeFn) ?? new Array<TypeFn<any>>()) as Array<TypeFn<any>>;
 
         for (let injectIndex = 0; injectIndex < injectTypeFns.length; injectIndex++)
         {
@@ -469,11 +469,11 @@ export class TypeMetadata<TType> extends Metadata
      */
     private configureCustomData(customData: CustomData): TypeMetadata<TType>
     {
-        this.typeOptions.customData = Fn.isNil(customData) ? customData : Fn.assign(this.typeOptions.customData ?? {}, customData);
+        this.typeOptions.customData = Fn.assign(this.typeOptions.customData ?? {}, customData);
 
         return this;
     }
-
+    
     /**
      * Configures certain property metadata.
      * 

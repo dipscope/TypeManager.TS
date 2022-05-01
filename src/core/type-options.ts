@@ -33,9 +33,9 @@ export interface TypeOptions<TType> extends Partial<TypeOptionsBase<TType>>
     /**
      * Generic arguments.
      * 
-     * @type {GenericArgument<any>[]}
+     * @type {Array<GenericArgument<any>>}
      */
-    genericArguments?: GenericArgument<any>[];
+    genericArguments?: Array<GenericArgument<any>>;
 
     /**
      * Injectable type?

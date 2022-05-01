@@ -155,7 +155,7 @@ export class Fn
      * 
      * @returns {boolean} True when value is function. False otherwise.
      */
-    public static isFunction(x: any): x is (...args: any[]) => any
+    public static isFunction(x: any): x is (...args: Array<any>) => any
     {
         return typeof x === 'function';
     }
@@ -167,7 +167,7 @@ export class Fn
      * 
      * @returns {boolean} True when value is an arrow function. False otherwise.
      */
-    public static isArrowFunction(x: any): x is (...args: any[]) => any
+    public static isArrowFunction(x: any): x is (...args: Array<any>) => any
     {
         return typeof x === 'function' && x.prototype && x.prototype.constructor === x && x.name === '';
     }
@@ -179,7 +179,7 @@ export class Fn
      * 
      * @returns {boolean} True when value is a constructor. False otherwise.
      */
-    public static isCtor(x: any): x is new (...args: any[]) => any
+    public static isCtor(x: any): x is new (...args: Array<any>) => any
     {
         return typeof x === 'function' && x.prototype && x.prototype.constructor === x && x.name !== '';
     }
@@ -239,7 +239,7 @@ export class Fn
      * 
      * @returns {boolean} True when value is array. False otherwise.
      */
-    public static isArray(x: any): x is any[]
+    public static isArray(x: any): x is Array<any>
     {
         return Array.isArray(x);
     }
@@ -467,37 +467,37 @@ export class Fn
      * Performs deep assignment and returns target object.
      *
      * @param {Record<string, any>} target Target object.
-     * @param {Record<string, any>[]} sources Source objects.
+     * @param {Array<Record<string, any>>} sources Source objects.
      *
      * @returns {Record<string, any>} Target object.
      */
     public static assign<T, U>(target: T, source: U): T & U;
     public static assign<T, U, V>(target: T, source1: U, source2: V): T & U & V;
     public static assign<T, U, V, W>(target: T, source1: U, source2: V, source3: W): T & U & V & W;
-    public static assign(target: Record<string, any>, ...sources: Record<string, any>[]): Record<string, any>
+    public static assign(target: Record<string, any>, ...sources: Array<Record<string, any>>): Record<string, any>
     {
         for (const source of sources)
         {
-            for (const key in source)
+            if (Fn.isNil(source))
             {
-                if (!source.hasOwnProperty(key))
+                continue;
+            }
+
+            for (const propertyName in source)
+            {
+                if (!this.isObject(source[propertyName]) || !this.isPlainObject(source[propertyName]))
                 {
+                    target[propertyName] = source[propertyName];
+    
                     continue;
                 }
-    
-                if (!this.isObject(source[key]) || !this.isPlainObject(source[key]))
+
+                if (!this.isObject(target[propertyName]))
                 {
-                    target[key] = source[key];
-    
-                    continue;
+                    target[propertyName] = {};
                 }
     
-                if (!this.isObject(target[key]))
-                {
-                    target[key] = {};
-                }
-    
-                target[key] = this.assign(target[key], source[key]);
+                target[propertyName] = this.assign(target[propertyName], source[propertyName]);
             }
         }
         
@@ -526,11 +526,11 @@ export class Fn
      *
      * @param {string} x String.
      * 
-     * @returns {string[]} Array with the words of provided string.
+     * @returns {Array<string>} Array with the words of provided string.
      */
-    public static unicodeWords(x: string): string[]
+    public static unicodeWords(x: string): Array<string>
     {
-        return x.match(reUnicodeWords) ?? [];
+        return x.match(reUnicodeWords) ?? new Array<string>();
     }
 
     /**
@@ -538,11 +538,11 @@ export class Fn
      *
      * @param {string} x String.
      * 
-     * @returns {string[]} Array with the words of provided string.
+     * @returns {Array<string>} Array with the words of provided string.
      */
-    public static asciiWords(x: string): string[]
+    public static asciiWords(x: string): Array<string>
     {
-        return x.match(reAsciiWords) ?? [];
+        return x.match(reAsciiWords) ?? new Array<string>();
     }
 
     /**
@@ -550,9 +550,9 @@ export class Fn
      *
      * @param {string} x String.
      * 
-     * @returns {string[]} Array with the words of provided string.
+     * @returns {Array<string>} Array with the words of provided string.
      */
-    public static words(x: string): string[]
+    public static words(x: string): Array<string>
     {
         return reUnicodeWord.test(x) ? this.unicodeWords(x) : this.asciiWords(x);
     }

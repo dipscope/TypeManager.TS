@@ -144,9 +144,9 @@ export class SerializerContext<TType> extends Metadata
     /**
      * Gets generic arguments.
      * 
-     * @returns {GenericArgument<any>[]|undefined} Generic arguments or undefined.
+     * @returns {Array<GenericArgument<any>>|undefined} Generic arguments or undefined.
      */
-    public get genericArguments(): GenericArgument<any>[] | undefined
+    public get genericArguments(): Array<GenericArgument<any>> | undefined
     {
         return this.serializerContextOptions.genericArguments ?? this.propertyMetadata?.genericArguments ?? this.typeMetadata.genericArguments;
     }
@@ -154,9 +154,9 @@ export class SerializerContext<TType> extends Metadata
     /**
      * Gets generic metadatas.
      * 
-     * @returns {GenericMetadata<any>[]|undefined} Generic metadatas.
+     * @returns {Array<GenericMetadata<any>>|undefined} Generic metadatas.
      */
-    public get genericMetadatas(): GenericMetadata<any>[] | undefined
+    public get genericMetadatas(): Array<GenericMetadata<any>> | undefined
     {
         const genericArguments = this.genericArguments;
 
@@ -266,9 +266,9 @@ export class SerializerContext<TType> extends Metadata
     /**
      * Gets reference callback map.
      * 
-     * @returns {WeakMap<ReferenceKey, ReferenceCallback[]>} Reference callback map.
+     * @returns {WeakMap<ReferenceKey, Array<ReferenceCallback>>} Reference callback map.
      */
-    public get referenceCallbackMap(): WeakMap<ReferenceKey, ReferenceCallback[]>
+    public get referenceCallbackMap(): WeakMap<ReferenceKey, Array<ReferenceCallback>>
     {
         return this.serializerContextOptions.referenceCallbackMap;
     }

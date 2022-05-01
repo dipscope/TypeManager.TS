@@ -134,11 +134,11 @@ export class PathReferenceHandler implements ReferenceHandler
      * 
      * @param {string} referencePath Reference path.
      * 
-     * @returns {string[]} Array reference path.
+     * @returns {Array<string>} Array reference path.
      */
-    private convertReferencePathToArray(referencePath: string): string[] 
+    private convertReferencePathToArray(referencePath: string): Array<string> 
     {
-        const array = [] as string[];
+        const array = new Array<string>();
         const parts = referencePath.split('.');
 
         for (const part of parts) 

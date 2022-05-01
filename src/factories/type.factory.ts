@@ -28,7 +28,7 @@ export class TypeFactory implements Factory
             throw new Error(`${typeMetadata.typeName}: Cannot build instance of abstract type!`);
         }
         
-        const injectedKeys = [];
+        const injectedKeys = new Array<any>();
         const args = new Array<any>(typeCtor.length).fill(undefined);
 
         for (const injectMetadata of typeMetadata.injectMetadataMap.values())

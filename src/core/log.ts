@@ -61,11 +61,11 @@ export class Log
      * Displays info message.
      * 
      * @param {string} message Message to display.
-     * @param {any[]} optionalParams Optional data related to a message.
+     * @param {Array<any>} optionalParams Optional data related to a message.
      * 
      * @returns {void}
      */
-    public info(message: string, ...optionalParams: any[]): void
+    public info(message: string, ...optionalParams: Array<any>): void
     {
         const consoleExists = !Fn.isNil(console) && Fn.isObject(console);
         const consoleInfoExists = consoleExists && Fn.isFunction(console.info);
@@ -87,11 +87,11 @@ export class Log
      * Displays warn message.
      * 
      * @param {string} message Message to display.
-     * @param {any[]} optionalParams Optional data related to a message.
+     * @param {Array<any>} optionalParams Optional data related to a message.
      * 
      * @returns {void}
      */
-    public warn(message: any, ...optionalParams: any[]): void
+    public warn(message: any, ...optionalParams: Array<any>): void
     {
         const consoleExists = !Fn.isNil(console) && Fn.isObject(console);
         const consoleWarnExists = consoleExists && Fn.isFunction(console.warn);
@@ -113,11 +113,11 @@ export class Log
      * Displays error message.
      * 
      * @param {string} message Message to display.
-     * @param {any[]} optionalParams Optional data related to a message.
+     * @param {Array<any>} optionalParams Optional data related to a message.
      * 
      * @returns {void}
      */
-    public error(message: string, ...optionalParams: any[]): void 
+    public error(message: string, ...optionalParams: Array<any>): void 
     {
         const consoleExists = !Fn.isNil(console) && Fn.isObject(console);
         const consoleErrorExists = consoleExists && Fn.isFunction(console.error);

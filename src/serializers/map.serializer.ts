@@ -35,7 +35,7 @@ export class MapSerializer implements Serializer<Map<any, any>>
             return serializerContext.defineReference(x, () =>
             {
                 const map = x;
-                const array = [] as any[];
+                const array = new Array<any>();
                 const genericKeySerializerContext = serializerContext.defineGenericSerializerContext(0);
                 const genericValueSerializerContext = serializerContext.defineGenericSerializerContext(1);
                 

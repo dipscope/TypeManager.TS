@@ -133,9 +133,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Gets generic arguments.
      * 
-     * @returns {GenericArgument<any>[]|undefined} Generic arguments or undefined.
+     * @returns {Array<GenericArgument<any>>|undefined} Generic arguments or undefined.
      */
-    public get genericArguments(): GenericArgument<any>[] | undefined
+    public get genericArguments(): Array<GenericArgument<any>> | undefined
     {
         return this.propertyOptions.genericArguments ?? this.typeMetadata.genericArguments;
     }
@@ -143,9 +143,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Gets generic metadatas.
      * 
-     * @returns {GenericMetadata<any>[]|undefined} Generic metadatas.
+     * @returns {Array<GenericMetadata<any>>|undefined} Generic metadatas.
      */
-    public get genericMetadatas(): GenericMetadata<any>[] | undefined
+    public get genericMetadatas(): Array<GenericMetadata<any>> | undefined
     {
         const genericArguments = this.genericArguments;
 
@@ -263,7 +263,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     private configureCustomData(customData: CustomData): PropertyMetadata<TDeclaringType, TType>
     {
-        this.propertyOptions.customData = Fn.isNil(customData) ? customData : Fn.assign(this.propertyOptions.customData ?? {}, customData);
+        this.propertyOptions.customData = Fn.assign(this.propertyOptions.customData ?? {}, customData);
 
         return this;
     }

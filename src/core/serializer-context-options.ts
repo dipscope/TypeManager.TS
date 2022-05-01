@@ -24,9 +24,9 @@ export interface SerializerContextOptions<TType>
     /**
      * Generic arguments.
      * 
-     * @type {GenericArgument<any>[]}
+     * @type {Array<GenericArgument<any>>}
      */
-    genericArguments?: GenericArgument<any>[];
+    genericArguments?: Array<GenericArgument<any>>;
 
     /**
      * JSONPath from serializer context root.
@@ -49,9 +49,9 @@ export interface SerializerContextOptions<TType>
      * 
      * Used to assign object references in a later time due to circular dependency.
      * 
-     * @type {WeakMap<ReferenceKey, ReferenceCallback[]>}
+     * @type {WeakMap<ReferenceKey, Array<ReferenceCallback>>}
      */
-    referenceCallbackMap: WeakMap<ReferenceKey, ReferenceCallback[]>;
+    referenceCallbackMap: WeakMap<ReferenceKey, Array<ReferenceCallback>>;
 
     /**
      * Reference map.

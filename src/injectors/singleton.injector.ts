@@ -56,7 +56,7 @@ export class SingletonInjector implements Injector
             throw new Error(`${typeMetadata.typeName}: Cannot inject instance of abstract type!`);
         }
 
-        const args: any[] = [];
+        const args = new Array<any>();
 
         for (const injectMetadata of typeMetadata.injectMetadataMap.values())
         {

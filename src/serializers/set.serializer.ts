@@ -35,7 +35,7 @@ export class SetSerializer implements Serializer<Set<any>>
             return serializerContext.defineReference(x, () =>
             {
                 const set = x;
-                const array = [];
+                const array = new Array<any>();
                 const genericSerializerContext = serializerContext.defineGenericSerializerContext(0);
 
                 let i = -1;

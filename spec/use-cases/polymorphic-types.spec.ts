@@ -88,10 +88,10 @@ describe('Polymorphic types', () =>
         const result = TypeManager.serialize(User, user);
 
         expect(result).toBeInstanceOf(Object);
-        expect(result.__type__).toBe('User');
-        expect(result.defaultUserStatuses[0].__type__).toBe('DefaultActiveUserStatus');
-        expect(result.defaultUserStatuses[1].__type__).toBe('DefaultInactiveUserStatus');
-        expect(result.defaultUserStatuses[2].__type__).toBe('DefaultBlokedUserStatus');
+        expect(result.$type).toBe('User');
+        expect(result.defaultUserStatuses[0].$type).toBe('DefaultActiveUserStatus');
+        expect(result.defaultUserStatuses[1].$type).toBe('DefaultInactiveUserStatus');
+        expect(result.defaultUserStatuses[2].$type).toBe('DefaultBlokedUserStatus');
         expect(result.customUserStatuses[0].__typename__).toBe('CustomActiveUS');
         expect(result.customUserStatuses[1].__typename__).toBe('CustomInactiveUS');
         expect(result.customUserStatuses[2].__typename__).toBe('CustomBlokedUS');
@@ -103,10 +103,10 @@ describe('Polymorphic types', () =>
             preserveDiscriminator: true 
         });
 
-        const user = { __type__: 'User', defaultUserStatuses: [] as Record<string, any>[], customUserStatuses: [] as Record<string, any>[] };
-        const defaultActiveUserStatus = { __type__: 'DefaultActiveUserStatus' };
-        const defaultInactiveUserStatus = { __type__: 'DefaultInactiveUserStatus' };
-        const defaultBlokedUserStatus = { __type__: 'DefaultBlokedUserStatus' };
+        const user = { $type: 'User', defaultUserStatuses: [] as Record<string, any>[], customUserStatuses: [] as Record<string, any>[] };
+        const defaultActiveUserStatus = { $type: 'DefaultActiveUserStatus' };
+        const defaultInactiveUserStatus = { $type: 'DefaultInactiveUserStatus' };
+        const defaultBlokedUserStatus = { $type: 'DefaultBlokedUserStatus' };
         const customActiveUserStatus = { __typename__: 'CustomActiveUS' };
         const customInactiveUserStatus = { __typename__: 'CustomInactiveUS' };
         const customBlokedUserStatus = { __typename__: 'CustomBlokedUS' };

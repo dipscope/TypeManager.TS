@@ -5,4 +5,4 @@ import { TypeMetadata } from './type-metadata';
  * 
  * @type {GenericMetadata<TType>}
  */
-export type GenericMetadata<TType> = [TypeMetadata<TType>, GenericMetadata<any>[]];
+export type GenericMetadata<TType> = [TypeMetadata<TType>, Array<GenericMetadata<any>>];

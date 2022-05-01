@@ -34,6 +34,7 @@ export * from './type-ctor';
 export * from './type-fn';
 export * from './type-like';
 export * from './type-metadata-resolver';
+export * from './type-metadata-symbol';
 export * from './type-metadata';
 export * from './type-name';
 export * from './type-options-base';

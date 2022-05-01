@@ -5,4 +5,4 @@ import { TypeArgument } from './type-argument';
  * 
  * @type {GenericArgument<TType>}
  */
-export type GenericArgument<TType> = TypeArgument<TType> | [TypeArgument<TType>, GenericArgument<any>[]];
+export type GenericArgument<TType> = TypeArgument<TType> | [TypeArgument<TType>, Array<GenericArgument<any>>];

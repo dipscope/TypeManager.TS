@@ -1323,7 +1323,7 @@ It uses 2 special configurable type options:
 
 This options have default values if you have not configured them explicitly.
 
-* Default value of discriminator is a `__type__`. During deserialization `TypeManager` expects such property to be present inside a polymorphic object.
+* Default value of discriminator is a `$type`. During deserialization `TypeManager` expects such property to be present inside a polymorphic object.
 * Default value of discriminant is a `ClassName` which determined based on the type function.
 
 For proper deserialization of polymorphic types you have to provide such information inside your JSON.
@@ -1332,18 +1332,18 @@ For proper deserialization of polymorphic types you have to provide such informa
 {
     "shapes": [
         {
-            "__type__": "Rectangle",
+            "$type": "Rectangle",
             "title": "Cool rectangle",
             "width": 10,
             "height": 10
         }, 
         {
-            "__type__": "Square",
+            "$type": "Square",
             "title": "Perfect square",
             "width": 10
         },
         {
-            "__type__": "Circle",
+            "$type": "Circle",
             "title": "Simple circle",
             "radius": 6
         }
@@ -1353,7 +1353,7 @@ For proper deserialization of polymorphic types you have to provide such informa
 
 Now your JSON will be handled properly and you will get `Rectangle`, `Square` and `Circle` class instances in return.
 
-In most cases your `Discriminator` and `Discriminant` values will not match to our default ones. For example library like [Json.NET](https://www.newtonsoft.com/json) can be used on the backend side to send a response from your API. It uses `$type` property as `Discriminator` and full name of class as `Discriminant`. In such scenario our JSON may look like this.
+In some cases your `Discriminator` or `Discriminant` values will not match to our default ones. For example library like [Json.NET](https://www.newtonsoft.com/json) can be used on the backend side to send a response from your API. It uses `$type` property as `Discriminator` and full name of class as `Discriminant`. In such scenario our JSON may look like this.
 
 ```json
 {
@@ -1385,7 +1385,7 @@ import { TypeManagerOptions } from '@dipscope/type-manager';
 import { TypeOptionsBase } from '@dipscope/type-manager/core';
 
 const typeOptionsBase: TypeOptionsBase<any> = {
-    discriminator: '$type'
+    discriminator: '$customType'
 };
 
 const typeManagerOptions: TypeManagerOptions = {

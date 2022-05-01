@@ -50,7 +50,7 @@ describe('Type manager', () =>
             preserveDiscriminator: false,
             useDefaultValue: false,
             useImplicitConversion: false,
-            discriminator: '__type__'
+            discriminator: '$type'
         });
     });
 
@@ -273,7 +273,7 @@ describe('Type manager', () =>
 
         expect(groupMetadata.typeOptionsBase.preserveDiscriminator).toBeFalse();
         expect(groupMetadata.typeOptionsBase.useImplicitConversion).toBeFalse();
-        expect(groupMetadata.typeOptionsBase.discriminator).toBe('__type__');
+        expect(groupMetadata.typeOptionsBase.discriminator).toBe('$type');
         expect(groupMetadata.typeOptions.defaultValue).toBeUndefined();
     });
 });
