@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.3] - 2022-05-07
+
+### Added
+
+- Getters of serialized and deserialized property names for property metadata.
+
+### Removed
+
+- Definition logic of serialized and deserialized property names from type serializer.
+
+### Fixed
+
+- Serialized property name was displayed in log messages.
+
 ## [4.0.2] - 2022-05-01
 
 ### Changed

@@ -1,1 +1,1 @@
-export * from './singleton.injector';
+export * from './singleton-injector';

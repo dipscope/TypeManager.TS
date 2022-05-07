@@ -1,12 +1,12 @@
-import { Fn } from './../core/fn';
-import { NamingConvention } from './../core/naming-convention';
+import { Fn } from '../core/fn';
+import { NamingConvention } from '../core/naming-convention';
 
 /**
- * Camel case naming convention.
+ * Snake upper case naming convention.
  * 
- * @type {CamelCaseNamingConvention}
+ * @type {SnakeUpperCaseNamingConvention}
  */
-export class CamelCaseNamingConvention implements NamingConvention
+export class SnakeUpperCaseNamingConvention implements NamingConvention
 {
     /**
      * Converts name from provided to target one.
@@ -36,13 +36,13 @@ export class CamelCaseNamingConvention implements NamingConvention
             return result;
         }
 
-        const wordLowerCased = word.toLowerCase();
+        const wordUpperCased = word.toUpperCase();
 
         if (index === 0)
         {
-            return wordLowerCased;
+            return wordUpperCased;
         }
 
-        return `${result}${wordLowerCased[0].toUpperCase()}${wordLowerCased.slice(1)}`;
+        return `${result}_${wordUpperCased}`;
     }
 }

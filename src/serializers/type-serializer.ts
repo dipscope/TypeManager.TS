@@ -47,17 +47,16 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                     {
                         continue;
                     }
-    
-                    const namingConvention = propertyMetadata.namingConvention ?? typeMetadata.namingConvention;
-                    const propertyNameByConvention = namingConvention ? namingConvention.convert(propertyMetadata.propertyName) : propertyMetadata.propertyName;
-                    const propertyName = propertyMetadata.alias ?? propertyNameByConvention;
-                    const propertyValue = type[propertyMetadata.propertyName];
+
+                    const serializedPropertyName = propertyMetadata.serializedPropertyName;
+                    const deserializedPropertyName = propertyMetadata.deserializedPropertyName;
+                    const propertyValue = type[deserializedPropertyName];
 
                     const propertySerializerContext = typeSerializerContext.defineChildSerializerContext({
                         propertyMetadata: propertyMetadata,
                         typeMetadata: propertyMetadata.typeMetadata,
                         genericArguments: propertyMetadata.genericArguments,
-                        path: `${typeSerializerContext.path}['${propertyName}']`
+                        path: `${typeSerializerContext.path}['${deserializedPropertyName}']`
                     });
     
                     const value = propertySerializerContext.serialize(propertyValue);
@@ -70,14 +69,14 @@ export class TypeSerializer implements Serializer<Record<string, any>>
         
                             if (!Fn.isNil(declaringObject))
                             {
-                                declaringObject[propertyName] = value();
+                                declaringObject[serializedPropertyName] = value();
                             }
                         });
         
                         continue;
                     }
     
-                    object[propertyName] = value;
+                    object[serializedPropertyName] = value;
                 }
 
                 if (typeSerializerContext.preserveDiscriminator)
@@ -137,16 +136,15 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                         continue;
                     }
 
-                    const namingConvention = propertyMetadata.namingConvention ?? typeMetadata.namingConvention;
-                    const propertyNameByConvention = namingConvention ? namingConvention.convert(propertyMetadata.propertyName) : propertyMetadata.propertyName;
-                    const propertyName = propertyMetadata.alias ?? propertyNameByConvention;
-                    const propertyValue = object[propertyName];
+                    const serializedPropertyName = propertyMetadata.serializedPropertyName;
+                    const deserializedPropertyName = propertyMetadata.deserializedPropertyName;
+                    const propertyValue = object[serializedPropertyName];
 
                     const propertySerializerContext = typeSerializerContext.defineChildSerializerContext({
                         propertyMetadata: propertyMetadata,
                         typeMetadata: propertyMetadata.typeMetadata,
                         genericArguments: propertyMetadata.genericArguments,
-                        path: `${typeSerializerContext.path}['${propertyName}']`
+                        path: `${typeSerializerContext.path}['${deserializedPropertyName}']`
                     });
     
                     const value = propertySerializerContext.deserialize(propertyValue);
@@ -159,15 +157,15 @@ export class TypeSerializer implements Serializer<Record<string, any>>
         
                             if (!Fn.isNil(declaringType))
                             {
-                                declaringType[propertyName] = value();
+                                declaringType[deserializedPropertyName] = value();
                             }
                         });
         
                         continue;
                     }
 
-                    typeContext.set(propertyMetadata.propertyName, new TypeContextEntry(propertyMetadata.propertyName, value, propertyMetadata));
-                    typeContext.set(propertyName, new TypeContextEntry(propertyName, value, propertyMetadata));
+                    typeContext.set(deserializedPropertyName, new TypeContextEntry(deserializedPropertyName, value, propertyMetadata));
+                    typeContext.set(serializedPropertyName, new TypeContextEntry(serializedPropertyName, value, propertyMetadata));
                 }
 
                 for (const propertyName in object)

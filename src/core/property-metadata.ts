@@ -131,6 +131,16 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     }
 
     /**
+     * Gets deserialized property name.
+     * 
+     * @returns {string} Deserialized property name.
+     */
+    public get deserializedPropertyName(): string
+    {
+        return this.propertyName;
+    }
+
+    /**
      * Gets generic arguments.
      * 
      * @returns {Array<GenericArgument<any>>|undefined} Generic arguments or undefined.
@@ -185,6 +195,26 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     public get serializable(): boolean | undefined
     {
         return this.propertyOptions.serializable;
+    }
+    
+    /**
+     * Gets serialized property name.
+     * 
+     * @returns {string} Serialized property name.
+     */
+    public get serializedPropertyName(): string
+    {
+        const alias = this.alias;
+
+        if (Fn.isNil(alias))
+        {
+            const namingConvention = this.namingConvention ?? this.declaringTypeMetadata.namingConvention;
+            const propertyName = namingConvention ? namingConvention.convert(this.propertyName) : this.propertyName;
+
+            return propertyName;
+        }
+
+        return alias;
     }
 
     /**

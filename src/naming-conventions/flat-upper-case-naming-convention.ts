@@ -1,12 +1,12 @@
-import { Fn } from './../core/fn';
-import { NamingConvention } from './../core/naming-convention';
+import { Fn } from '../core/fn';
+import { NamingConvention } from '../core/naming-convention';
 
 /**
- * Flat case naming convention.
+ * Flat upper case naming convention.
  * 
- * @type {FlatCaseNamingConvention}
+ * @type {FlatUpperCaseNamingConvention}
  */
-export class FlatCaseNamingConvention implements NamingConvention
+export class FlatUpperCaseNamingConvention implements NamingConvention
 {
     /**
      * Converts name from provided to target one.
@@ -35,6 +35,6 @@ export class FlatCaseNamingConvention implements NamingConvention
             return result;
         }
 
-        return `${result}${word.toLowerCase()}`;
+        return `${result}${word.toUpperCase()}`;
     }
 }
