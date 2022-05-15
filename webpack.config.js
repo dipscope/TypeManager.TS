@@ -37,7 +37,8 @@ module.exports = {
     output: {
         path: Path.resolve(__dirname, 'dist'),
         library: ['TypeManager', '[name]'],
-        libraryTarget: 'umd'
+        libraryTarget: 'umd',
+        globalObject: 'this'
     },
     plugins: [
         new CircularDependencyPlugin({
