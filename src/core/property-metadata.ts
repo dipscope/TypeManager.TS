@@ -104,30 +104,57 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     }
 
     /**
-     * Gets default value.
+     * Gets serialized default value.
      * 
-     * @returns {any|undefined} Resolved default value or undefined.
+     * @returns {any|undefined} Resolved serialized default value or undefined.
      */
-    public get defaultValue(): any | undefined
+    public get serializedDefaultValue(): any | undefined
     {
-        const defaultValue = this.propertyOptions.defaultValue ?? this.typeMetadata.defaultValue;
-
         if (this.useDefaultValue)
         {
-            return Fn.isFunction(defaultValue) ? defaultValue() : defaultValue;
+            const serializedDefaultValue = this.propertyOptions.serializedDefaultValue ?? this.typeMetadata.serializedDefaultValue;
+
+            return Fn.isFunction(serializedDefaultValue) ? serializedDefaultValue() : serializedDefaultValue;
         }
 
         return undefined;
     }
 
     /**
-     * Gets deserializable value.
+     * Gets deserialized default value.
      * 
-     * @returns {boolean|undefined} Deserializable indicator or undefined.
+     * @returns {any|undefined} Resolved deserialized default value or undefined.
      */
-    public get deserializable(): boolean | undefined
+    public get deserializedDefaultValue(): any | undefined
     {
-        return this.propertyOptions.deserializable;
+        if (this.useDefaultValue)
+        {
+            const deserializedDefaultValue = this.propertyOptions.deserializedDefaultValue ?? this.typeMetadata.deserializedDefaultValue;
+
+            return Fn.isFunction(deserializedDefaultValue) ? deserializedDefaultValue() : deserializedDefaultValue;
+        }
+
+        return undefined;
+    }
+    
+    /**
+     * Gets serialized property name.
+     * 
+     * @returns {string} Serialized property name.
+     */
+    public get serializedPropertyName(): string
+    {
+        const alias = this.alias;
+
+        if (Fn.isNil(alias))
+        {
+            const namingConvention = this.namingConvention ?? this.declaringTypeMetadata.namingConvention;
+            const propertyName = namingConvention ? namingConvention.convert(this.propertyName) : this.propertyName;
+
+            return propertyName;
+        }
+
+        return alias;
     }
 
     /**
@@ -138,6 +165,16 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     public get deserializedPropertyName(): string
     {
         return this.propertyName;
+    }
+
+    /**
+     * Gets deserializable value.
+     * 
+     * @returns {boolean|undefined} Deserializable indicator or undefined.
+     */
+    public get deserializable(): boolean | undefined
+    {
+        return this.propertyOptions.deserializable;
     }
 
     /**
@@ -195,26 +232,6 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     public get serializable(): boolean | undefined
     {
         return this.propertyOptions.serializable;
-    }
-    
-    /**
-     * Gets serialized property name.
-     * 
-     * @returns {string} Serialized property name.
-     */
-    public get serializedPropertyName(): string
-    {
-        const alias = this.alias;
-
-        if (Fn.isNil(alias))
-        {
-            const namingConvention = this.namingConvention ?? this.declaringTypeMetadata.namingConvention;
-            const propertyName = namingConvention ? namingConvention.convert(this.propertyName) : this.propertyName;
-
-            return propertyName;
-        }
-
-        return alias;
     }
 
     /**
@@ -312,9 +329,14 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
             this.propertyOptions.alias = propertyOptions.alias;
         }
 
-        if (!Fn.isUndefined(propertyOptions.defaultValue))
+        if (!Fn.isUndefined(propertyOptions.serializedDefaultValue))
         {
-            this.propertyOptions.defaultValue = propertyOptions.defaultValue;
+            this.propertyOptions.serializedDefaultValue = propertyOptions.serializedDefaultValue;
+        }
+
+        if (!Fn.isUndefined(propertyOptions.deserializedDefaultValue))
+        {
+            this.propertyOptions.deserializedDefaultValue = propertyOptions.deserializedDefaultValue;
         }
 
         if (!Fn.isUndefined(propertyOptions.deserializable))

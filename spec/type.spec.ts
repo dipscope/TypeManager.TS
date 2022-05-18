@@ -6,7 +6,7 @@ import { TypeSerializer } from '../src/serializers';
 @Type({
     alias: 'User:Type',
     customData: { rank: 1 },
-    defaultValue: () => new User(),
+    deserializedDefaultValue: () => new User(),
     useDefaultValue: true,
     useImplicitConversion: false,
     injectable: true,
@@ -32,8 +32,8 @@ describe('Type decorator', () =>
         expect(userMetadata.typeOptions.alias).toBe('User:Type');
         expect(userMetadata.typeOptions.customData).toBeDefined();
         expect(userMetadata.typeOptions.customData?.rank).toBe(1);
-        expect(userMetadata.typeOptions.defaultValue).toBeDefined();
-        expect(userMetadata.typeOptions.defaultValue()).toBeInstanceOf(User);
+        expect(userMetadata.typeOptions.deserializedDefaultValue).toBeDefined();
+        expect(userMetadata.typeOptions.deserializedDefaultValue()).toBeInstanceOf(User);
         expect(userMetadata.typeOptions.useDefaultValue).toBeTrue();
         expect(userMetadata.typeOptions.useImplicitConversion).toBeFalse();
         expect(userMetadata.typeOptions.injectable).toBeTrue();

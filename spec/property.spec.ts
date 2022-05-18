@@ -7,7 +7,7 @@ class User
     @Property({ typeArgument: 'String', alias: 'my@mail.ru' }) public email?: string;
     @Property(() => String, { serializable: true }) public group?: string;
     @Property({ deserializable: true }) public rank?: number;
-    @Property('Number', { defaultValue: 10 }) public priority?: number;
+    @Property('Number', { deserializedDefaultValue: 10 }) public priority?: number;
     @Property(() => Number, { useDefaultValue: true }) public loginCount?: number;
     @Property({ useImplicitConversion: true, serializer: new TypeSerializer() }) public active?: boolean;
 }
@@ -37,7 +37,7 @@ describe('Property decorator', () =>
         expect(userNameMetadata?.propertyOptions.alias).toBeUndefined();
         expect(userNameMetadata?.propertyOptions.serializable).toBeUndefined();
         expect(userNameMetadata?.propertyOptions.deserializable).toBeUndefined();
-        expect(userNameMetadata?.propertyOptions.defaultValue).toBeUndefined();
+        expect(userNameMetadata?.propertyOptions.deserializedDefaultValue).toBeUndefined();
         expect(userNameMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
         expect(userNameMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
         expect(userNameMetadata?.propertyOptions.typeArgument).toBeUndefined();
@@ -48,7 +48,7 @@ describe('Property decorator', () =>
         expect(userEmailMetadata?.propertyOptions.alias).toBe('my@mail.ru');
         expect(userEmailMetadata?.propertyOptions.serializable).toBeUndefined();
         expect(userEmailMetadata?.propertyOptions.deserializable).toBeUndefined();
-        expect(userEmailMetadata?.propertyOptions.defaultValue).toBeUndefined();
+        expect(userEmailMetadata?.propertyOptions.deserializedDefaultValue).toBeUndefined();
         expect(userEmailMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
         expect(userEmailMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
         expect(userEmailMetadata?.propertyOptions.typeArgument).toBeDefined();
@@ -59,7 +59,7 @@ describe('Property decorator', () =>
         expect(userGroupMetadata?.propertyOptions.alias).toBeUndefined();
         expect(userGroupMetadata?.propertyOptions.serializable).toBeTrue();
         expect(userGroupMetadata?.propertyOptions.deserializable).toBeUndefined();
-        expect(userGroupMetadata?.propertyOptions.defaultValue).toBeUndefined();
+        expect(userGroupMetadata?.propertyOptions.deserializedDefaultValue).toBeUndefined();
         expect(userGroupMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
         expect(userGroupMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
         expect(userGroupMetadata?.propertyOptions.typeArgument).toBeDefined();
@@ -70,7 +70,7 @@ describe('Property decorator', () =>
         expect(userRankMetadata?.propertyOptions.alias).toBeUndefined();
         expect(userRankMetadata?.propertyOptions.serializable).toBeUndefined();
         expect(userRankMetadata?.propertyOptions.deserializable).toBeTrue();
-        expect(userRankMetadata?.propertyOptions.defaultValue).toBeUndefined();
+        expect(userRankMetadata?.propertyOptions.deserializedDefaultValue).toBeUndefined();
         expect(userRankMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
         expect(userRankMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
         expect(userRankMetadata?.propertyOptions.typeArgument).toBeUndefined();
@@ -81,7 +81,7 @@ describe('Property decorator', () =>
         expect(userPriorityMetadata?.propertyOptions.alias).toBeUndefined();
         expect(userPriorityMetadata?.propertyOptions.serializable).toBeUndefined();
         expect(userPriorityMetadata?.propertyOptions.deserializable).toBeUndefined();
-        expect(userPriorityMetadata?.propertyOptions.defaultValue).toBe(10);
+        expect(userPriorityMetadata?.propertyOptions.deserializedDefaultValue).toBe(10);
         expect(userPriorityMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
         expect(userPriorityMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
         expect(userPriorityMetadata?.propertyOptions.typeArgument).toBeDefined();
@@ -92,7 +92,7 @@ describe('Property decorator', () =>
         expect(userLoginCountMetadata?.propertyOptions.alias).toBeUndefined();
         expect(userLoginCountMetadata?.propertyOptions.serializable).toBeUndefined();
         expect(userLoginCountMetadata?.propertyOptions.deserializable).toBeUndefined();
-        expect(userLoginCountMetadata?.propertyOptions.defaultValue).toBeUndefined();
+        expect(userLoginCountMetadata?.propertyOptions.deserializedDefaultValue).toBeUndefined();
         expect(userLoginCountMetadata?.propertyOptions.useDefaultValue).toBeTrue();
         expect(userLoginCountMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
         expect(userLoginCountMetadata?.propertyOptions.typeArgument).toBeDefined();
@@ -103,7 +103,7 @@ describe('Property decorator', () =>
         expect(userActiveMetadata?.propertyOptions.alias).toBeUndefined();
         expect(userActiveMetadata?.propertyOptions.serializable).toBeUndefined();
         expect(userActiveMetadata?.propertyOptions.deserializable).toBeUndefined();
-        expect(userActiveMetadata?.propertyOptions.defaultValue).toBeUndefined();
+        expect(userActiveMetadata?.propertyOptions.deserializedDefaultValue).toBeUndefined();
         expect(userActiveMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
         expect(userActiveMetadata?.propertyOptions.useImplicitConversion).toBeTrue();
         expect(userActiveMetadata?.propertyOptions.typeArgument).toBeUndefined();

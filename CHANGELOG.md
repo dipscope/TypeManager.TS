@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2022-05-18
+
+### Added
+
+- Getters for serialized and deserialized default value in metadata.
+- Decorators and options to define serialized and deserialized default value explicitly.
+
+## [4.0.4] - 2022-05-15
+
+### Changed
+
+- Set webpack global output object to `this`.
+
 ## [4.0.3] - 2022-05-07
 
 ### Added

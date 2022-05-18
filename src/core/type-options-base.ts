@@ -1,4 +1,5 @@
 import { CustomData } from './custom-data';
+import { DefaultValue } from './default-value';
 import { Discriminator } from './discriminator';
 import { Factory } from './factory';
 import { Injector } from './injector';
@@ -27,16 +28,24 @@ export interface TypeOptionsBase<TType>
      * @type {Discriminator}
      */
     discriminator: Discriminator;
+    
+    /**
+     * Serialized default value for undefined ones.
+     * 
+     * Used only when use default value option is true.
+     * 
+     * @type {DefaultValue}
+     */
+    serializedDefaultValue?: DefaultValue;
 
     /**
-     * Default value for undefined ones.
+     * Deserialized default value for undefined ones.
      * 
-     * Can be a lazy function which returns a value. Assigned only when 
-     * use default value option is true.
+     * Used only when use default value option is true.
      * 
-     * @type {any}
+     * @type {DefaultValue}
      */
-    defaultValue?: any;
+    deserializedDefaultValue?: DefaultValue;
 
     /**
      * Factory used to build instances of type.

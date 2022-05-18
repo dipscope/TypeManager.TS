@@ -1,5 +1,7 @@
 export * from './alias';
 export * from './custom-data';
+export * from './default-value-resolver';
+export * from './default-value';
 export * from './discriminant';
 export * from './discriminator';
 export * from './factory';

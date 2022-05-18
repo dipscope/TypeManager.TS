@@ -19,8 +19,8 @@ class User
 {
     @Property(() => String, { alias: 'username' }) public name?: string;
     @Property(() => String) public email?: string;
-    @Property(() => String, { defaultValue: 'd', useDefaultValue: true }) public status?: string;
-    @Property(() => String, { defaultValue: () => 'e', useDefaultValue: true }) public login?: string;
+    @Property(() => String, { deserializedDefaultValue: 'd', useDefaultValue: true }) public status?: string;
+    @Property(() => String, { serializedDefaultValue: () => 'e', deserializedDefaultValue: () => 'e', useDefaultValue: true }) public login?: string;
     @Property(() => String, { useImplicitConversion: true }) public description?: string;
     @Property(() => String, { serializable: true }) public about?: string;
     @Property(() => String, { deserializable: true }) public device?: string;
@@ -39,7 +39,7 @@ class Message
 class Group
 {
     @Property(() => String) public title?: string;
-    @Property(() => User, { defaultValue: () => new User(), useDefaultValue: true }) public user?: User;
+    @Property(() => User, { deserializedDefaultValue: () => new User(), useDefaultValue: true }) public user?: User;
 }
 
 describe('Type manager', () =>
@@ -168,7 +168,7 @@ describe('Type manager', () =>
 
         expect(object).toBeInstanceOf(Object);
         expect(object.title).toBe('a');
-        expect(object.user).toBeInstanceOf(User);
+        expect(object.user).toBeUndefined();
     });
 
     it('should produce the same result for serialization functions', () =>
@@ -227,7 +227,7 @@ describe('Type manager', () =>
         });
 
         groupManager.configureTypeOptions(Group, {
-            defaultValue: () => new Group()
+            deserializedDefaultValue: () => new Group()
         });
 
         TypeManager.configureTypeOptionsBase({
@@ -263,17 +263,17 @@ describe('Type manager', () =>
         });
 
         groupManager.configureTypeOptions(Group, {
-            defaultValue: () => new Group()
+            deserializedDefaultValue: () => new Group()
         });
 
         expect(groupManager.typeMetadata.typeOptionsBase.preserveDiscriminator).toBeTrue();
         expect(groupManager.typeMetadata.typeOptionsBase.useImplicitConversion).toBeTrue();
         expect(groupManager.typeMetadata.typeOptionsBase.discriminator).toBe('__typename__');
-        expect(groupManager.typeMetadata.typeOptions.defaultValue).toBeDefined();
+        expect(groupManager.typeMetadata.typeOptions.deserializedDefaultValue).toBeDefined();
 
         expect(groupMetadata.typeOptionsBase.preserveDiscriminator).toBeFalse();
         expect(groupMetadata.typeOptionsBase.useImplicitConversion).toBeFalse();
         expect(groupMetadata.typeOptionsBase.discriminator).toBe('$type');
-        expect(groupMetadata.typeOptions.defaultValue).toBeUndefined();
+        expect(groupMetadata.typeOptions.deserializedDefaultValue).toBeUndefined();
     });
 });

@@ -709,17 +709,32 @@ export class User
 }
 ```
 
-Such declaration is an alternative for:
+This will affect both serialized and deserialized default value. This will fit perfectly for most types. You can also specify serialized and deserialized default value explicitly for complex types by using two other decorators.
+
+```typescript
+import { Type, Property, SerializedDefaultValue, DeserializedDefaultValue } from '@dipscope/type-manager';
+
+@Type()
+@SerializedDefaultValue(() => new User())
+@DeserializedDefaultValue(() => new User())
+export class User
+{
+    @Property(String) @SerializedDefaultValue('BestName') @DeserializedDefaultValue('BestName') public name: string;
+}
+```
+
+Both declarations are an alternative for:
 
 ```typescript
 import { Type, Property } from '@dipscope/type-manager';
 
 @Type({
-    defaultValue: () => new User()
+    serializedDefaultValue: () => new User(),
+    deserializedDefaultValue: () => new User()
 })
 export class User
 {
-    @Property(String, { defaultValue: 'BestName' }) public name: string;
+    @Property(String, { serializedDefaultValue: 'BestName', deserializedDefaultValue: 'BestName' }) public name: string;
 }
 ```
 
@@ -1706,7 +1721,7 @@ export class DateTimeSerializer implements Serializer<DateTime>
     {
         if (Fn.isUndefined(x))
         {
-            return serializerContext.defaultValue;
+            return serializerContext.serializedDefaultValue;
         }
 
         if (Fn.isNull(x))
@@ -1731,7 +1746,7 @@ export class DateTimeSerializer implements Serializer<DateTime>
     {
         if (Fn.isUndefined(x))
         {
-            return serializerContext.defaultValue;
+            return serializerContext.deserializedDefaultValue;
         }
 
         if (Fn.isNull(x))

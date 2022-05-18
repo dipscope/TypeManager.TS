@@ -1,15 +1,16 @@
+import { DefaultValue } from './core';
 import { TypeAndProperty } from './type-and-property';
 
 /**
  * Default value decorator.
  * 
- * Used to define default value for type and property.
+ * Used to define serialized and deserialized default value for type and property. 
  * 
- * @param {any} defaultValue Default value.
+ * @param {DefaultValue} defaultValue Default value.
  * 
  * @returns {ClassDecorator&PropertyDecorator} Class and property decorator.
  */
-export function DefaultValue(defaultValue: any): ClassDecorator & PropertyDecorator
+export function DefaultValue(defaultValue: DefaultValue): ClassDecorator & PropertyDecorator
 {
-    return TypeAndProperty({ defaultValue: defaultValue });
+    return TypeAndProperty({ serializedDefaultValue: defaultValue, deserializedDefaultValue: defaultValue });
 }

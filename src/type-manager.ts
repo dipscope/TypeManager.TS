@@ -51,7 +51,8 @@ export class TypeManager<TType>
      * @type {TypeOptionsBase<any>}
      */
     public static readonly typeOptionsBase: TypeOptionsBase<any> = {
-        defaultValue: undefined,
+        serializedDefaultValue: undefined,
+        deserializedDefaultValue: undefined,
         discriminator: '$type',
         factory: new TypeFactory(),
         injector: new SingletonInjector(),
@@ -62,7 +63,7 @@ export class TypeManager<TType>
         useDefaultValue: false,
         useImplicitConversion: false
     };
-
+    
     /**
      * Static type options per type. 
      * 
@@ -71,24 +72,24 @@ export class TypeManager<TType>
      * @type {Map<TypeFn<any>, TypeOptions<any>>}
      */
     public static readonly typeOptionsMap: Map<TypeFn<any>, TypeOptions<any>> = new Map<TypeFn<any>, TypeOptions<any>>([
-        [ArrayBuffer, { serializer: new ArrayBufferSerializer(), defaultValue: undefined }],
-        [Array, { serializer: new ArraySerializer(), defaultValue: () => [] }],
-        [Boolean, { serializer: new BooleanSerializer(), defaultValue: false }],
-        [DataView, { serializer: new DataViewSerializer(), defaultValue: undefined }],
-        [Date, { serializer: new DateSerializer(), defaultValue: undefined }],
-        [Float32Array, { serializer: new Float32ArraySerializer(), defaultValue: undefined }],
-        [Float64Array, { serializer: new Float64ArraySerializer(), defaultValue: undefined }],
-        [Int8Array, { serializer: new Int8ArraySerializer(), defaultValue: undefined }],
-        [Int16Array, { serializer: new Int16ArraySerializer(), defaultValue: undefined }],
-        [Int32Array, { serializer: new Int32ArraySerializer(), defaultValue: undefined }],
-        [Map, { serializer: new MapSerializer(), defaultValue: undefined }],
-        [Number, { serializer: new NumberSerializer(), defaultValue: 0 }],
-        [Set, { serializer: new SetSerializer(), defaultValue: undefined }],
-        [String, { serializer: new StringSerializer(), defaultValue: undefined }],
-        [Uint8Array, { serializer: new Uint8ArraySerializer(), defaultValue: undefined }],
-        [Uint8ClampedArray, { serializer: new Uint8ClampedArraySerializer(), defaultValue: undefined }],
-        [Uint16Array, { serializer: new Uint16ArraySerializer(), defaultValue: undefined }],
-        [Uint32Array, { serializer: new Uint32ArraySerializer(), defaultValue: undefined }]
+        [ArrayBuffer, { serializer: new ArrayBufferSerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
+        [Array, { serializer: new ArraySerializer(), serializedDefaultValue: () => [], deserializedDefaultValue: () => [] }],
+        [Boolean, { serializer: new BooleanSerializer(), serializedDefaultValue: false, deserializedDefaultValue: false }],
+        [DataView, { serializer: new DataViewSerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
+        [Date, { serializer: new DateSerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
+        [Float32Array, { serializer: new Float32ArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
+        [Float64Array, { serializer: new Float64ArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
+        [Int8Array, { serializer: new Int8ArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
+        [Int16Array, { serializer: new Int16ArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
+        [Int32Array, { serializer: new Int32ArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
+        [Map, { serializer: new MapSerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
+        [Number, { serializer: new NumberSerializer(), serializedDefaultValue: 0, deserializedDefaultValue: 0 }],
+        [Set, { serializer: new SetSerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
+        [String, { serializer: new StringSerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
+        [Uint8Array, { serializer: new Uint8ArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
+        [Uint8ClampedArray, { serializer: new Uint8ClampedArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
+        [Uint16Array, { serializer: new Uint16ArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
+        [Uint32Array, { serializer: new Uint32ArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }]
     ]);
 
     /**

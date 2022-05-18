@@ -1,5 +1,6 @@
 import { Alias } from './alias';
 import { CustomData } from './custom-data';
+import { DefaultValue } from './default-value';
 import { GenericArgument } from './generic-argument';
 import { NamingConvention } from './naming-convention';
 import { ReferenceHandler } from './reference-handler';
@@ -30,14 +31,22 @@ export interface PropertyOptions<TType>
     customData?: CustomData;
 
     /**
-     * Default value for undefined ones.
+     * Serialized default value for undefined ones.
      * 
-     * Can be a lazy function which returns a value. Assigned only when 
-     * use default value option is true.
+     * Used only when use default value option is true.
      * 
-     * @type {any}
+     * @type {DefaultValue}
      */
-    defaultValue?: any;
+    serializedDefaultValue?: DefaultValue;
+
+    /**
+     * Deserialized default value for undefined ones.
+     * 
+     * Used only when use default value option is true.
+     * 
+     * @type {DefaultValue}
+     */
+    deserializedDefaultValue?: DefaultValue;
 
     /**
      * Deserializable from object?

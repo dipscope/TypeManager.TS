@@ -13,8 +13,10 @@ describe('Default value decorator', () =>
     {
         const userMetadata = TypeManager.extractTypeMetadata(User);
 
-        expect(userMetadata.typeOptions.defaultValue).toBeDefined();
-        expect(userMetadata.typeOptions.defaultValue()).toBeInstanceOf(User);
+        expect(userMetadata.typeOptions.serializedDefaultValue).toBeDefined();
+        expect(userMetadata.typeOptions.serializedDefaultValue()).toBeInstanceOf(User);
+        expect(userMetadata.typeOptions.deserializedDefaultValue).toBeDefined();
+        expect(userMetadata.typeOptions.deserializedDefaultValue()).toBeInstanceOf(User);
     });
 
     it('should register default value for a property', () =>
@@ -23,7 +25,9 @@ describe('Default value decorator', () =>
         const userNameMetadata = userMetadata.propertyMetadataMap.get('name');
 
         expect(userNameMetadata).toBeDefined();
-        expect(userNameMetadata?.propertyOptions.defaultValue).toBeDefined();
-        expect(userNameMetadata?.propertyOptions.defaultValue).toBe('BestName');
+        expect(userNameMetadata?.propertyOptions.serializedDefaultValue).toBeDefined();
+        expect(userNameMetadata?.propertyOptions.serializedDefaultValue).toBe('BestName');
+        expect(userNameMetadata?.propertyOptions.deserializedDefaultValue).toBeDefined();
+        expect(userNameMetadata?.propertyOptions.deserializedDefaultValue).toBe('BestName');
     });
 });

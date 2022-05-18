@@ -22,7 +22,7 @@ export class Uint8ArraySerializer implements Serializer<Uint8Array>
     {
         if (Fn.isUndefined(x))
         {
-            return serializerContext.defaultValue;
+            return serializerContext.serializedDefaultValue;
         }
 
         if (Fn.isNull(x))
@@ -55,7 +55,7 @@ export class Uint8ArraySerializer implements Serializer<Uint8Array>
     {
         if (Fn.isUndefined(x))
         {
-            return serializerContext.defaultValue;
+            return serializerContext.deserializedDefaultValue;
         }
 
         if (Fn.isNull(x))

@@ -85,19 +85,32 @@ export class SerializerContext<TType> extends Metadata
     }
 
     /**
-     * Gets default value.
+     * Gets serialized default value.
      * 
-     * @returns {any|undefined} Resolved default value or undefined.
+     * @returns {any|undefined} Resolved serialized default value or undefined.
      */
-    public get defaultValue(): any | undefined
+    public get serializedDefaultValue(): any | undefined
     {
-        const defaultValue = this.propertyMetadata?.defaultValue ?? this.typeMetadata.defaultValue;
-
         if (this.useDefaultValue)
         {
-            return Fn.isFunction(defaultValue) ? defaultValue() : defaultValue;
+            return this.propertyMetadata?.serializedDefaultValue ?? this.typeMetadata.serializedDefaultValue;
         }
 
+        return undefined;
+    }
+
+    /**
+     * Gets deserialized default value.
+     * 
+     * @returns {any|undefined} Resolved deserialized default value or undefined.
+     */
+    public get deserializedDefaultValue(): any | undefined
+    {
+        if (this.useDefaultValue)
+        {
+            return this.propertyMetadata?.deserializedDefaultValue ?? this.typeMetadata.deserializedDefaultValue;
+        }
+        
         return undefined;
     }
 
@@ -475,7 +488,7 @@ export class SerializerContext<TType> extends Metadata
         const typeMetadata = this.defineTypeMetadata(genericTypeArgument);
 
         return this.defineChildSerializerContext({
-            typeMetadata:     typeMetadata,
+            typeMetadata: typeMetadata,
             genericArguments: genericGenericArguments,
             propertyMetadata: undefined
         });

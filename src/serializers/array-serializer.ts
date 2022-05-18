@@ -22,7 +22,7 @@ export class ArraySerializer implements Serializer<Array<any>>
     {
         if (Fn.isUndefined(x))
         {
-            return serializerContext.defaultValue;
+            return serializerContext.serializedDefaultValue;
         }
 
         if (Fn.isNull(x))
@@ -83,7 +83,7 @@ export class ArraySerializer implements Serializer<Array<any>>
     {
         if (Fn.isUndefined(x))
         {
-            return serializerContext.defaultValue;
+            return serializerContext.deserializedDefaultValue;
         }
 
         if (Fn.isNull(x))

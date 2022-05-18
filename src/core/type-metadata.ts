@@ -164,17 +164,34 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
-     * Gets default value.
+     * Gets serialized default value.
      * 
-     * @returns {any|undefined} Resolved default value or undefined.
+     * @returns {any|undefined} Resolved serialized default value or undefined.
      */
-    public get defaultValue(): any | undefined
+    public get serializedDefaultValue(): any | undefined
     {
-        const defaultValue = this.typeOptions.defaultValue ?? this.typeOptionsBase.defaultValue;
-
         if (this.useDefaultValue)
         {
-            return Fn.isFunction(defaultValue) ? defaultValue() : defaultValue;
+            const serializedDefaultValue = this.typeOptions.serializedDefaultValue ?? this.typeOptionsBase.serializedDefaultValue;
+
+            return Fn.isFunction(serializedDefaultValue) ? serializedDefaultValue() : serializedDefaultValue;
+        }
+        
+        return undefined;
+    }
+
+    /**
+     * Gets deserialized default value.
+     * 
+     * @returns {any|undefined} Resolved deserialized default value or undefined.
+     */
+    public get deserializedDefaultValue(): any | undefined
+    {
+        if (this.useDefaultValue)
+        {
+            const deserializedDefaultValue = this.typeOptions.deserializedDefaultValue ?? this.typeOptionsBase.deserializedDefaultValue;
+
+            return Fn.isFunction(deserializedDefaultValue) ? deserializedDefaultValue() : deserializedDefaultValue;
         }
 
         return undefined;
@@ -572,9 +589,14 @@ export class TypeMetadata<TType> extends Metadata
             this.typeOptions.alias = typeOptions.alias;
         }
 
-        if (!Fn.isUndefined(typeOptions.defaultValue)) 
+        if (!Fn.isUndefined(typeOptions.serializedDefaultValue))
         {
-            this.typeOptions.defaultValue = typeOptions.defaultValue;
+            this.typeOptions.serializedDefaultValue = typeOptions.serializedDefaultValue;
+        }
+
+        if (!Fn.isUndefined(typeOptions.deserializedDefaultValue)) 
+        {
+            this.typeOptions.deserializedDefaultValue = typeOptions.deserializedDefaultValue;
         }
 
         if (!Fn.isUndefined(typeOptions.discriminator)) 

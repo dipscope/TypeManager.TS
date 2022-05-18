@@ -22,7 +22,7 @@ export class StringSerializer implements Serializer<string>
     {
         if (Fn.isUndefined(x))
         {
-            return serializerContext.defaultValue;
+            return serializerContext.serializedDefaultValue;
         }
 
         if (Fn.isNull(x) || Fn.isString(x))
@@ -55,7 +55,7 @@ export class StringSerializer implements Serializer<string>
     {
         if (Fn.isUndefined(x))
         {
-            return serializerContext.defaultValue;
+            return serializerContext.deserializedDefaultValue;
         }
 
         if (Fn.isNull(x) || Fn.isString(x))

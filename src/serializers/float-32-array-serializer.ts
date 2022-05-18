@@ -22,7 +22,7 @@ export class Float32ArraySerializer implements Serializer<Float32Array>
     {
         if (Fn.isUndefined(x))
         {
-            return serializerContext.defaultValue;
+            return serializerContext.serializedDefaultValue;
         }
 
         if (Fn.isNull(x))
@@ -55,7 +55,7 @@ export class Float32ArraySerializer implements Serializer<Float32Array>
     {
         if (Fn.isUndefined(x))
         {
-            return serializerContext.defaultValue;
+            return serializerContext.deserializedDefaultValue;
         }
 
         if (Fn.isNull(x))
