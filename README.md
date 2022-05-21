@@ -1,6 +1,6 @@
 # TypeManager.TS
 
-![GitHub](https://img.shields.io/github/license/dipscope/TypeManager.TS) ![NPM](https://img.shields.io/npm/v/@dipscope/type-manager)
+![GitHub](https://img.shields.io/github/license/dipscope/TypeManager.TS) ![NPM](https://img.shields.io/npm/v/@dipscope/type-manager) ![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)
 
 Type manager is a parsing package for `TypeScript` which will help you to transform JSON strings or plain objects into `JavaScript` object instances. It supports [decorators](https://www.typescriptlang.org/docs/handbook/decorators.html) or declarative configuration and allows you to configure parsing of your or 3rd party classes easily.
 
@@ -158,7 +158,7 @@ Now we can use all power provided by `JavaScript` class instances. Want to know 
 `TypeManager.TS` is available from NPM, both for browser (e.g. using webpack) and NodeJS:
 
 ```
-npm install @dipscope/type-manager
+npm i @dipscope/type-manager
 ```
 
 TypeScript needs to run with the `experimentalDecorators` and `emitDecoratorMetadata` options enabled when using decorator annotations. So make sure you have properly configured your `tsconfig.json` file.
@@ -2005,9 +2005,23 @@ To make `Angular` injector work for you a custom `Injector` needs to be implemen
 
 Polymorphic types are supported. In most cases additional configuration is required. Check [configuring usage of polymorphic types](#configuring-usage-of-polymorphic-types) section for more info.
 
-## Notes
+## Versioning
 
-See information about breaking changes, release notes and migration steps between versions [here](https://github.com/dipscope/TypeManager.TS/blob/master/CHANGELOG.md).
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the versions section on [NPM project page](https://www.npmjs.com/package/@dipscope/type-manager).
+
+See information about breaking changes, release notes and migration steps between versions in [CHANGELOG.md](https://github.com/dipscope/TypeManager.TS/blob/master/CHANGELOG.md) file.
+
+## Contributing
+
+Please read [CONTRIBUTING.md](https://github.com/dipscope/TypeManager.TS/blob/master/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## Authors
+
+* **Dmitry Pimonov** - *Initial work* - [dpimonov](https://github.com/dpimonov)
+
+See also the list of [contributors](https://github.com/dipscope/TypeManager.TS/contributors) who participated in this project.
+
+## Notes
 
 Thanks for checking this package.
 
@@ -2017,4 +2031,4 @@ We wish you good luck and happy coding!
 
 ## License
 
-`TypeManager.TS` is licensed under the Apache 2.0 License.
+This project is licensed under the Apache 2.0 License - see the [LICENSE.md](https://github.com/dipscope/TypeManager.TS/LICENSE.md) file for details.
