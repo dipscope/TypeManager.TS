@@ -2031,4 +2031,4 @@ We wish you good luck and happy coding!
 
 ## License
 
-This project is licensed under the Apache 2.0 License - see the [LICENSE.md](https://github.com/dipscope/TypeManager.TS/LICENSE.md) file for details.
+This project is licensed under the Apache 2.0 License - see the [LICENSE.md](https://github.com/dipscope/TypeManager.TS/blob/master/LICENSE.md) file for details.
