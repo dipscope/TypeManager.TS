@@ -1,11 +1,3 @@
----
-name: Detailed pull request
-about: Suitable for bugfix, improvement or new feature
-title: ''
-labels: ''
-assignees: ''
----
-
 # Description
 
 Please include a summary of the changes and the related issue. Please also include relevant motivation and context. List any dependencies that are required for this change.
