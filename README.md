@@ -57,6 +57,9 @@ If you like or are using this project please give it a star. Thanks!
     * [Generic types](#generic-types)
     * [Integration with Angular](#integration-with-angular)
     * [Polymorphic types](#polymorphic-types)
+* [Versioning](#versioning)
+* [Contributing](#contributing)
+* [Authors](#authors)
 * [Notes](#notes)
 * [License](#license)
 
