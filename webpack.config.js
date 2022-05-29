@@ -3,7 +3,7 @@ const CircularDependencyPlugin = require('circular-dependency-plugin');
 
 module.exports = {
     mode: 'production',
-    devtool: 'inline-source-map',
+    devtool: 'source-map',
     entry: {
         index: {
             import: './src/index.ts',
