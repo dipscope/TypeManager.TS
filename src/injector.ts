@@ -1,16 +1,18 @@
-import { Injector } from './core/injector';
-import { Type } from './type';
+import { TypeMetadata } from './type-metadata';
 
 /**
- * Injector decorator.
+ * Injector used to resolve dependent types.
  * 
- * Used to define custom injector for a type.
- * 
- * @param {Injector} injector Injector.
- * 
- * @returns {ClassDecorator} Class decorator.
+ * @type {Injector}
  */
-export function Injector(injector: Injector): ClassDecorator
+export interface Injector
 {
-    return Type({ injector: injector });
+    /**
+     * Method to get instance described by type metadata.
+     * 
+     * @param {TypeMetadata<TType>} typeMetadata Type metadata.
+     * 
+     * @returns {TType|undefined} Instance of type described by type metadata or undefined.
+     */
+    get<TType>(typeMetadata: TypeMetadata<TType>): TType | undefined;
 }

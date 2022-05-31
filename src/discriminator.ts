@@ -1,16 +1,6 @@
-import { Discriminator } from './core/discriminator';
-import { Type } from './type';
-
 /**
- * Discriminator decorator.
+ * Discriminator intends to indicate the property used to identify the type of an object.
  * 
- * Used to define a discriminator for a type.
- * 
- * @param {Discriminator} discriminator Discriminator.
- * 
- * @returns {ClassDecorator} Class decorator.
+ * @type {Discriminator}
  */
-export function Discriminator(discriminator: Discriminator): ClassDecorator
-{
-    return Type({ discriminator: discriminator });
-}
+export type Discriminator = string;

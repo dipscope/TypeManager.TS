@@ -1,7 +1,10 @@
-import { Factory } from '../core/factory';
-import { Fn } from '../core/fn';
-import { Injector } from '../core/injector';
-import { TypeContext } from '../core/type-context';
+import isNil from 'lodash-es/isNil';
+import isUndefined from 'lodash-es/isUndefined';
+
+import { Factory } from '../factory';
+import { isCtorFunction } from '../functions';
+import { Injector } from '../injector';
+import { TypeContext } from '../type-context';
 
 /**
  * Type factory.
@@ -21,11 +24,11 @@ export class TypeFactory implements Factory
     public build<TType>(typeContext: TypeContext<TType>, injector: Injector): TType
     {
         const typeMetadata = typeContext.typeMetadata;
-        const typeCtor = Fn.isCtor(typeMetadata.typeFn) ? typeMetadata.typeFn : undefined;
+        const typeCtor = isCtorFunction(typeMetadata.typeFn) ? typeMetadata.typeFn : undefined;
 
-        if (Fn.isNil(typeCtor))
+        if (isNil(typeCtor))
         {
-            throw new Error(`${typeMetadata.typeName}: Cannot build instance of abstract type!`);
+            throw new Error(`${typeMetadata.typeName}: cannot build instance of abstract type.`);
         }
         
         const injectedKeys = new Array<any>();
@@ -35,7 +38,7 @@ export class TypeFactory implements Factory
         {
             const argKey = injectMetadata.key;
 
-            if (!Fn.isNil(argKey))
+            if (!isNil(argKey))
             {
                 args[injectMetadata.injectIndex] = typeContext.get(argKey)?.value;
 
@@ -53,7 +56,7 @@ export class TypeFactory implements Factory
         {
             const propertyMetadata = typeContextEntry.propertyMetadata;
 
-            if (!Fn.isNil(propertyMetadata) && !Fn.isUndefined(typeContextEntry.value) && !injectedKeys.includes(propertyMetadata.propertyName))
+            if (!isNil(propertyMetadata) && !isUndefined(typeContextEntry.value) && !injectedKeys.includes(propertyMetadata.propertyName))
             {
                 type[propertyMetadata.propertyName] = typeContextEntry.value;
             }

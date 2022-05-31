@@ -1,6 +1,8 @@
-import { Fn } from '../core/fn';
-import { Injector } from '../core/injector';
-import { TypeMetadata } from '../core/type-metadata';
+import isNil from 'lodash-es/isNil';
+
+import { isCtorFunction } from '../functions';
+import { Injector } from '../injector';
+import { TypeMetadata } from '../type-metadata';
 
 /**
  * Singleton injector.
@@ -32,7 +34,7 @@ export class SingletonInjector implements Injector
 
         const instance = this.instanceMap.get(typeMetadata);
 
-        if (Fn.isNil(instance))
+        if (isNil(instance))
         {
             return this.init(typeMetadata);
         }
@@ -49,11 +51,11 @@ export class SingletonInjector implements Injector
      */
     private init<TType>(typeMetadata: TypeMetadata<TType>): TType
     {
-        const typeCtor = Fn.isCtor(typeMetadata.typeFn) ? typeMetadata.typeFn : undefined;
+        const typeCtor = isCtorFunction(typeMetadata.typeFn) ? typeMetadata.typeFn : undefined;
 
-        if (Fn.isNil(typeCtor))
+        if (isNil(typeCtor))
         {
-            throw new Error(`${typeMetadata.typeName}: Cannot inject instance of abstract type!`);
+            throw new Error(`${typeMetadata.typeName}: cannot inject instance of abstract type.`);
         }
 
         const args = new Array<any>();

@@ -1,4 +1,5 @@
-import { Fn } from './fn';
+import isNil from 'lodash-es/isNil';
+
 import { TypeContextEntry } from './type-context-entry';
 import { TypeMetadata } from './type-metadata';
 
@@ -47,7 +48,7 @@ export class TypeContext<TType>
     {
         const typeContextEntry = this.typeContextEntryMap.get(key);
 
-        if (Fn.isNil(typeContextEntry))
+        if (isNil(typeContextEntry))
         {
             this.typeContextEntryMap.set(key, value);
         }

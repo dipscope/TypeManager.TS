@@ -1,16 +1,16 @@
-import { NamingConvention } from './core/naming-convention';
-import { TypeAndProperty } from './type-and-property';
-
 /**
- * Naming convention decorator.
+ * Represents naming convention.
  * 
- * Used to define custom naming convention for type and property.
- * 
- * @param {NamingConvention} namingConvention Naming convention.
- * 
- * @returns {ClassDecorator&PropertyDecorator} Class and property decorator.
+ * @type {NamingConvention}
  */
-export function NamingConvention(namingConvention: NamingConvention): ClassDecorator & PropertyDecorator
+export interface NamingConvention
 {
-    return TypeAndProperty({ namingConvention: namingConvention });
+    /**
+     * Converts name from provided to target one.
+     * 
+     * @param {string} name Name.
+     * 
+     * @returns {string} Converted name.
+     */
+    convert(name: string): string;
 }

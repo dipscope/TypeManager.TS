@@ -1,10 +1,13 @@
-import { Fn } from '../core/fn';
-import { ReferenceHandler } from '../core/reference-handler';
-import { ReferenceKey } from '../core/reference-key';
-import { ReferenceValue } from '../core/reference-value';
-import { ReferenceValueInitializer } from '../core/reference-value-initializer';
-import { ReferenceValueResolver } from '../core/reference-value-resolver';
-import { SerializerContext } from '../core/serializer-context';
+import isNil from 'lodash-es/isNil';
+import isObject from 'lodash-es/isObject';
+import isString from 'lodash-es/isString';
+
+import { ReferenceHandler } from '../reference-handler';
+import { ReferenceKey } from '../reference-key';
+import { ReferenceValue } from '../reference-value';
+import { ReferenceValueInitializer } from '../reference-value-initializer';
+import { ReferenceValueResolver } from '../reference-value-resolver';
+import { SerializerContext } from '../serializer-context';
 
 /**
  * Path reference handler preserves references using JSONPath.
@@ -34,7 +37,7 @@ export class PathReferenceHandler implements ReferenceHandler
         const referenceMap = serializerContext.referenceMap;
         const referencePath = referenceMap.get(referenceKey);
 
-        if (Fn.isNil(referencePath))
+        if (isNil(referencePath))
         {
             referenceMap.set(referenceKey, serializerContext.path);
 
@@ -63,7 +66,7 @@ export class PathReferenceHandler implements ReferenceHandler
         const referenceTarget = this.defineReferenceTarget(serializerContext, referenceKey);
         const referenceValue = referenceMap.get(referenceTarget);
 
-        if (Fn.isNil(referenceValue))
+        if (isNil(referenceValue))
         {
             referenceMap.set(referenceTarget, referenceTarget);
 
@@ -105,7 +108,7 @@ export class PathReferenceHandler implements ReferenceHandler
         const $ = serializerContext.$;
         const referencePath = referenceKey.$ref;
 
-        if (!Fn.isString(referencePath) || !Fn.isObject($))
+        if (!isString(referencePath) || !isObject($))
         {
             return referenceKey;
         }
@@ -119,7 +122,7 @@ export class PathReferenceHandler implements ReferenceHandler
 
         referencePathArray.shift();
 
-        let referenceTarget = $;
+        let referenceTarget = $ as Record<string, any>;
 
         for (let i = 0; i < referencePathArray.length; i++)
         {

@@ -1,7 +1,11 @@
-import { Fn } from '../core/fn';
-import { Serializer } from '../core/serializer';
-import { SerializerContext } from '../core/serializer-context';
-import { TypeLike } from '../core/type-like';
+import isArrayBuffer from 'lodash-es/isArrayBuffer';
+import isNull from 'lodash-es/isNull';
+import isString from 'lodash-es/isString';
+import isUndefined from 'lodash-es/isUndefined';
+
+import { Serializer } from '../serializer';
+import { SerializerContext } from '../serializer-context';
+import { TypeLike } from '../type-like';
 
 /**
  * Array buffer serializer.
@@ -20,17 +24,17 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
      */
     public serialize(x: TypeLike<ArrayBuffer>, serializerContext: SerializerContext<ArrayBuffer>): TypeLike<any>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (Fn.isNull(x))
+        if (isNull(x))
         {
             return x;
         }
 
-        if (Fn.isArrayBuffer(x))
+        if (isArrayBuffer(x))
         {
             const arrayBufferView = new Uint16Array(x);
             const charCodeArray = Array.from(arrayBufferView);
@@ -40,7 +44,7 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
 
         if (serializerContext.log.errorEnabled)
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as array buffer!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as array buffer.`, x);
         }
 
         return undefined;
@@ -56,17 +60,17 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<ArrayBuffer>): TypeLike<ArrayBuffer>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (Fn.isNull(x))
+        if (isNull(x))
         {
             return x;
         }
 
-        if (Fn.isString(x))
+        if (isString(x))
         {
             const arrayBuffer = new ArrayBuffer(x.length * 2);
             const arrayBufferView = new Uint16Array(arrayBuffer);
@@ -81,7 +85,7 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
         
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as array buffer!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value as array buffer.`, x);
         }
 
         return undefined;

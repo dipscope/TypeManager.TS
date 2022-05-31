@@ -1,7 +1,12 @@
-import { Fn } from '../core/fn';
-import { Serializer } from '../core/serializer';
-import { SerializerContext } from '../core/serializer-context';
-import { TypeLike } from '../core/type-like';
+import isBoolean from 'lodash-es/isBoolean';
+import isNull from 'lodash-es/isNull';
+import isNumber from 'lodash-es/isNumber';
+import isString from 'lodash-es/isString';
+import isUndefined from 'lodash-es/isUndefined';
+
+import { Serializer } from '../serializer';
+import { SerializerContext } from '../serializer-context';
+import { TypeLike } from '../type-like';
 
 /**
  * Boolean serializer.
@@ -20,12 +25,12 @@ export class BooleanSerializer implements Serializer<boolean>
      */
     public serialize(x: TypeLike<boolean>, serializerContext: SerializerContext<boolean>): TypeLike<any>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (Fn.isNull(x) || Fn.isBoolean(x))
+        if (isNull(x) || isBoolean(x))
         {
             return x;
         }
@@ -37,7 +42,7 @@ export class BooleanSerializer implements Serializer<boolean>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as boolean!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as boolean.`, x);
         }
 
         return undefined;
@@ -53,12 +58,12 @@ export class BooleanSerializer implements Serializer<boolean>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<boolean>): TypeLike<boolean>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (Fn.isNull(x) || Fn.isBoolean(x))
+        if (isNull(x) || isBoolean(x))
         {
             return x;
         }
@@ -70,7 +75,7 @@ export class BooleanSerializer implements Serializer<boolean>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as boolean!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value as boolean.`, x);
         }
 
         return undefined;
@@ -86,24 +91,24 @@ export class BooleanSerializer implements Serializer<boolean>
      */
     private convert(x: any, serializerContext: SerializerContext<boolean>): boolean | undefined
     {
-        if (Fn.isString(x) && (x === 'true' || x === 'false'))
+        if (isString(x) && (x === 'true' || x === 'false'))
         {
             return x === 'true';
         }
 
-        if (Fn.isString(x) && (x === '1' || x === '0'))
+        if (isString(x) && (x === '1' || x === '0'))
         {
             return x === '1';
         }
 
-        if (Fn.isNumber(x) && (x === 1 || x === 0))
+        if (isNumber(x) && (x === 1 || x === 0))
         {
             return x === 1;
         }
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot convert value to boolean!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot convert value to boolean.`, x);
         }
 
         return undefined;

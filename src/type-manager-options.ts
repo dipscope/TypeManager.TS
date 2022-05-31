@@ -1,6 +1,6 @@
-import { TypeFn } from './core';
-import { TypeOptions } from './core/type-options';
-import { TypeOptionsBase } from './core/type-options-base';
+import { TypeFn } from './type-fn';
+import { TypeOptions } from './type-options';
+import { TypeOptionsBase } from './type-options-base';
 
 /**
  * Type manager options.

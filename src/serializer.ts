@@ -1,16 +1,30 @@
-import { Serializer } from './core/serializer';
-import { TypeAndProperty } from './type-and-property';
+import { SerializerContext } from './serializer-context';
+import { TypeLike } from './type-like';
 
 /**
- * Serializer decorator.
+ * Serializer.
  * 
- * Used to define custom serializer for type and property.
- * 
- * @param {Serializer<TType>} serializer Serializer.
- * 
- * @returns {ClassDecorator&PropertyDecorator} Class and property decorator.
+ * @type {Serializer<TType>}
  */
-export function Serializer<TType>(serializer: Serializer<TType>): ClassDecorator & PropertyDecorator
+export interface Serializer<TType>
 {
-    return TypeAndProperty({ serializer: serializer });
+    /**
+     * Serializes provided value.
+     * 
+     * @param {TypeLike<TType>} x Some value.
+     * @param {SerializerContext<TType>} serializerContext Serializer context.
+     * 
+     * @returns {TypeLike<any>} Serialized value.
+     */
+    serialize(x: TypeLike<TType>, serializerContext: SerializerContext<TType>): TypeLike<any>;
+
+    /**
+     * Deserializes provided value.
+     * 
+     * @param {TypeLike<any>} x Some value.
+     * @param {SerializerContext<TType>} serializerContext Serializer context.
+     * 
+     * @returns {TypeLike<TType>} Deserialized value.
+     */
+    deserialize(x: TypeLike<any>, serializerContext: SerializerContext<TType>): TypeLike<TType>;
 }

@@ -1,8 +1,12 @@
+import isArray from 'lodash-es/isArray';
+import isNil from 'lodash-es/isNil';
+import merge from 'lodash-es/merge';
+
 import { CustomData } from './custom-data';
 import { Discriminant } from './discriminant';
 import { Discriminator } from './discriminator';
 import { Factory } from './factory';
-import { Fn } from './fn';
+import { isCtorFunction } from './functions';
 import { GenericArgument } from './generic-argument';
 import { GenericMetadata } from './generic-metadata';
 import { Injector } from './injector';
@@ -71,14 +75,14 @@ export class SerializerContext<TType> extends Metadata
         const typeCustomData = this.typeMetadata.customData;
         const propertyCustomData = this.propertyMetadata?.customData;
 
-        if (!Fn.isNil(typeCustomData))
+        if (!isNil(typeCustomData))
         {
-            Fn.assign(customData, typeCustomData);
+            merge(customData, typeCustomData);
         }
 
-        if (!Fn.isNil(propertyCustomData))
+        if (!isNil(propertyCustomData))
         {
-            Fn.assign(customData, propertyCustomData);
+            merge(customData, propertyCustomData);
         }
 
         return customData;
@@ -173,7 +177,7 @@ export class SerializerContext<TType> extends Metadata
     {
         const genericArguments = this.genericArguments;
 
-        if (Fn.isNil(genericArguments))
+        if (isNil(genericArguments))
         {
             return undefined;
         }
@@ -208,7 +212,7 @@ export class SerializerContext<TType> extends Metadata
      */
     public get name(): string
     {
-        if (Fn.isNil(this.propertyMetadata))
+        if (isNil(this.propertyMetadata))
         {
             return this.typeMetadata.typeName;
         }
@@ -404,7 +408,7 @@ export class SerializerContext<TType> extends Metadata
     {
         let referenceCallbacks = this.referenceCallbackMap.get(referenceKey);
 
-        if (Fn.isNil(referenceCallbacks))
+        if (isNil(referenceCallbacks))
         {
             referenceCallbacks = [];
 
@@ -429,7 +433,7 @@ export class SerializerContext<TType> extends Metadata
     {
         const referenceCallbacks = this.referenceCallbackMap.get(referenceKey);
 
-        if (Fn.isNil(referenceCallbacks))
+        if (isNil(referenceCallbacks))
         {
             return;
         }
@@ -471,20 +475,20 @@ export class SerializerContext<TType> extends Metadata
     {
         const genericArguments = this.genericArguments;
 
-        if (Fn.isNil(genericArguments))
+        if (isNil(genericArguments))
         {
-            throw new Error(`${this.path}: Cannot define generic arguments! This is usually caused by invalid configuration!`);
+            throw new Error(`${this.path}: cannot define generic arguments. This is usually caused by invalid configuration.`);
         }
 
         const genericArgument = genericArguments[genericIndex];
 
-        if (Fn.isNil(genericArgument))
+        if (isNil(genericArgument))
         {
-            throw new Error(`${this.path}: Cannot define generic argument for index ${genericIndex}! This is usually caused by invalid configuration!`);
+            throw new Error(`${this.path}: cannot define generic argument for index ${genericIndex}. This is usually caused by invalid configuration.`);
         }
 
-        const genericTypeArgument = Fn.isArray(genericArgument) ? genericArgument[0] : genericArgument;
-        const genericGenericArguments = Fn.isArray(genericArgument) ? genericArgument[1] : undefined;
+        const genericTypeArgument = isArray(genericArgument) ? genericArgument[0] : genericArgument;
+        const genericGenericArguments = isArray(genericArgument) ? genericArgument[1] : undefined;
         const typeMetadata = this.defineTypeMetadata(genericTypeArgument);
 
         return this.defineChildSerializerContext({
@@ -505,9 +509,9 @@ export class SerializerContext<TType> extends Metadata
     {
         const discriminant = this.discriminantMap.get(typeFn);
 
-        if (Fn.isNil(discriminant))
+        if (isNil(discriminant))
         {
-            throw new Error(`${this.path}: Cannot define discriminant of polymorphic type! This is usually caused by invalid configuration!`);
+            throw new Error(`${this.path}: cannot define discriminant of polymorphic type. This is usually caused by invalid configuration.`);
         }
 
         const typeMetadata = this.defineTypeMetadata(typeFn);
@@ -538,7 +542,7 @@ export class SerializerContext<TType> extends Metadata
             }
         }
         
-        throw new Error(`${this.path}: Cannot define discriminant of polymorphic type! This is usually caused by invalid configuration!`);
+        throw new Error(`${this.path}: cannot define discriminant of polymorphic type. This is usually caused by invalid configuration.`);
     }
 
     /**
@@ -552,6 +556,6 @@ export class SerializerContext<TType> extends Metadata
      */
     public definePolymorphicSerializerContext(x: TypeFn<any> | Record<string, any>): SerializerContext<any>
     {
-        return Fn.isCtor(x) ? this.definePolymorphicSerializerContextByTypeFn(x) : this.definePolymorphicSerializerContextByDiscriminant(x);
+        return isCtorFunction(x) ? this.definePolymorphicSerializerContextByTypeFn(x) : this.definePolymorphicSerializerContextByDiscriminant(x);
     }
 }

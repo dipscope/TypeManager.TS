@@ -1,4 +1,7 @@
-import { Fn } from './fn';
+import isNil from 'lodash-es/isNil';
+import isUndefined from 'lodash-es/isUndefined';
+
+import { getOwnReflectMetadata } from './functions';
 import { InjectIndex } from './inject-index';
 import { InjectOptions } from './inject-options';
 import { Metadata } from './metadata';
@@ -54,7 +57,7 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
         super(declaringTypeMetadata.typeMetadataResolver);
 
         this.declaringTypeMetadata = declaringTypeMetadata;
-        this.reflectTypeFn = (Fn.extractOwnReflectMetadata('design:paramtypes', declaringTypeMetadata.typeFn) ?? new Array<TypeFn<TType>>())[injectIndex];
+        this.reflectTypeFn = (getOwnReflectMetadata('design:paramtypes', declaringTypeMetadata.typeFn) ?? new Array<TypeFn<TType>>())[injectIndex];
         this.injectIndex = injectIndex;
         this.injectOptions = injectOptions;
 
@@ -90,9 +93,9 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
     {
         const typeFn = this.typeFn;
 
-        if (Fn.isNil(typeFn))
+        if (isNil(typeFn))
         {
-            throw new Error(`${this.declaringTypeMetadata.typeName}[${this.injectIndex}]: Cannot resolve constructor injection type metadata! This is usually caused by invalid configuration!`);
+            throw new Error(`${this.declaringTypeMetadata.typeName}[${this.injectIndex}]: cannot resolve constructor injection type metadata. This is usually caused by invalid configuration.`);
         }
 
         return this.defineTypeMetadata(typeFn);
@@ -107,12 +110,12 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
      */
     public configure(injectOptions: InjectOptions<TType>): InjectMetadata<TDeclaringType, TType>
     {
-        if (!Fn.isUndefined(injectOptions.key))
+        if (!isUndefined(injectOptions.key))
         {
             this.injectOptions.key = injectOptions.key;
         }
 
-        if (!Fn.isUndefined(injectOptions.typeFn)) 
+        if (!isUndefined(injectOptions.typeFn)) 
         {
             this.injectOptions.typeFn = injectOptions.typeFn;
         }

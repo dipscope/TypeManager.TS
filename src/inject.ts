@@ -1,6 +1,12 @@
-import { Fn } from './core/fn';
-import { InjectOptions } from './core/inject-options';
-import { TypeFn } from './core/type-fn';
+import isFunction from 'lodash-es/isFunction';
+import isNumber from 'lodash-es/isNumber';
+import isObject from 'lodash-es/isObject';
+import isString from 'lodash-es/isString';
+import isUndefined from 'lodash-es/isUndefined';
+
+import { isCtorFunction, nameOf } from './functions';
+import { InjectOptions } from './inject-options';
+import { TypeFn } from './type-fn';
 import { TypeManager } from './type-manager';
 
 /**
@@ -12,28 +18,28 @@ import { TypeManager } from './type-manager';
  */
 export function Inject<TType>(x: TypeFn<TType> | InjectOptions<TType> | string): ParameterDecorator
 {
-    const injectOptions = (Fn.isObject(x) ? x : {}) as InjectOptions<TType>;
+    const injectOptions = (isObject(x) ? x : {}) as InjectOptions<TType>;
 
-    if (Fn.isUndefined(injectOptions.key) && Fn.isString(x))
+    if (isUndefined(injectOptions.key) && isString(x))
     {
         injectOptions.key = x;
     }
 
-    if (Fn.isUndefined(injectOptions.typeFn) && Fn.isFunction(x))
+    if (isUndefined(injectOptions.typeFn) && isFunction(x))
     {
         injectOptions.typeFn = x as TypeFn<TType>;
     }
 
     return function (target: any, propertyName: string | symbol, injectIndex: number): void
     {
-        if (!Fn.isCtor(target))
+        if (!isCtorFunction(target))
         {
-            throw new Error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: inject decorator cannot be applied to a method!`);
+            throw new Error(`${nameOf(target.constructor)}.${String(propertyName)}: inject decorator cannot be applied to a method.`);
         }
 
-        if (!Fn.isNumber(injectIndex))
+        if (!isNumber(injectIndex))
         {
-            throw new Error(`${Fn.nameOf(target)}.${String(propertyName)}: inject decorator cannot be applied to a property!`);
+            throw new Error(`${nameOf(target)}.${String(propertyName)}: inject decorator cannot be applied to a property.`);
         }
 
         TypeManager.defineTypeMetadata(target).configureInjectMetadata(injectIndex, injectOptions);

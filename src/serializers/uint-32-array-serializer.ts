@@ -1,7 +1,11 @@
-import { Fn } from '../core/fn';
-import { Serializer } from '../core/serializer';
-import { SerializerContext } from '../core/serializer-context';
-import { TypeLike } from '../core/type-like';
+import isArray from 'lodash-es/isArray';
+import isNull from 'lodash-es/isNull';
+import isUndefined from 'lodash-es/isUndefined';
+
+import { isUint32Array } from '../functions';
+import { Serializer } from '../serializer';
+import { SerializerContext } from '../serializer-context';
+import { TypeLike } from '../type-like';
 
 /**
  * Uint 32 array serializer.
@@ -20,24 +24,24 @@ export class Uint32ArraySerializer implements Serializer<Uint32Array>
      */
     public serialize(x: TypeLike<Uint32Array>, serializerContext: SerializerContext<Uint32Array>): TypeLike<any>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (Fn.isNull(x))
+        if (isNull(x))
         {
             return x;
         }
 
-        if (Fn.isUint32Array(x))
+        if (isUint32Array(x))
         {
             return Array.from(x);
         }
         
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as uint 32 array!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as uint 32 array.`, x);
         }
 
         return undefined;
@@ -53,24 +57,24 @@ export class Uint32ArraySerializer implements Serializer<Uint32Array>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Uint32Array>): TypeLike<Uint32Array>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (Fn.isNull(x))
+        if (isNull(x))
         {
             return x;
         }
 
-        if (Fn.isArray(x))
+        if (isArray(x))
         {
             return Uint32Array.from(x);
         }
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as uint 32 array!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value as uint 32 array.`, x);
         }
 
         return undefined;

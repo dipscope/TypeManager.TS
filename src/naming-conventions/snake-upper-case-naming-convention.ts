@@ -1,5 +1,5 @@
-import { Fn } from '../core/fn';
-import { NamingConvention } from '../core/naming-convention';
+import { getWords } from '../functions';
+import { NamingConvention } from '../naming-convention';
 
 /**
  * Snake upper case naming convention.
@@ -17,7 +17,7 @@ export class SnakeUpperCaseNamingConvention implements NamingConvention
      */
     public convert(name: string): string
     {
-        return Fn.words(name).reduce(this.reduce, '');
+        return getWords(name).reduce(this.reduce, '');
     }
 
     /**

@@ -1,42 +1,35 @@
-import { Alias } from './core/alias';
-import { Fn } from './core/fn';
-import { GenericArgument } from './core/generic-argument';
-import { Log } from './core/log';
-import { LogLevel } from './core/log-level';
-import { ReferenceCallback } from './core/reference-callback';
-import { ReferenceKey } from './core/reference-key';
-import { ReferenceValue } from './core/reference-value';
-import { SerializerContext } from './core/serializer-context';
-import { TypeArgument } from './core/type-argument';
-import { TypeFn } from './core/type-fn';
-import { TypeLike } from './core/type-like';
-import { TypeMetadata } from './core/type-metadata';
-import { typeMetadataSymbol } from './core/type-metadata-symbol';
-import { TypeOptions } from './core/type-options';
-import { TypeOptionsBase } from './core/type-options-base';
-import { TypeFactory } from './factories/type-factory';
-import { SingletonInjector } from './injectors/singleton-injector';
-import { DirectReferenceHandler } from './reference-handlers/direct-reference-handler';
-import { ArrayBufferSerializer } from './serializers/array-buffer-serializer';
-import { ArraySerializer } from './serializers/array-serializer';
-import { BooleanSerializer } from './serializers/boolean-serializer';
-import { DataViewSerializer } from './serializers/data-view-serializer';
-import { DateSerializer } from './serializers/date-serializer';
-import { Float32ArraySerializer } from './serializers/float-32-array-serializer';
-import { Float64ArraySerializer } from './serializers/float-64-array-serializer';
-import { Int16ArraySerializer } from './serializers/int-16-array-serializer';
-import { Int32ArraySerializer } from './serializers/int-32-array-serializer';
-import { Int8ArraySerializer } from './serializers/int-8-array-serializer';
-import { MapSerializer } from './serializers/map-serializer';
-import { NumberSerializer } from './serializers/number-serializer';
-import { SetSerializer } from './serializers/set-serializer';
-import { StringSerializer } from './serializers/string-serializer';
-import { TypeSerializer } from './serializers/type-serializer';
-import { Uint16ArraySerializer } from './serializers/uint-16-array-serializer';
-import { Uint32ArraySerializer } from './serializers/uint-32-array-serializer';
-import { Uint8ArraySerializer } from './serializers/uint-8-array-serializer';
-import { Uint8ClampedArraySerializer } from './serializers/uint-8-clamped-array-serializer';
+import isArray from 'lodash-es/isArray';
+import isNil from 'lodash-es/isNil';
+import isString from 'lodash-es/isString';
+import isUndefined from 'lodash-es/isUndefined';
+import merge from 'lodash-es/merge';
+
+import { Alias } from './alias';
+import { TypeFactory } from './factories';
+import { isArrowFunction } from './functions';
+import { GenericArgument } from './generic-argument';
+import { SingletonInjector } from './injectors';
+import { Log } from './log';
+import { LogLevel } from './log-level';
+import { ReferenceCallback } from './reference-callback';
+import { DirectReferenceHandler } from './reference-handlers';
+import { ReferenceKey } from './reference-key';
+import { ReferenceValue } from './reference-value';
+import { SerializerContext } from './serializer-context';
+import { ArrayBufferSerializer, ArraySerializer, BooleanSerializer, DataViewSerializer } from './serializers';
+import { DateSerializer, Float32ArraySerializer, Float64ArraySerializer } from './serializers';
+import { Int16ArraySerializer, Int32ArraySerializer, Int8ArraySerializer } from './serializers';
+import { MapSerializer, NumberSerializer, SetSerializer } from './serializers';
+import { StringSerializer, TypeSerializer, Uint16ArraySerializer } from './serializers';
+import { Uint32ArraySerializer, Uint8ArraySerializer, Uint8ClampedArraySerializer } from './serializers';
+import { TypeArgument } from './type-argument';
+import { TypeFn } from './type-fn';
+import { TypeLike } from './type-like';
 import { TypeManagerOptions } from './type-manager-options';
+import { TypeMetadata } from './type-metadata';
+import { typeMetadataSymbol } from './type-metadata-symbol';
+import { TypeOptions } from './type-options';
+import { TypeOptionsBase } from './type-options-base';
 
 /**
  * Type manager class for external usage.
@@ -179,7 +172,7 @@ export class TypeManager<TType>
     {
         let typeOptions = this.typeOptionsMap.get(typeFn);
 
-        if (Fn.isNil(typeOptions))
+        if (isNil(typeOptions))
         {
             typeOptions = {};
 
@@ -219,12 +212,12 @@ export class TypeManager<TType>
             });
         }
 
-        if (!Fn.isNil(typeOptions))
+        if (!isNil(typeOptions))
         {
             typeMetadata.configure(typeOptions);
         }
 
-        if (!Fn.isNil(typeMetadata.alias))
+        if (!isNil(typeMetadata.alias))
         {
             this.typeFnMap.set(typeMetadata.alias, typeMetadata.typeFn);
         }
@@ -255,11 +248,11 @@ export class TypeManager<TType>
      */
     private static resolveTypeMetadata<TType>(typeArgument: TypeArgument<TType>): TypeMetadata<TType>
     {
-        const typeFn = Fn.isString(typeArgument) ? this.typeFnMap.get(typeArgument) : (Fn.isArrowFunction(typeArgument) ? typeArgument() : typeArgument);
+        const typeFn = isString(typeArgument) ? this.typeFnMap.get(typeArgument) : (isArrowFunction(typeArgument) ? typeArgument() : typeArgument);
 
-        if (Fn.isNil(typeFn))
+        if (isNil(typeFn))
         {
-            throw new Error(`Cannot resolve type metadata for provided type argument: ${JSON.stringify(typeArgument)}! This is usually caused by invalid configuration!`);
+            throw new Error(`Cannot resolve type metadata for provided type argument: ${JSON.stringify(typeArgument)}. This is usually caused by invalid configuration.`);
         }
 
         return this.extractTypeMetadata(typeFn);
@@ -274,7 +267,7 @@ export class TypeManager<TType>
      */
     public static configureTypeOptionsBase<TType>(typeOptionsBase: Partial<TypeOptionsBase<TType>>): typeof TypeManager
     {
-        Fn.assign(this.typeOptionsBase, typeOptionsBase);
+        merge(this.typeOptionsBase, typeOptionsBase);
 
         return this;
     }
@@ -320,12 +313,12 @@ export class TypeManager<TType>
      */
     public static configure(typeManagerOptions: TypeManagerOptions): typeof TypeManager
     {
-        if (!Fn.isUndefined(typeManagerOptions.typeOptionsBase)) 
+        if (!isUndefined(typeManagerOptions.typeOptionsBase)) 
         {
             this.configureTypeOptionsBase(typeManagerOptions.typeOptionsBase);
         }
 
-        if (!Fn.isUndefined(typeManagerOptions.typeOptionsMap)) 
+        if (!isUndefined(typeManagerOptions.typeOptionsMap)) 
         {
             this.configureTypeOptionsMap(typeManagerOptions.typeOptionsMap);
         }
@@ -362,7 +355,7 @@ export class TypeManager<TType>
      * 
      * @returns {TypeLike<any>} Object created from provided input value or undefined. 
      */
-    public static serialize<TType>(typeFn: TypeFn<TType>, x: undefined): undefined;
+    public static serialize<TType>(typeFn: TypeFn<TType>, x: undefined): any;
     public static serialize<TType>(typeFn: TypeFn<TType>, x: null): null;
     public static serialize<TType>(typeFn: TypeFn<TType>, x: Array<TType>): Array<any>;
     public static serialize<TType>(typeFn: TypeFn<TType>, x: TType): any;
@@ -370,7 +363,7 @@ export class TypeManager<TType>
     {
         const arrayFn = Array as TypeFn<any[]>;
 
-        if (Fn.isArray(x) && typeFn !== arrayFn)
+        if (isArray(x) && typeFn !== arrayFn)
         {
             return this.defineSerializerContext(arrayFn, x, [typeFn]).serialize(x as any);
         }
@@ -386,7 +379,7 @@ export class TypeManager<TType>
      *
      * @returns {TypeLike<TType>} Type created from provided input value or undefined.
      */
-    public static deserialize<TType>(typeFn: TypeFn<TType>, x: undefined): undefined;
+    public static deserialize<TType>(typeFn: TypeFn<TType>, x: undefined): any;
     public static deserialize<TType>(typeFn: TypeFn<TType>, x: null): null;
     public static deserialize<TType>(typeFn: TypeFn<TType>, x: Array<any>): Array<TType>;
     public static deserialize<TType>(typeFn: TypeFn<TType>, x: any): TType;
@@ -394,7 +387,7 @@ export class TypeManager<TType>
     {
         const arrayFn = Array as TypeFn<any[]>;
 
-        if (Fn.isArray(x) && typeFn !== arrayFn)
+        if (isArray(x) && typeFn !== arrayFn)
         {
             return this.defineSerializerContext(arrayFn, x, [typeFn]).deserialize(x as any);
         }
@@ -442,7 +435,7 @@ export class TypeManager<TType>
     {
         let typeOptions = this.typeOptionsMap.get(typeFn);
 
-        if (Fn.isNil(typeOptions))
+        if (isNil(typeOptions))
         {
             typeOptions = {};
 
@@ -470,19 +463,19 @@ export class TypeManager<TType>
     {
         let typeMetadata = this.typeMetadataMap.get(typeFn);
 
-        if (Fn.isNil(typeMetadata))
+        if (isNil(typeMetadata))
         {
             typeMetadata = this.declareTypeMetadata(typeFn);
 
             this.typeMetadataMap.set(typeFn, typeMetadata);
         }
 
-        if (!Fn.isNil(typeOptions))
+        if (!isNil(typeOptions))
         {
             typeMetadata.configure(typeOptions);
         }
 
-        if (!Fn.isNil(typeMetadata.alias))
+        if (!isNil(typeMetadata.alias))
         {
             this.typeFnMap.set(typeMetadata.alias, typeMetadata.typeFn);
         }
@@ -509,11 +502,11 @@ export class TypeManager<TType>
      */
     private resolveTypeMetadata<TType>(typeArgument: TypeArgument<TType>): TypeMetadata<TType>
     {
-        const typeFn = Fn.isString(typeArgument) ? this.typeFnMap.get(typeArgument) : (Fn.isArrowFunction(typeArgument) ? typeArgument() : typeArgument);
+        const typeFn = isString(typeArgument) ? this.typeFnMap.get(typeArgument) : (isArrowFunction(typeArgument) ? typeArgument() : typeArgument);
 
-        if (Fn.isNil(typeFn))
+        if (isNil(typeFn))
         {
-            throw new Error(`Cannot resolve type metadata for provided type argument: ${JSON.stringify(typeArgument)}! This is usually caused by invalid configuration!`);
+            throw new Error(`Cannot resolve type metadata for provided type argument: ${JSON.stringify(typeArgument)}. This is usually caused by invalid configuration.`);
         }
 
         return this.extractTypeMetadata(typeFn);
@@ -528,7 +521,7 @@ export class TypeManager<TType>
      */
     public configureTypeOptionsBase(typeOptionsBase: Partial<TypeOptionsBase<any>>): TypeManager<TType>
     {
-        Fn.assign(this.typeOptionsBase, typeOptionsBase);
+        merge(this.typeOptionsBase, typeOptionsBase);
 
         return this;
     }
@@ -574,12 +567,12 @@ export class TypeManager<TType>
      */
     public configure(typeManagerOptions: TypeManagerOptions): TypeManager<TType>
     {
-        if (!Fn.isUndefined(typeManagerOptions.typeOptionsBase)) 
+        if (!isUndefined(typeManagerOptions.typeOptionsBase)) 
         {
             this.configureTypeOptionsBase(typeManagerOptions.typeOptionsBase);
         }
 
-        if (!Fn.isUndefined(typeManagerOptions.typeOptionsMap)) 
+        if (!isUndefined(typeManagerOptions.typeOptionsMap)) 
         {
             this.configureTypeOptionsMap(typeManagerOptions.typeOptionsMap);
         }
@@ -596,7 +589,7 @@ export class TypeManager<TType>
     {
         const typeOptionsBase = this.typeManagerOptions.typeOptionsBase ?? {};
 
-        return Fn.assign({}, TypeManager.typeOptionsBase, typeOptionsBase);
+        return merge({}, TypeManager.typeOptionsBase, typeOptionsBase);
     }
 
     /**
@@ -613,7 +606,7 @@ export class TypeManager<TType>
             this.configureTypeOptions(typeFn, typeOptions);
         }
 
-        if (Fn.isNil(this.typeManagerOptions.typeOptionsMap))
+        if (isNil(this.typeManagerOptions.typeOptionsMap))
         {
             return typeOptionsMap;
         }
@@ -653,7 +646,7 @@ export class TypeManager<TType>
      * 
      * @returns {TypeLike<any>} Object created from provided input value or undefined. 
      */
-    public serialize(x: undefined): undefined;
+    public serialize(x: undefined): any;
     public serialize(x: null): null;
     public serialize(x: Array<TType>): Array<any>;
     public serialize(x: TType): any;
@@ -661,7 +654,7 @@ export class TypeManager<TType>
     {
         const arrayFn = Array as TypeFn<any[]>;
 
-        if (Fn.isArray(x) && this.typeMetadata.typeFn !== arrayFn)
+        if (isArray(x) && this.typeMetadata.typeFn !== arrayFn)
         {
             const arrayMetadata = this.extractTypeMetadata(arrayFn);
 
@@ -683,7 +676,7 @@ export class TypeManager<TType>
      * 
      * @returns {TypeLike<TType>} Type created from provided input value or undefined.
      */
-    public deserialize(x: undefined): undefined;
+    public deserialize(x: undefined): any;
     public deserialize(x: null): null;
     public deserialize(x: Array<any>): Array<TType>;
     public deserialize(x: any): TType;
@@ -691,7 +684,7 @@ export class TypeManager<TType>
     {
         const arrayFn = Array as TypeFn<any[]>;
 
-        if (Fn.isArray(x) && this.typeMetadata.typeFn !== arrayFn)
+        if (isArray(x) && this.typeMetadata.typeFn !== arrayFn)
         {
             const arrayMetadata = this.extractTypeMetadata(arrayFn);
 

@@ -1,16 +1,6 @@
-import { CustomData } from './core';
-import { TypeAndProperty } from './type-and-property';
-
 /**
- * Custom data decorator.
+ * Custom data which can be defined by developer.
  * 
- * Used to define custom data for type and property.
- * 
- * @param {CustomData} customData Custom data.
- * 
- * @returns {ClassDecorator&PropertyDecorator} Class and property decorator.
+ * @type {CustomData}
  */
-export function CustomData(customData: CustomData): ClassDecorator & PropertyDecorator
-{
-    return TypeAndProperty({ customData: customData });
-}
+export type CustomData = Record<string, any>;

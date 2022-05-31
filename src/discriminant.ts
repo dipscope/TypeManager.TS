@@ -1,16 +1,9 @@
-import { Discriminant } from './core/discriminant';
-import { Type } from './type';
+import { TypeName } from './type-name';
 
 /**
- * Discriminant decorator.
+ * Discriminant intends to describe a unique key for a polymorphic type which will be 
+ * used during serialization and deserialization. Can be a type name, any string or number.
  * 
- * Used to define a discriminant for a type.
- * 
- * @param {Discriminant} discriminant Discriminant.
- * 
- * @returns {ClassDecorator} Class decorator.
+ * @type {Discriminant}
  */
-export function Discriminant(discriminant: Discriminant): ClassDecorator
-{
-    return Type({ discriminant: discriminant });
-}
+export type Discriminant = TypeName | string | number;

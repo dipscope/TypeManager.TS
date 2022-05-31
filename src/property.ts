@@ -1,6 +1,14 @@
-import { GenericArgument, TypeArgument } from './core';
-import { Fn } from './core/fn';
-import { PropertyOptions } from './core/property-options';
+import isArray from 'lodash-es/isArray';
+import isFunction from 'lodash-es/isFunction';
+import isObject from 'lodash-es/isObject';
+import isString from 'lodash-es/isString';
+import isSymbol from 'lodash-es/isSymbol';
+import merge from 'lodash-es/merge';
+
+import { isCtorFunction, nameOf } from './functions';
+import { GenericArgument } from './generic-argument';
+import { PropertyOptions } from './property-options';
+import { TypeArgument } from './type-argument';
 import { TypeManager } from './type-manager';
 
 /**
@@ -20,51 +28,51 @@ export function Property<TType>(
 {
     const propertyOptions = {} as PropertyOptions<TType>;
 
-    if (Fn.isObject(z))
+    if (isObject(z))
     {
-        Fn.assign(propertyOptions, z);
+        merge(propertyOptions, z);
     }
 
-    if (Fn.isObject(y) && !Fn.isArray(y))
+    if (isObject(y) && !isArray(y))
     {
-        Fn.assign(propertyOptions, y);
+        merge(propertyOptions, y);
     }
 
-    if (Fn.isObject(x) && !Fn.isArray(x))
+    if (isObject(x) && !isArray(x))
     {
-        Fn.assign(propertyOptions, x);
+        merge(propertyOptions, x);
     }
 
-    if (Fn.isArray(y))
+    if (isArray(y))
     {
         propertyOptions.genericArguments = y;
     }
 
-    if (Fn.isArray(x))
+    if (isArray(x))
     {
         propertyOptions.genericArguments = x;
     }
 
-    if (Fn.isString(x) || Fn.isFunction(x) || Fn.isCtor(x))
+    if (isString(x) || isFunction(x) || isCtorFunction(x))
     {
         propertyOptions.typeArgument = x;
     }
 
     return function (target: any, propertyName: string | symbol): void
     {
-        if (Fn.isCtor(target))
+        if (isCtorFunction(target))
         {
-            throw new Error(`${Fn.nameOf(target)}.${String(propertyName)}: property decorator cannot be applied to a static member!`);
+            throw new Error(`${nameOf(target)}.${String(propertyName)}: property decorator cannot be applied to a static member.`);
         }
 
-        if (Fn.isSymbol(propertyName))
+        if (isSymbol(propertyName))
         {
-            throw new Error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a symbol!`);
+            throw new Error(`${nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a symbol.`);
         }
 
-        if (Fn.isFunction(target[propertyName]))
+        if (isFunction(target[propertyName]))
         {
-            throw new Error(`${Fn.nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a method!`);
+            throw new Error(`${nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a method.`);
         }
 
         TypeManager.defineTypeMetadata(target.constructor).configurePropertyMetadata(propertyName, propertyOptions);

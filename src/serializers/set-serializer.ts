@@ -1,7 +1,12 @@
-import { Fn } from '../core/fn';
-import { Serializer } from '../core/serializer';
-import { SerializerContext } from '../core/serializer-context';
-import { TypeLike } from '../core/type-like';
+import isArray from 'lodash-es/isArray';
+import isFunction from 'lodash-es/isFunction';
+import isNull from 'lodash-es/isNull';
+import isSet from 'lodash-es/isSet';
+import isUndefined from 'lodash-es/isUndefined';
+
+import { Serializer } from '../serializer';
+import { SerializerContext } from '../serializer-context';
+import { TypeLike } from '../type-like';
 
 /**
  * Set serializer.
@@ -20,17 +25,17 @@ export class SetSerializer implements Serializer<Set<any>>
      */
     public serialize(x: TypeLike<Set<any>>, serializerContext: SerializerContext<Set<any>>): TypeLike<any>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (Fn.isNull(x))
+        if (isNull(x))
         {
             return x;
         }
 
-        if (Fn.isSet(x))
+        if (isSet(x))
         {
             return serializerContext.defineReference(x, () =>
             {
@@ -50,7 +55,7 @@ export class SetSerializer implements Serializer<Set<any>>
 
                     const value = valueSerializerContext.serialize(v);
 
-                    if (Fn.isFunction(value))
+                    if (isFunction(value))
                     {
                         valueSerializerContext.pushReferenceCallback(v, () =>
                         {
@@ -69,7 +74,7 @@ export class SetSerializer implements Serializer<Set<any>>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as set!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as set.`, x);
         }
 
         return undefined;
@@ -85,17 +90,17 @@ export class SetSerializer implements Serializer<Set<any>>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Set<any>>): TypeLike<Set<any>>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (Fn.isNull(x))
+        if (isNull(x))
         {
             return x;
         }
 
-        if (Fn.isArray(x))
+        if (isArray(x))
         {
             return serializerContext.restoreReference(x, () =>
             {
@@ -111,7 +116,7 @@ export class SetSerializer implements Serializer<Set<any>>
 
                     const value = valueSerializerContext.deserialize(array[i]);
         
-                    if (Fn.isFunction(value))
+                    if (isFunction(value))
                     {
                         genericSerializerContext.pushReferenceCallback(array[i], () =>
                         {
@@ -130,7 +135,7 @@ export class SetSerializer implements Serializer<Set<any>>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as set!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value as set.`, x);
         }
 
         return undefined;

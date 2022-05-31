@@ -1,7 +1,11 @@
-import { Fn } from '../core/fn';
-import { Serializer } from '../core/serializer';
-import { SerializerContext } from '../core/serializer-context';
-import { TypeLike } from '../core/type-like';
+import isDate from 'lodash-es/isDate';
+import isNull from 'lodash-es/isNull';
+import isString from 'lodash-es/isString';
+import isUndefined from 'lodash-es/isUndefined';
+
+import { Serializer } from '../serializer';
+import { SerializerContext } from '../serializer-context';
+import { TypeLike } from '../type-like';
 
 /**
  * Date serializer.
@@ -20,24 +24,24 @@ export class DateSerializer implements Serializer<Date>
      */
     public serialize(x: TypeLike<Date>, serializerContext: SerializerContext<Date>): TypeLike<any>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (Fn.isNull(x))
+        if (isNull(x))
         {
             return x;
         }
 
-        if (Fn.isDate(x))
+        if (isDate(x))
         {
             return x.toISOString();
         }
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as date!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as date.`, x);
         }
 
         return undefined;
@@ -53,24 +57,24 @@ export class DateSerializer implements Serializer<Date>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Date>): TypeLike<Date>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (Fn.isNull(x))
+        if (isNull(x))
         {
             return x;
         }
 
-        if (Fn.isString(x))
+        if (isString(x))
         {
             return new Date(x);
         }
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as date!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value as date.`, x);
         }
 
         return undefined;

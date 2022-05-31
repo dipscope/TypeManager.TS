@@ -1,4 +1,5 @@
-import { Fn } from './fn';
+import isArray from 'lodash-es/isArray';
+
 import { GenericArgument } from './generic-argument';
 import { GenericMetadata } from './generic-metadata';
 import { TypeArgument } from './type-argument';
@@ -58,8 +59,8 @@ export class Metadata
 
         for (const genericArgument of genericArguments)
         {
-            const genericTypeArgument = Fn.isArray(genericArgument) ? genericArgument[0] : genericArgument;
-            const genericGenericArguments = Fn.isArray(genericArgument) ? genericArgument[1] : new Array<GenericArgument<any>>();
+            const genericTypeArgument = isArray(genericArgument) ? genericArgument[0] : genericArgument;
+            const genericGenericArguments = isArray(genericArgument) ? genericArgument[1] : new Array<GenericArgument<any>>();
             
             genericMetadatas.push([this.defineTypeMetadata(genericTypeArgument), this.defineGenericMetadatas(genericGenericArguments)]);
         }

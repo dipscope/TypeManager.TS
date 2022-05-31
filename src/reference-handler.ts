@@ -1,16 +1,35 @@
-import { ReferenceHandler } from './core/reference-handler';
-import { TypeAndProperty } from './type-and-property';
+import { ReferenceKey } from './reference-key';
+import { ReferenceValue } from './reference-value';
+import { ReferenceValueInitializer } from './reference-value-initializer';
+import { ReferenceValueResolver } from './reference-value-resolver';
+import { SerializerContext } from './serializer-context';
 
 /**
- * Reference handler decorator.
+ * Reference handler to resolve object references.
  * 
- * Used to define custom reference handler for type and property.
- * 
- * @param {ReferenceHandler} referenceHandler Reference handler.
- * 
- * @returns {ClassDecorator&PropertyDecorator} Class and property decorator.
+ * @type {ReferenceHandler}
  */
-export function ReferenceHandler(referenceHandler: ReferenceHandler): ClassDecorator & PropertyDecorator
+export interface ReferenceHandler
 {
-    return TypeAndProperty({ referenceHandler: referenceHandler });
+    /**
+     * Defines reference. Called during serialization.
+     * 
+     * @param {SerializerContext<any>} serializerContext Serializer context.
+     * @param {ReferenceKey} referenceKey Reference which acts as a key. This is basically a serializing object.
+     * @param {ReferenceValueInitializer} referenceValueInitializer Function to initialize a reference value when one is not yet present for a key.
+     * 
+     * @returns {ReferenceValue|ReferenceValueResolver} Resolved reference value or reference resolver when circular dependency is detected.
+     */
+    define(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey, referenceValueInitializer: ReferenceValueInitializer): ReferenceValue | ReferenceValueResolver;
+
+    /**
+     * Restores reference. Called during deserialization.
+     * 
+     * @param {SerializerContext<any>} serializerContext Serializer context.
+     * @param {ReferenceKey} referenceKey Reference which acts as a key. This is basically a deserializing object.
+     * @param {ReferenceValueInitializer} referenceValueInitializer Function to initialize a reference value when one is not yet present for a key.
+     * 
+     * @returns {ReferenceValue|ReferenceValueResolver} Resolved reference value or reference resolver when circular dependency is detected.
+     */
+    restore(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey, referenceValueInitializer: ReferenceValueInitializer): ReferenceValue | ReferenceValueResolver;
 }

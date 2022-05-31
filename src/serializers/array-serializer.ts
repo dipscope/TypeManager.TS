@@ -1,7 +1,11 @@
-import { Fn } from '../core/fn';
-import { Serializer } from '../core/serializer';
-import { SerializerContext } from '../core/serializer-context';
-import { TypeLike } from '../core/type-like';
+import isArray from 'lodash-es/isArray';
+import isFunction from 'lodash-es/isFunction';
+import isNull from 'lodash-es/isNull';
+import isUndefined from 'lodash-es/isUndefined';
+
+import { Serializer } from '../serializer';
+import { SerializerContext } from '../serializer-context';
+import { TypeLike } from '../type-like';
 
 /**
  * Array serializer.
@@ -20,17 +24,17 @@ export class ArraySerializer implements Serializer<Array<any>>
      */
     public serialize(x: TypeLike<Array<any>>, serializerContext: SerializerContext<Array<any>>): TypeLike<any>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (Fn.isNull(x))
+        if (isNull(x))
         {
             return x;
         }
 
-        if (Fn.isArray(x))
+        if (isArray(x))
         {
             return serializerContext.defineReference(x, () =>
             {
@@ -46,7 +50,7 @@ export class ArraySerializer implements Serializer<Array<any>>
 
                     const value = valueSerializerContext.serialize(arrayInput[i]);
         
-                    if (Fn.isFunction(value))
+                    if (isFunction(value))
                     {
                         genericSerializerContext.pushReferenceCallback(arrayInput[i], () =>
                         {
@@ -65,7 +69,7 @@ export class ArraySerializer implements Serializer<Array<any>>
 
         if (serializerContext.log.errorEnabled)
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as array!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as array.`, x);
         }
 
         return undefined;
@@ -81,17 +85,17 @@ export class ArraySerializer implements Serializer<Array<any>>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Array<any>>): TypeLike<Array<any>>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (Fn.isNull(x))
+        if (isNull(x))
         {
             return x;
         }
 
-        if (Fn.isArray(x))
+        if (isArray(x))
         {
             return serializerContext.restoreReference(x, () =>
             {
@@ -107,7 +111,7 @@ export class ArraySerializer implements Serializer<Array<any>>
 
                     const value = valueSerializerContext.deserialize(arrayInput[i]);
         
-                    if (Fn.isFunction(value))
+                    if (isFunction(value))
                     {
                         genericSerializerContext.pushReferenceCallback(arrayInput[i], () =>
                         {
@@ -126,7 +130,7 @@ export class ArraySerializer implements Serializer<Array<any>>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as array!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value as array.`, x);
         }
 
         return undefined;

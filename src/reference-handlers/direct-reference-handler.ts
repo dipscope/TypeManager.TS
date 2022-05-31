@@ -1,10 +1,11 @@
-import { Fn } from '../core/fn';
-import { ReferenceHandler } from '../core/reference-handler';
-import { ReferenceKey } from '../core/reference-key';
-import { ReferenceValue } from '../core/reference-value';
-import { ReferenceValueInitializer } from '../core/reference-value-initializer';
-import { ReferenceValueResolver } from '../core/reference-value-resolver';
-import { SerializerContext } from '../core/serializer-context';
+import isNil from 'lodash-es/isNil';
+
+import { ReferenceHandler } from '../reference-handler';
+import { ReferenceKey } from '../reference-key';
+import { ReferenceValue } from '../reference-value';
+import { ReferenceValueInitializer } from '../reference-value-initializer';
+import { ReferenceValueResolver } from '../reference-value-resolver';
+import { SerializerContext } from '../serializer-context';
 
 /**
  * Direct reference handler which preserves references as is.
@@ -27,7 +28,7 @@ export class DirectReferenceHandler implements ReferenceHandler
         const referenceMap = serializerContext.referenceMap;
         const referenceValue = referenceMap.get(referenceKey);
 
-        if (Fn.isNil(referenceValue))
+        if (isNil(referenceValue))
         {
             referenceMap.set(referenceKey, referenceKey);
 
@@ -62,7 +63,7 @@ export class DirectReferenceHandler implements ReferenceHandler
         const referenceMap = serializerContext.referenceMap;
         const referenceValue = referenceMap.get(referenceKey);
 
-        if (Fn.isNil(referenceValue))
+        if (isNil(referenceValue))
         {
             referenceMap.set(referenceKey, referenceKey);
 

@@ -1,9 +1,14 @@
-import { Fn } from '../core/fn';
-import { Serializer } from '../core/serializer';
-import { SerializerContext } from '../core/serializer-context';
-import { TypeContext } from '../core/type-context';
-import { TypeContextEntry } from '../core/type-context-entry';
-import { TypeLike } from '../core/type-like';
+import isFunction from 'lodash-es/isFunction';
+import isNil from 'lodash-es/isNil';
+import isNull from 'lodash-es/isNull';
+import isObject from 'lodash-es/isObject';
+import isUndefined from 'lodash-es/isUndefined';
+
+import { Serializer } from '../serializer';
+import { SerializerContext } from '../serializer-context';
+import { TypeContext } from '../type-context';
+import { TypeContextEntry } from '../type-context-entry';
+import { TypeLike } from '../type-like';
 
 /**
  * Type serializer.
@@ -22,21 +27,21 @@ export class TypeSerializer implements Serializer<Record<string, any>>
      */
     public serialize(x: TypeLike<Record<string, any>>, serializerContext: SerializerContext<Record<string, any>>): TypeLike<any>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (Fn.isNull(x))
+        if (isNull(x))
         {
             return null;
         }
 
-        if (Fn.isObject(x))
+        if (isObject(x))
         {
             return serializerContext.defineReference(x, () =>
             {
-                const type = x;
+                const type = x as Record<string, any>;
                 const typeSerializerContext = serializerContext.polymorphic ? serializerContext.definePolymorphicSerializerContext(x.constructor) : serializerContext;
                 const typeMetadata = typeSerializerContext.typeMetadata;
                 const object = {} as Record<string, any>;
@@ -61,13 +66,13 @@ export class TypeSerializer implements Serializer<Record<string, any>>
     
                     const value = propertySerializerContext.serialize(propertyValue);
 
-                    if (Fn.isFunction(value))
+                    if (isFunction(value))
                     {
                         propertySerializerContext.pushReferenceCallback(propertyValue, () =>
                         {
                             const declaringObject = propertySerializerContext.referenceMap.get(type);
         
-                            if (!Fn.isNil(declaringObject))
+                            if (!isNil(declaringObject))
                             {
                                 declaringObject[serializedPropertyName] = value();
                             }
@@ -94,7 +99,7 @@ export class TypeSerializer implements Serializer<Record<string, any>>
 
         if (serializerContext.log.errorEnabled)
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as type!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as type.`, x);
         }
 
         return undefined;
@@ -110,21 +115,21 @@ export class TypeSerializer implements Serializer<Record<string, any>>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Record<string, any>>): TypeLike<Record<string, any>>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (Fn.isNull(x))
+        if (isNull(x))
         {
             return null;
         }
 
-        if (Fn.isObject(x))
+        if (isObject(x))
         {
             return serializerContext.restoreReference(x, () =>
             {
-                const object = x;
+                const object = x as Record<string, any>;
                 const typeSerializerContext = serializerContext.polymorphic ? serializerContext.definePolymorphicSerializerContext(x) : serializerContext;
                 const typeMetadata = typeSerializerContext.typeMetadata;
                 const typeContext = new TypeContext(typeMetadata);
@@ -149,13 +154,13 @@ export class TypeSerializer implements Serializer<Record<string, any>>
     
                     const value = propertySerializerContext.deserialize(propertyValue);
 
-                    if (Fn.isFunction(value))
+                    if (isFunction(value))
                     {
                         propertySerializerContext.pushReferenceCallback(propertyValue, () =>
                         {
                             const declaringType = propertySerializerContext.referenceMap.get(object);
         
-                            if (!Fn.isNil(declaringType))
+                            if (!isNil(declaringType))
                             {
                                 declaringType[deserializedPropertyName] = value();
                             }
@@ -195,7 +200,7 @@ export class TypeSerializer implements Serializer<Record<string, any>>
         
         if (serializerContext.log.errorEnabled)
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot deserialize value as type!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value as type.`, x);
         }
 
         return undefined;

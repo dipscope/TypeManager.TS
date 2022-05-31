@@ -1,6 +1,11 @@
+import isFunction from 'lodash-es/isFunction';
+import isNil from 'lodash-es/isNil';
+import isUndefined from 'lodash-es/isUndefined';
+import merge from 'lodash-es/merge';
+
 import { Alias } from './alias';
 import { CustomData } from './custom-data';
-import { Fn } from './fn';
+import { getReflectMetadata } from './functions';
 import { GenericArgument } from './generic-argument';
 import { GenericMetadata } from './generic-metadata';
 import { Metadata } from './metadata';
@@ -63,7 +68,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
 
         this.declaringTypeMetadata = declaringTypeMetadata;
         this.propertyName = propertyName;
-        this.reflectTypeFn = Fn.extractReflectMetadata('design:type', declaringTypeMetadata.typeFn.prototype, propertyName);
+        this.reflectTypeFn = getReflectMetadata('design:type', declaringTypeMetadata.typeFn.prototype, propertyName);
         this.propertyOptions = propertyOptions;
 
         return;
@@ -90,14 +95,14 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
         const typeCustomData = this.typeMetadata.customData;
         const propertyCustomData = this.propertyOptions.customData;
 
-        if (!Fn.isNil(typeCustomData))
+        if (!isNil(typeCustomData))
         {
-            Fn.assign(customData, typeCustomData);
+            merge(customData, typeCustomData);
         }
 
-        if (!Fn.isNil(propertyCustomData))
+        if (!isNil(propertyCustomData))
         {
-            Fn.assign(customData, propertyCustomData);
+            merge(customData, propertyCustomData);
         }
 
         return customData;
@@ -114,7 +119,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
         {
             const serializedDefaultValue = this.propertyOptions.serializedDefaultValue ?? this.typeMetadata.serializedDefaultValue;
 
-            return Fn.isFunction(serializedDefaultValue) ? serializedDefaultValue() : serializedDefaultValue;
+            return isFunction(serializedDefaultValue) ? serializedDefaultValue() : serializedDefaultValue;
         }
 
         return undefined;
@@ -131,7 +136,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
         {
             const deserializedDefaultValue = this.propertyOptions.deserializedDefaultValue ?? this.typeMetadata.deserializedDefaultValue;
 
-            return Fn.isFunction(deserializedDefaultValue) ? deserializedDefaultValue() : deserializedDefaultValue;
+            return isFunction(deserializedDefaultValue) ? deserializedDefaultValue() : deserializedDefaultValue;
         }
 
         return undefined;
@@ -146,7 +151,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     {
         const alias = this.alias;
 
-        if (Fn.isNil(alias))
+        if (isNil(alias))
         {
             const namingConvention = this.namingConvention ?? this.declaringTypeMetadata.namingConvention;
             const propertyName = namingConvention ? namingConvention.convert(this.propertyName) : this.propertyName;
@@ -196,7 +201,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     {
         const genericArguments = this.genericArguments;
 
-        if (Fn.isNil(genericArguments))
+        if (isNil(genericArguments))
         {
             return undefined;
         }
@@ -241,7 +246,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public get serializationConfigured(): boolean
     {
-        return !Fn.isNil(this.serializable) || !Fn.isNil(this.deserializable);
+        return !isNil(this.serializable) || !isNil(this.deserializable);
     }
 
     /**
@@ -273,9 +278,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     {
         const typeArgument = this.typeArgument ?? this.reflectTypeFn;
 
-        if (Fn.isNil(typeArgument))
+        if (isNil(typeArgument))
         {
-            throw new Error(`${this.declaringTypeMetadata.typeName}.${this.propertyName}: Cannot resolve property type metadata! This is usually caused by invalid configuration!`);
+            throw new Error(`${this.declaringTypeMetadata.typeName}.${this.propertyName}: cannot resolve property type metadata. This is usually caused by invalid configuration.`);
         }
 
         return this.defineTypeMetadata(typeArgument);
@@ -310,7 +315,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     private configureCustomData(customData: CustomData): PropertyMetadata<TDeclaringType, TType>
     {
-        this.propertyOptions.customData = Fn.assign(this.propertyOptions.customData ?? {}, customData);
+        this.propertyOptions.customData = merge(this.propertyOptions.customData ?? {}, customData);
 
         return this;
     }
@@ -324,67 +329,67 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public configure(propertyOptions: PropertyOptions<TType>): PropertyMetadata<TDeclaringType, TType>
     {
-        if (!Fn.isUndefined(propertyOptions.alias))
+        if (!isUndefined(propertyOptions.alias))
         {
             this.propertyOptions.alias = propertyOptions.alias;
         }
 
-        if (!Fn.isUndefined(propertyOptions.serializedDefaultValue))
+        if (!isUndefined(propertyOptions.serializedDefaultValue))
         {
             this.propertyOptions.serializedDefaultValue = propertyOptions.serializedDefaultValue;
         }
 
-        if (!Fn.isUndefined(propertyOptions.deserializedDefaultValue))
+        if (!isUndefined(propertyOptions.deserializedDefaultValue))
         {
             this.propertyOptions.deserializedDefaultValue = propertyOptions.deserializedDefaultValue;
         }
 
-        if (!Fn.isUndefined(propertyOptions.deserializable))
+        if (!isUndefined(propertyOptions.deserializable))
         {
             this.propertyOptions.deserializable = propertyOptions.deserializable;
         }
 
-        if (!Fn.isUndefined(propertyOptions.genericArguments)) 
+        if (!isUndefined(propertyOptions.genericArguments)) 
         {
             this.propertyOptions.genericArguments = propertyOptions.genericArguments;
         }
 
-        if (!Fn.isUndefined(propertyOptions.namingConvention))
+        if (!isUndefined(propertyOptions.namingConvention))
         {
             this.propertyOptions.namingConvention = propertyOptions.namingConvention;
         }
 
-        if (!Fn.isUndefined(propertyOptions.referenceHandler)) 
+        if (!isUndefined(propertyOptions.referenceHandler)) 
         {
             this.propertyOptions.referenceHandler = propertyOptions.referenceHandler;
         }
 
-        if (!Fn.isUndefined(propertyOptions.serializable)) 
+        if (!isUndefined(propertyOptions.serializable)) 
         {
             this.propertyOptions.serializable = propertyOptions.serializable;
         }
 
-        if (!Fn.isUndefined(propertyOptions.serializer)) 
+        if (!isUndefined(propertyOptions.serializer)) 
         {
             this.propertyOptions.serializer = propertyOptions.serializer;
         }
 
-        if (!Fn.isUndefined(propertyOptions.typeArgument)) 
+        if (!isUndefined(propertyOptions.typeArgument)) 
         {
             this.propertyOptions.typeArgument = propertyOptions.typeArgument;
         }
 
-        if (!Fn.isUndefined(propertyOptions.useDefaultValue))
+        if (!isUndefined(propertyOptions.useDefaultValue))
         {
             this.propertyOptions.useDefaultValue = propertyOptions.useDefaultValue;
         }
 
-        if (!Fn.isUndefined(propertyOptions.useImplicitConversion)) 
+        if (!isUndefined(propertyOptions.useImplicitConversion)) 
         {
             this.propertyOptions.useImplicitConversion = propertyOptions.useImplicitConversion;
         }
 
-        if (!Fn.isUndefined(propertyOptions.customData))
+        if (!isUndefined(propertyOptions.customData))
         {
             this.configureCustomData(propertyOptions.customData);
         }

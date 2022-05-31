@@ -1,7 +1,12 @@
-import { Fn } from '../core/fn';
-import { Serializer } from '../core/serializer';
-import { SerializerContext } from '../core/serializer-context';
-import { TypeLike } from '../core/type-like';
+import isArray from 'lodash-es/isArray';
+import isFunction from 'lodash-es/isFunction';
+import isMap from 'lodash-es/isMap';
+import isNull from 'lodash-es/isNull';
+import isUndefined from 'lodash-es/isUndefined';
+
+import { Serializer } from '../serializer';
+import { SerializerContext } from '../serializer-context';
+import { TypeLike } from '../type-like';
 
 /**
  * Map serializer.
@@ -20,17 +25,17 @@ export class MapSerializer implements Serializer<Map<any, any>>
      */
     public serialize(x: TypeLike<Map<any, any>>, serializerContext: SerializerContext<Map<any, any>>): TypeLike<any>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (Fn.isNull(x))
+        if (isNull(x))
         {
             return x;
         }
 
-        if (Fn.isMap(x))
+        if (isMap(x))
         {
             return serializerContext.defineReference(x, () =>
             {
@@ -58,7 +63,7 @@ export class MapSerializer implements Serializer<Map<any, any>>
                     const key = keySerializerContext.serialize(k);
                     const value = valueSerializerContext.serialize(v);
                 
-                    if (!Fn.isFunction(key) && !Fn.isFunction(value))
+                    if (!isFunction(key) && !isFunction(value))
                     {
                         array[i]['key']   = key;
                         array[i]['value'] = value;
@@ -66,7 +71,7 @@ export class MapSerializer implements Serializer<Map<any, any>>
                         continue;
                     }
 
-                    if (Fn.isFunction(key) && Fn.isFunction(value))
+                    if (isFunction(key) && isFunction(value))
                     {
                         keySerializerContext.pushReferenceCallback(k, () =>
                         {
@@ -81,7 +86,7 @@ export class MapSerializer implements Serializer<Map<any, any>>
                         continue;
                     }
 
-                    if (Fn.isFunction(key) && !Fn.isFunction(value))
+                    if (isFunction(key) && !isFunction(value))
                     {
                         keySerializerContext.pushReferenceCallback(k, () =>
                         {
@@ -92,7 +97,7 @@ export class MapSerializer implements Serializer<Map<any, any>>
                         continue;
                     }
 
-                    if (!Fn.isFunction(key) && Fn.isFunction(value))
+                    if (!isFunction(key) && isFunction(value))
                     {
                         valueSerializerContext.pushReferenceCallback(v, () =>
                         {
@@ -110,7 +115,7 @@ export class MapSerializer implements Serializer<Map<any, any>>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: Cannot serialize value as map!`, x);
+            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as map.`, x);
         }
 
         return undefined;
@@ -126,17 +131,17 @@ export class MapSerializer implements Serializer<Map<any, any>>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Map<any, any>>): TypeLike<Map<any, any>>
     {
-        if (Fn.isUndefined(x))
+        if (isUndefined(x))
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (Fn.isNull(x))
+        if (isNull(x))
         {
             return x;
         }
 
-        if (Fn.isArray(x))
+        if (isArray(x))
         {
             return serializerContext.restoreReference(x, () =>
             {
@@ -160,14 +165,14 @@ export class MapSerializer implements Serializer<Map<any, any>>
                     const key = keySerializerContext.deserialize(k);
                     const value = valueSerializerContext.deserialize(v);
                     
-                    if (!Fn.isFunction(key) && !Fn.isFunction(value))
+                    if (!isFunction(key) && !isFunction(value))
                     {
                         map.set(key, value);
 
                         continue;
                     }
 
-                    if (Fn.isFunction(key) && Fn.isFunction(value))
+                    if (isFunction(key) && isFunction(value))
                     {
                         keySerializerContext.pushReferenceCallback(k, () =>
                         {
@@ -182,7 +187,7 @@ export class MapSerializer implements Serializer<Map<any, any>>
                         continue;
                     }
 
-                    if (Fn.isFunction(key) && !Fn.isFunction(value))
+                    if (isFunction(key) && !isFunction(value))
                     {
                         keySerializerContext.pushReferenceCallback(k, () =>
                         {
@@ -192,7 +197,7 @@ export class MapSerializer implements Serializer<Map<any, any>>
                         continue;
                     }
 
-                    if (!Fn.isFunction(key) && Fn.isFunction(value))
+                    if (!isFunction(key) && isFunction(value))
                     {
                         valueSerializerContext.pushReferenceCallback(v, () =>
                         {

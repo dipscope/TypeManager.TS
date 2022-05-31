@@ -1,5 +1,5 @@
-import { TypeOptions } from './core/type-options';
 import { TypeManager } from './type-manager';
+import { TypeOptions } from './type-options';
 
 /**
  * Type decorator.

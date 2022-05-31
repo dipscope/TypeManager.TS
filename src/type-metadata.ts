@@ -1,9 +1,14 @@
+import isFunction from 'lodash-es/isFunction';
+import isNil from 'lodash-es/isNil';
+import isUndefined from 'lodash-es/isUndefined';
+import merge from 'lodash-es/merge';
+
 import { Alias } from './alias';
 import { CustomData } from './custom-data';
 import { Discriminant } from './discriminant';
 import { Discriminator } from './discriminator';
 import { Factory } from './factory';
-import { Fn } from './fn';
+import { getOwnReflectMetadata, nameOf } from './functions';
 import { GenericArgument } from './generic-argument';
 import { GenericMetadata } from './generic-metadata';
 import { InjectIndex } from './inject-index';
@@ -115,7 +120,7 @@ export class TypeMetadata<TType> extends Metadata
     {
         super(typeMetadataResolver);
 
-        this.typeName = Fn.nameOf(typeFn);
+        this.typeName = nameOf(typeFn);
         this.typeFn = typeFn;
         this.typeOptionsBase = typeOptionsBase;
         this.typeOptions = typeOptions;
@@ -150,14 +155,14 @@ export class TypeMetadata<TType> extends Metadata
         const typeBaseCustomData = this.typeOptionsBase.customData;
         const typeCustomData = this.typeOptions.customData;
         
-        if (!Fn.isNil(typeBaseCustomData))
+        if (!isNil(typeBaseCustomData))
         {
-            Fn.assign(customData, typeBaseCustomData);
+            merge(customData, typeBaseCustomData);
         }
 
-        if (!Fn.isNil(typeCustomData))
+        if (!isNil(typeCustomData))
         {
-            Fn.assign(customData, typeCustomData);
+            merge(customData, typeCustomData);
         }
 
         return customData;
@@ -174,7 +179,7 @@ export class TypeMetadata<TType> extends Metadata
         {
             const serializedDefaultValue = this.typeOptions.serializedDefaultValue ?? this.typeOptionsBase.serializedDefaultValue;
 
-            return Fn.isFunction(serializedDefaultValue) ? serializedDefaultValue() : serializedDefaultValue;
+            return isFunction(serializedDefaultValue) ? serializedDefaultValue() : serializedDefaultValue;
         }
         
         return undefined;
@@ -191,7 +196,7 @@ export class TypeMetadata<TType> extends Metadata
         {
             const deserializedDefaultValue = this.typeOptions.deserializedDefaultValue ?? this.typeOptionsBase.deserializedDefaultValue;
 
-            return Fn.isFunction(deserializedDefaultValue) ? deserializedDefaultValue() : deserializedDefaultValue;
+            return isFunction(deserializedDefaultValue) ? deserializedDefaultValue() : deserializedDefaultValue;
         }
 
         return undefined;
@@ -246,7 +251,7 @@ export class TypeMetadata<TType> extends Metadata
     {
         const genericArguments = this.genericArguments;
 
-        if (Fn.isNil(genericArguments))
+        if (isNil(genericArguments))
         {
             return undefined;
         }
@@ -363,7 +368,7 @@ export class TypeMetadata<TType> extends Metadata
     {
         let propertyOptionsMap = this.typeOptions.propertyOptionsMap;
 
-        if (Fn.isNil(propertyOptionsMap))
+        if (isNil(propertyOptionsMap))
         {
             propertyOptionsMap = new Map<PropertyName, PropertyOptions<any>>();
 
@@ -382,7 +387,7 @@ export class TypeMetadata<TType> extends Metadata
     {
         let injectOptionsMap = this.typeOptions.injectOptionsMap;
 
-        if (Fn.isNil(injectOptionsMap))
+        if (isNil(injectOptionsMap))
         {
             injectOptionsMap = new Map<InjectIndex, InjectOptions<any>>();
 
@@ -399,7 +404,7 @@ export class TypeMetadata<TType> extends Metadata
      */
     private deriveParentTypeMetadataProperties(): TypeMetadata<TType>
     {
-        if (Fn.isNil(this.parentTypeMetadata)) 
+        if (isNil(this.parentTypeMetadata)) 
         {
             return this;
         }
@@ -428,7 +433,7 @@ export class TypeMetadata<TType> extends Metadata
             return this;
         }
 
-        const injectTypeFns = (Fn.extractOwnReflectMetadata('design:paramtypes', this.typeFn) ?? new Array<TypeFn<any>>()) as Array<TypeFn<any>>;
+        const injectTypeFns = (getOwnReflectMetadata('design:paramtypes', this.typeFn) ?? new Array<TypeFn<any>>()) as Array<TypeFn<any>>;
 
         for (let injectIndex = 0; injectIndex < injectTypeFns.length; injectIndex++)
         {
@@ -453,7 +458,7 @@ export class TypeMetadata<TType> extends Metadata
     {
         this.discriminantMap.set(typeFn, discriminant);
 
-        if (!Fn.isNil(this.parentTypeMetadata))
+        if (!isNil(this.parentTypeMetadata))
         {
             this.parentTypeMetadata.provideDiscriminant(typeFn, discriminant);
         }
@@ -486,7 +491,7 @@ export class TypeMetadata<TType> extends Metadata
      */
     private configureCustomData(customData: CustomData): TypeMetadata<TType>
     {
-        this.typeOptions.customData = Fn.assign(this.typeOptions.customData ?? {}, customData);
+        this.typeOptions.customData = merge(this.typeOptions.customData ?? {}, customData);
 
         return this;
     }
@@ -503,7 +508,7 @@ export class TypeMetadata<TType> extends Metadata
     {
         let propertyMetadata = this.propertyMetadataMap.get(propertyName);
 
-        if (Fn.isNil(propertyMetadata))
+        if (isNil(propertyMetadata))
         {
             propertyMetadata = new PropertyMetadata(this, propertyName, propertyOptions);
 
@@ -528,7 +533,7 @@ export class TypeMetadata<TType> extends Metadata
     {
         let injectMetadata = this.injectMetadataMap.get(injectIndex);
 
-        if (Fn.isNil(injectMetadata))
+        if (isNil(injectMetadata))
         {
             injectMetadata = new InjectMetadata(this, injectIndex, injectOptions);
 
@@ -584,97 +589,97 @@ export class TypeMetadata<TType> extends Metadata
      */
     public configure(typeOptions: TypeOptions<TType>): TypeMetadata<TType>
     {
-        if (!Fn.isUndefined(typeOptions.alias)) 
+        if (!isUndefined(typeOptions.alias)) 
         {
             this.typeOptions.alias = typeOptions.alias;
         }
 
-        if (!Fn.isUndefined(typeOptions.serializedDefaultValue))
+        if (!isUndefined(typeOptions.serializedDefaultValue))
         {
             this.typeOptions.serializedDefaultValue = typeOptions.serializedDefaultValue;
         }
 
-        if (!Fn.isUndefined(typeOptions.deserializedDefaultValue)) 
+        if (!isUndefined(typeOptions.deserializedDefaultValue)) 
         {
             this.typeOptions.deserializedDefaultValue = typeOptions.deserializedDefaultValue;
         }
 
-        if (!Fn.isUndefined(typeOptions.discriminator)) 
+        if (!isUndefined(typeOptions.discriminator)) 
         {
             this.typeOptions.discriminator = typeOptions.discriminator;
         }
 
-        if (!Fn.isUndefined(typeOptions.factory)) 
+        if (!isUndefined(typeOptions.factory)) 
         {
             this.typeOptions.factory = typeOptions.factory;
         }
 
-        if (!Fn.isUndefined(typeOptions.genericArguments)) 
+        if (!isUndefined(typeOptions.genericArguments)) 
         {
             this.typeOptions.genericArguments = typeOptions.genericArguments;
         }
 
-        if (!Fn.isUndefined(typeOptions.injectable))
+        if (!isUndefined(typeOptions.injectable))
         {
             this.typeOptions.injectable = typeOptions.injectable;
         }
 
-        if (!Fn.isUndefined(typeOptions.injector))
+        if (!isUndefined(typeOptions.injector))
         {
             this.typeOptions.injector = typeOptions.injector;
         }
 
-        if (!Fn.isUndefined(typeOptions.log))
+        if (!isUndefined(typeOptions.log))
         {
             this.typeOptions.log = typeOptions.log;
         }
 
-        if (!Fn.isUndefined(typeOptions.namingConvention))
+        if (!isUndefined(typeOptions.namingConvention))
         {
             this.typeOptions.namingConvention = typeOptions.namingConvention;
         }
 
-        if (!Fn.isUndefined(typeOptions.preserveDiscriminator))
+        if (!isUndefined(typeOptions.preserveDiscriminator))
         {
             this.typeOptions.preserveDiscriminator = typeOptions.preserveDiscriminator;
         }
 
-        if (!Fn.isUndefined(typeOptions.referenceHandler))
+        if (!isUndefined(typeOptions.referenceHandler))
         {
             this.typeOptions.referenceHandler = typeOptions.referenceHandler;
         }
 
-        if (!Fn.isUndefined(typeOptions.serializer)) 
+        if (!isUndefined(typeOptions.serializer)) 
         {
             this.typeOptions.serializer = typeOptions.serializer;
         }
 
-        if (!Fn.isUndefined(typeOptions.useDefaultValue)) 
+        if (!isUndefined(typeOptions.useDefaultValue)) 
         {
             this.typeOptions.useDefaultValue = typeOptions.useDefaultValue;
         }
 
-        if (!Fn.isUndefined(typeOptions.useImplicitConversion)) 
+        if (!isUndefined(typeOptions.useImplicitConversion)) 
         {
             this.typeOptions.useImplicitConversion = typeOptions.useImplicitConversion;
         }
         
-        if (!Fn.isUndefined(typeOptions.customData))
+        if (!isUndefined(typeOptions.customData))
         {
             this.configureCustomData(typeOptions.customData);
         }
 
-        if (!Fn.isUndefined(typeOptions.discriminant))
+        if (!isUndefined(typeOptions.discriminant))
         {
             this.configureDiscriminant(typeOptions.discriminant);
         }
 
-        if (!Fn.isUndefined(typeOptions.propertyOptionsMap))
+        if (!isUndefined(typeOptions.propertyOptionsMap))
         {
             this.configurePropertyMetadataMap(typeOptions.propertyOptionsMap);
         }
 
-        if (!Fn.isUndefined(typeOptions.injectOptionsMap))
+        if (!isUndefined(typeOptions.injectOptionsMap))
         {
             this.configureInjectMetadataMap(typeOptions.injectOptionsMap);
         }

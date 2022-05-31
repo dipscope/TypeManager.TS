@@ -1,5 +1,5 @@
-import { Fn } from '../core/fn';
-import { NamingConvention } from '../core/naming-convention';
+import { getWords } from '../functions';
+import { NamingConvention } from '../naming-convention';
 
 /**
  * Camel case naming convention.
@@ -17,7 +17,7 @@ export class CamelCaseNamingConvention implements NamingConvention
      */
     public convert(name: string): string
     {
-        return Fn.words(name).reduce(this.reduce, '');
+        return getWords(name).reduce(this.reduce, '');
     }
 
     /**

@@ -1,16 +1,8 @@
-import { DefaultValue } from './core';
-import { TypeAndProperty } from './type-and-property';
+import { DefaultValueResolver } from './default-value-resolver';
 
 /**
- * Default value decorator.
+ * Default value which can be defined by developer.
  * 
- * Used to define serialized and deserialized default value for type and property. 
- * 
- * @param {DefaultValue} defaultValue Default value.
- * 
- * @returns {ClassDecorator&PropertyDecorator} Class and property decorator.
+ * @type {DefaultValue}
  */
-export function DefaultValue(defaultValue: DefaultValue): ClassDecorator & PropertyDecorator
-{
-    return TypeAndProperty({ serializedDefaultValue: defaultValue, deserializedDefaultValue: defaultValue });
-}
+export type DefaultValue = any | DefaultValueResolver;
