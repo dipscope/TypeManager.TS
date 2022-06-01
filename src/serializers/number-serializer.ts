@@ -1,8 +1,8 @@
-import isBoolean from 'lodash-es/isBoolean';
-import isNull from 'lodash-es/isNull';
-import isNumber from 'lodash-es/isNumber';
-import isString from 'lodash-es/isString';
-import isUndefined from 'lodash-es/isUndefined';
+import isBoolean from 'lodash/isBoolean';
+import isNull from 'lodash/isNull';
+import isNumber from 'lodash/isNumber';
+import isString from 'lodash/isString';
+import isUndefined from 'lodash/isUndefined';
 
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';

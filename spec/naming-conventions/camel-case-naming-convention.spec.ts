@@ -1,4 +1,4 @@
-import { CamelCaseNamingConvention } from '../../src/naming-conventions';
+import { CamelCaseNamingConvention } from '../../src';
 
 describe('Camel case naming convention', () => 
 {

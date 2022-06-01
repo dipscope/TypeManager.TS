@@ -1,4 +1,5 @@
 import { Alias } from './alias';
+import { DefaultValue } from './default-value';
 import { Discriminant } from './discriminant';
 import { GenericArgument } from './generic-argument';
 import { InjectIndex } from './inject-index';
@@ -22,6 +23,34 @@ export interface TypeOptions<TType> extends Partial<TypeOptionsBase<TType>>
      * @type {Alias}
      */
     alias?: Alias;
+
+    /**
+     * Default value for undefined ones.
+     * 
+     * Used to set both serialized and deserialized default values and 
+     * only when use default value option is true.
+     * 
+     * @type {DefaultValue}
+     */
+    defaultValue?: DefaultValue;
+
+    /**
+     * Serialized default value for undefined ones.
+     * 
+     * Used only when use default value option is true.
+     * 
+     * @type {DefaultValue}
+     */
+    serializedDefaultValue?: DefaultValue;
+
+    /**
+     * Deserialized default value for undefined ones.
+     * 
+     * Used only when use default value option is true.
+     * 
+     * @type {DefaultValue}
+     */
+    deserializedDefaultValue?: DefaultValue;
 
     /**
      * Discriminant.

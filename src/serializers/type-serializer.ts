@@ -1,8 +1,8 @@
-import isFunction from 'lodash-es/isFunction';
-import isNil from 'lodash-es/isNil';
-import isNull from 'lodash-es/isNull';
-import isObject from 'lodash-es/isObject';
-import isUndefined from 'lodash-es/isUndefined';
+import isFunction from 'lodash/isFunction';
+import isNil from 'lodash/isNil';
+import isNull from 'lodash/isNull';
+import isObject from 'lodash/isObject';
+import isUndefined from 'lodash/isUndefined';
 
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';

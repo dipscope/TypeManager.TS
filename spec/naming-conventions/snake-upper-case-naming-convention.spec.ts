@@ -1,4 +1,4 @@
-import { SnakeUpperCaseNamingConvention } from '../../src/naming-conventions';
+import { SnakeUpperCaseNamingConvention } from '../../src';
 
 describe('Snake upper case naming convention', () =>
 {

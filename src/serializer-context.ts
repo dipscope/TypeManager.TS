@@ -1,6 +1,6 @@
-import isArray from 'lodash-es/isArray';
-import isNil from 'lodash-es/isNil';
-import merge from 'lodash-es/merge';
+import isArray from 'lodash/isArray';
+import isNil from 'lodash/isNil';
+import merge from 'lodash/merge';
 
 import { CustomData } from './custom-data';
 import { Discriminant } from './discriminant';

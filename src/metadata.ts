@@ -1,4 +1,4 @@
-import isArray from 'lodash-es/isArray';
+import isArray from 'lodash/isArray';
 
 import { GenericArgument } from './generic-argument';
 import { GenericMetadata } from './generic-metadata';

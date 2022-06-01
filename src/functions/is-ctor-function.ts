@@ -1,4 +1,4 @@
-import isFunction from 'lodash-es/isFunction';
+import isFunction from 'lodash/isFunction';
 
 /**
  * Checks if value is a constructor function.

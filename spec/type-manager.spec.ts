@@ -1,5 +1,4 @@
-import { Property, Type, TypeManager } from '../src';
-import { Serializer } from '../src/core';
+import { Property, Serializer, Type, TypeManager } from '../src';
 
 class MessageBodySerializer implements Serializer<string>
 {
@@ -20,7 +19,7 @@ class User
     @Property(() => String, { alias: 'username' }) public name?: string;
     @Property(() => String) public email?: string;
     @Property(() => String, { deserializedDefaultValue: 'd', useDefaultValue: true }) public status?: string;
-    @Property(() => String, { serializedDefaultValue: () => 'e', deserializedDefaultValue: () => 'e', useDefaultValue: true }) public login?: string;
+    @Property(() => String, { defaultValue: () => 'e', useDefaultValue: true }) public login?: string;
     @Property(() => String, { useImplicitConversion: true }) public description?: string;
     @Property(() => String, { serializable: true }) public about?: string;
     @Property(() => String, { deserializable: true }) public device?: string;

@@ -1,6 +1,6 @@
-import isArray from 'lodash-es/isArray';
-import isNull from 'lodash-es/isNull';
-import isUndefined from 'lodash-es/isUndefined';
+import isArray from 'lodash/isArray';
+import isNull from 'lodash/isNull';
+import isUndefined from 'lodash/isUndefined';
 
 import { isUint32Array } from '../functions';
 import { Serializer } from '../serializer';

@@ -1,4 +1,4 @@
-import words from 'lodash-es/words';
+import words from 'lodash/words';
 
 /**
  * Gets words from a string.

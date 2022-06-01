@@ -1,6 +1,6 @@
-import isNil from 'lodash-es/isNil';
-import isObject from 'lodash-es/isObject';
-import isString from 'lodash-es/isString';
+import isNil from 'lodash/isNil';
+import isObject from 'lodash/isObject';
+import isString from 'lodash/isString';
 
 import { ReferenceHandler } from '../reference-handler';
 import { ReferenceKey } from '../reference-key';

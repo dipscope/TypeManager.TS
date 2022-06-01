@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 
-import { Injectable, Property, Type, TypeManager } from '../../src';
+import { Property, Type, TypeManager } from '../../src';
 
 enum UserPriorityNumeric
 {
@@ -16,7 +16,9 @@ enum UserPriorityTextual
     High = 'High'
 }
 
-@Injectable()
+@Type({
+    injectable: true
+})
 class UserService
 {
     public property?: string;

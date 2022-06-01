@@ -1,23 +1,25 @@
-import { Property, Serializer, Type, TypeManager } from '../../src';
-import { TypeSerializer } from '../../src/serializers';
+import { Property, Type, TypeManager, TypeSerializer } from '../../src';
 
-@Type()
-@Serializer(new TypeSerializer())
+@Type({
+    serializer: new TypeSerializer()
+})
 class User
 {
     @Property(() => Company) public company?: Company;
 }
 
-@Type()
-@Serializer(new TypeSerializer())
+@Type({
+    serializer: new TypeSerializer()
+})
 class Company
 {
     @Property(() => User) public user?: User;
     @Property(() => Message) public message?: Message;
 }
 
-@Type()
-@Serializer(new TypeSerializer())
+@Type({
+    serializer: new TypeSerializer()
+})
 class Message
 {
     @Property(() => User) public user?: User;

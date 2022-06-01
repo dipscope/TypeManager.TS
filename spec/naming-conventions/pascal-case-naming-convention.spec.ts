@@ -1,4 +1,4 @@
-import { PascalCaseNamingConvention } from '../../src/naming-conventions';
+import { PascalCaseNamingConvention } from '../../src';
 
 describe('Pascal case naming convention', () =>
 {

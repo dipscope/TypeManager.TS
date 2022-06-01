@@ -1,4 +1,4 @@
-import { FlatCaseNamingConvention } from '../../src/naming-conventions';
+import { FlatCaseNamingConvention } from '../../src';
 
 describe('Flat case naming convention', () =>
 {

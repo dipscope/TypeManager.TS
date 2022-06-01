@@ -1,4 +1,4 @@
-import isNil from 'lodash-es/isNil';
+import isNil from 'lodash/isNil';
 
 import { ReferenceHandler } from '../reference-handler';
 import { ReferenceKey } from '../reference-key';

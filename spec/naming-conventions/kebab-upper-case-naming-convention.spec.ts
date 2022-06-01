@@ -1,4 +1,4 @@
-import { KebabUpperCaseNamingConvention } from '../../src/naming-conventions';
+import { KebabUpperCaseNamingConvention } from '../../src';
 
 describe('Kebab upper case naming convention', () =>
 {

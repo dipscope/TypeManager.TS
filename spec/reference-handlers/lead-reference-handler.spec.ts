@@ -1,23 +1,25 @@
-import { Property, ReferenceHandler, Type, TypeManager } from '../../src';
-import { LeadReferenceHandler } from '../../src/reference-handlers';
+import { LeadReferenceHandler, Property, Type, TypeManager } from '../../src';
 
-@Type()
-@ReferenceHandler(new LeadReferenceHandler())
+@Type({
+    referenceHandler: new LeadReferenceHandler()
+})
 class User
 {
     @Property(() => Company) public company?: Company;
 }
 
-@Type()
-@ReferenceHandler(new LeadReferenceHandler())
+@Type({
+    referenceHandler: new LeadReferenceHandler()
+})
 class Company
 {
     @Property(() => User) public user?: User;
     @Property(() => Message) public message?: Message;
 }
 
-@Type()
-@ReferenceHandler(new LeadReferenceHandler())
+@Type({
+    referenceHandler: new LeadReferenceHandler()
+})
 class Message
 {
     @Property(() => User) public user?: User;

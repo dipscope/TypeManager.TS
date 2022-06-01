@@ -1,13 +1,16 @@
-import { Inject, Injectable, TypeManager } from '../../src';
-import { SingletonInjector } from '../../src/injectors';
+import { Inject, SingletonInjector, Type, TypeManager } from '../../src';
 
-@Injectable()
+@Type({
+    injectable: true
+})
 class MessageService 
 {
     public property?: string;
 }
 
-@Injectable()
+@Type({
+    injectable: true
+})
 class UserService 
 {
     public property?: string;

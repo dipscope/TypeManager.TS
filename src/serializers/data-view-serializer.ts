@@ -1,6 +1,6 @@
-import isNull from 'lodash-es/isNull';
-import isString from 'lodash-es/isString';
-import isUndefined from 'lodash-es/isUndefined';
+import isNull from 'lodash/isNull';
+import isString from 'lodash/isString';
+import isUndefined from 'lodash/isUndefined';
 
 import { isDataView } from '../functions';
 import { Serializer } from '../serializer';

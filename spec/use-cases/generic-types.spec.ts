@@ -1,7 +1,8 @@
-import { Alias, Property, Type, TypeManager } from '../../src';
+import { Property, Type, TypeManager } from '../../src';
 
-@Type()
-@Alias('Group:Generics')
+@Type({
+    alias: 'Group:Generics'
+})
 class Group
 {
     @Property(String) public title?: string;

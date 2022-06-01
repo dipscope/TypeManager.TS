@@ -1,4 +1,4 @@
-import { KebabCaseNamingConvention } from '../../src/naming-conventions';
+import { KebabCaseNamingConvention } from '../../src';
 
 describe('Kebab case naming convention', () =>
 {

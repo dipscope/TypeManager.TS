@@ -1,6 +1,8 @@
-import { Inject, Injectable, Type, TypeManager } from '../../src';
+import { Inject, Type, TypeManager } from '../../src';
 
-@Injectable()
+@Type({
+    injectable: true
+})
 class UserService
 {
     public property?: string;

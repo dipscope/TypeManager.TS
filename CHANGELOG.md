@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2022-**-**
+
+### Added
+
+- Performance improvements.
+
+### Changed
+
+- Separate modules are now merged into one to reduce final application bundle size and simplify usage.
+
+### Removed
+
+- Helper decorators as they silently increase final application bundle size and reduce performance on startup for the end user.
+
+### Migrating from previous version
+
+- Replace all separate module imports to `@dipscope/type-manager`.
+- Remove all helper decorators and use configure options with the same names from the main `Type`, `Property` and `Inject` decorators.
+
 ## [4.1.1] - 2022-05-30
 
 ### Changed

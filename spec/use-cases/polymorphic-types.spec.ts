@@ -1,4 +1,4 @@
-import { Discriminant, Discriminator, Property, Type, TypeManager } from '../../src';
+import { Property, Type, TypeManager } from '../../src';
 
 @Type()
 abstract class UserStatus
@@ -24,25 +24,28 @@ class DefaultBlokedUserStatus extends UserStatus
     @Property(Boolean) public blocked?: boolean;
 }
 
-@Type()
-@Discriminator('__typename__')
-@Discriminant('CustomActiveUS')
+@Type({
+    discriminator: '__typename__',
+    discriminant: 'CustomActiveUS'
+})
 class CustomActiveUserStatus extends UserStatus
 {
     @Property(Boolean) public active?: boolean;
 }
 
-@Type()
-@Discriminator('__typename__')
-@Discriminant('CustomInactiveUS')
+@Type({
+    discriminator: '__typename__',
+    discriminant: 'CustomInactiveUS'
+})
 class CustomInactiveUserStatus extends UserStatus
 {
     @Property(Boolean) public inactive?: boolean;
 }
 
-@Type()
-@Discriminator('__typename__')
-@Discriminant('CustomBlokedUS')
+@Type({
+    discriminator: '__typename__',
+    discriminant: 'CustomBlokedUS'
+})
 class CustomBlokedUserStatus extends UserStatus
 {
     @Property(Boolean) public blocked?: boolean;

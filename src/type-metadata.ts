@@ -1,7 +1,7 @@
-import isFunction from 'lodash-es/isFunction';
-import isNil from 'lodash-es/isNil';
-import isUndefined from 'lodash-es/isUndefined';
-import merge from 'lodash-es/merge';
+import isFunction from 'lodash/isFunction';
+import isNil from 'lodash/isNil';
+import isUndefined from 'lodash/isUndefined';
+import merge from 'lodash/merge';
 
 import { Alias } from './alias';
 import { CustomData } from './custom-data';
@@ -177,7 +177,7 @@ export class TypeMetadata<TType> extends Metadata
     {
         if (this.useDefaultValue)
         {
-            const serializedDefaultValue = this.typeOptions.serializedDefaultValue ?? this.typeOptionsBase.serializedDefaultValue;
+            const serializedDefaultValue = this.typeOptions.defaultValue ?? this.typeOptions.serializedDefaultValue;
 
             return isFunction(serializedDefaultValue) ? serializedDefaultValue() : serializedDefaultValue;
         }
@@ -194,7 +194,7 @@ export class TypeMetadata<TType> extends Metadata
     {
         if (this.useDefaultValue)
         {
-            const deserializedDefaultValue = this.typeOptions.deserializedDefaultValue ?? this.typeOptionsBase.deserializedDefaultValue;
+            const deserializedDefaultValue = this.typeOptions.defaultValue ?? this.typeOptions.deserializedDefaultValue;
 
             return isFunction(deserializedDefaultValue) ? deserializedDefaultValue() : deserializedDefaultValue;
         }
@@ -592,6 +592,11 @@ export class TypeMetadata<TType> extends Metadata
         if (!isUndefined(typeOptions.alias)) 
         {
             this.typeOptions.alias = typeOptions.alias;
+        }
+
+        if (!isUndefined(typeOptions.defaultValue))
+        {
+            this.typeOptions.defaultValue = typeOptions.defaultValue;
         }
 
         if (!isUndefined(typeOptions.serializedDefaultValue))

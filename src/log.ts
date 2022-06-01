@@ -1,5 +1,5 @@
-import isFunction from 'lodash-es/isFunction';
-import isObject from 'lodash-es/isObject';
+import isFunction from 'lodash/isFunction';
+import isObject from 'lodash/isObject';
 
 import { LogLevel } from './log-level';
 

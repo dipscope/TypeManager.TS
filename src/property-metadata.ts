@@ -1,7 +1,7 @@
-import isFunction from 'lodash-es/isFunction';
-import isNil from 'lodash-es/isNil';
-import isUndefined from 'lodash-es/isUndefined';
-import merge from 'lodash-es/merge';
+import isFunction from 'lodash/isFunction';
+import isNil from 'lodash/isNil';
+import isUndefined from 'lodash/isUndefined';
+import merge from 'lodash/merge';
 
 import { Alias } from './alias';
 import { CustomData } from './custom-data';
@@ -117,7 +117,8 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     {
         if (this.useDefaultValue)
         {
-            const serializedDefaultValue = this.propertyOptions.serializedDefaultValue ?? this.typeMetadata.serializedDefaultValue;
+            const serializedDefaultValue = this.propertyOptions.defaultValue ?? this.propertyOptions.serializedDefaultValue 
+                ?? this.typeMetadata.serializedDefaultValue;
 
             return isFunction(serializedDefaultValue) ? serializedDefaultValue() : serializedDefaultValue;
         }
@@ -134,7 +135,8 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     {
         if (this.useDefaultValue)
         {
-            const deserializedDefaultValue = this.propertyOptions.deserializedDefaultValue ?? this.typeMetadata.deserializedDefaultValue;
+            const deserializedDefaultValue = this.propertyOptions.defaultValue ?? this.propertyOptions.deserializedDefaultValue 
+                ?? this.typeMetadata.deserializedDefaultValue;
 
             return isFunction(deserializedDefaultValue) ? deserializedDefaultValue() : deserializedDefaultValue;
         }
@@ -332,6 +334,11 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
         if (!isUndefined(propertyOptions.alias))
         {
             this.propertyOptions.alias = propertyOptions.alias;
+        }
+
+        if (!isUndefined(propertyOptions.defaultValue))
+        {
+            this.propertyOptions.defaultValue = propertyOptions.defaultValue;
         }
 
         if (!isUndefined(propertyOptions.serializedDefaultValue))

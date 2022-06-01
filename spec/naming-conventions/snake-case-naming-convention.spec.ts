@@ -1,4 +1,4 @@
-import { SnakeCaseNamingConvention } from '../../src/naming-conventions';
+import { SnakeCaseNamingConvention } from '../../src';
 
 describe('Snake case naming convention', () =>
 {

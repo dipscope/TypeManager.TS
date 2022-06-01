@@ -1,10 +1,10 @@
-import { Alias, Inject, Property, Type, TypeManager } from '../../src';
+import { Inject, Property, Type, TypeManager } from '../../src';
 
 @Type()
 class UserStatus
 {
     @Property(String) public readonly name: string;
-    @Property(String) @Alias('label') public readonly title: string;
+    @Property(String, { alias: 'label' }) public readonly title: string;
 
     public constructor(@Inject('name') name: string, @Inject('label') title: string)
     {

@@ -31,6 +31,16 @@ export interface PropertyOptions<TType>
     customData?: CustomData;
 
     /**
+     * Default value for undefined ones.
+     * 
+     * Used to set both serialized and deserialized default values and 
+     * only when use default value option is true.
+     * 
+     * @type {DefaultValue}
+     */
+    defaultValue?: DefaultValue;
+
+    /**
      * Serialized default value for undefined ones.
      * 
      * Used only when use default value option is true.

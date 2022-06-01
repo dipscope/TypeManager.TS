@@ -1,11 +1,11 @@
 {
   "author": "DipScope authors and contributors",
   "dependencies": {
-    "lodash-es": "^4.17.21"
+    "lodash": "^4.17.21"
   },
   "description": "A package which will help you to transform your JSON strings or plain objects into JS object instances.",
   "devDependencies": {
-    "@types/lodash-es": "^4.17.6",
+    "@types/lodash": "^4.14.182",
     "@types/jasmine": "^3.6.3",
     "@typescript-eslint/eslint-plugin": "^4.14.2",
     "@typescript-eslint/parser": "^4.14.2",

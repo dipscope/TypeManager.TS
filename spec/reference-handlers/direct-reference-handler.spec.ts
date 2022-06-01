@@ -1,23 +1,25 @@
-import { Property, ReferenceHandler, Type, TypeManager } from '../../src';
-import { DirectReferenceHandler } from '../../src/reference-handlers';
+import { DirectReferenceHandler, Property, Type, TypeManager } from '../../src';
 
-@Type()
-@ReferenceHandler(new DirectReferenceHandler())
+@Type({
+    referenceHandler: new DirectReferenceHandler()
+})
 class User
 {
     @Property(() => Company) public company?: Company;
 }
 
-@Type()
-@ReferenceHandler(new DirectReferenceHandler())
+@Type({
+    referenceHandler: new DirectReferenceHandler()
+})
 class Company
 {
     @Property(() => User) public user?: User;
     @Property(() => Message) public message?: Message;
 }
 
-@Type()
-@ReferenceHandler(new DirectReferenceHandler())
+@Type({
+    referenceHandler: new DirectReferenceHandler()
+})
 class Message
 {
     @Property(() => User) public user?: User;

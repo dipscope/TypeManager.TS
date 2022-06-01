@@ -1,22 +1,22 @@
-import { NamingConvention, Property, Type, TypeManager } from '../../src';
-import {
-    CamelCaseNamingConvention, SnakeCaseNamingConvention, SnakeUpperCaseNamingConvention
-} from '../../src/naming-conventions';
+import { Property, Type, TypeManager } from '../../src';
+import { CamelCaseNamingConvention, SnakeCaseNamingConvention, SnakeUpperCaseNamingConvention } from '../../src';
 
-@Type()
-@NamingConvention(new SnakeCaseNamingConvention())
+@Type({
+    namingConvention: new SnakeCaseNamingConvention()
+})
 class UserStatus
 {
     @Property(String) public createdAt?: string;
     @Property(String) public updatedAt?: string;
 }
 
-@Type()
-@NamingConvention(new SnakeUpperCaseNamingConvention())
+@Type({
+    namingConvention: new SnakeUpperCaseNamingConvention()
+})
 class User
 {
     @Property(String) public createdAt?: string;
-    @Property(UserStatus) @NamingConvention(new CamelCaseNamingConvention()) public userStatus?: UserStatus;
+    @Property(UserStatus, { namingConvention: new CamelCaseNamingConvention() })public userStatus?: UserStatus;
 }
 
 describe('Naming conventions', () =>

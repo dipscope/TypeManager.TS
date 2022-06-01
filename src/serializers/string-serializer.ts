@@ -1,10 +1,10 @@
-import isBoolean from 'lodash-es/isBoolean';
-import isDate from 'lodash-es/isDate';
-import isNull from 'lodash-es/isNull';
-import isNumber from 'lodash-es/isNumber';
-import isObject from 'lodash-es/isObject';
-import isString from 'lodash-es/isString';
-import isUndefined from 'lodash-es/isUndefined';
+import isBoolean from 'lodash/isBoolean';
+import isDate from 'lodash/isDate';
+import isNull from 'lodash/isNull';
+import isNumber from 'lodash/isNumber';
+import isObject from 'lodash/isObject';
+import isString from 'lodash/isString';
+import isUndefined from 'lodash/isUndefined';
 
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';

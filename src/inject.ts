@@ -1,8 +1,8 @@
-import isFunction from 'lodash-es/isFunction';
-import isNumber from 'lodash-es/isNumber';
-import isObject from 'lodash-es/isObject';
-import isString from 'lodash-es/isString';
-import isUndefined from 'lodash-es/isUndefined';
+import isFunction from 'lodash/isFunction';
+import isNumber from 'lodash/isNumber';
+import isObject from 'lodash/isObject';
+import isString from 'lodash/isString';
+import isUndefined from 'lodash/isUndefined';
 
 import { isCtorFunction, nameOf } from './functions';
 import { InjectOptions } from './inject-options';

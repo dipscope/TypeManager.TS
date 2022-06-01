@@ -1,24 +1,26 @@
-import { Property, ReferenceHandler, Type, TypeManager } from '../../src';
-import { PathReferenceHandler } from '../../src/reference-handlers';
+import { PathReferenceHandler, Property, Type, TypeManager } from '../../src';
 
-@Type()
-@ReferenceHandler(new PathReferenceHandler())
+@Type({
+    referenceHandler: new PathReferenceHandler()
+})
 class User
 {
     @Property(() => Company) public company?: Company;
     @Property(Array, [() => Company]) public companies?: Company[];
 }
 
-@Type()
-@ReferenceHandler(new PathReferenceHandler())
+@Type({
+    referenceHandler: new PathReferenceHandler()
+})
 class Company
 {
     @Property(() => User) public user?: User;
     @Property(() => Message) public message?: Message;
 }
 
-@Type()
-@ReferenceHandler(new PathReferenceHandler())
+@Type({
+    referenceHandler: new PathReferenceHandler()
+})
 class Message
 {
     @Property(() => User) public user?: User;

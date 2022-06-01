@@ -1,5 +1,4 @@
-import { Property, TypeManager } from '../src';
-import { TypeSerializer } from '../src/serializers';
+import { Property, TypeManager, TypeSerializer } from '../src';
 
 class User
 {

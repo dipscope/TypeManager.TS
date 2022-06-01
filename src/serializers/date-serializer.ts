@@ -1,7 +1,7 @@
-import isDate from 'lodash-es/isDate';
-import isNull from 'lodash-es/isNull';
-import isString from 'lodash-es/isString';
-import isUndefined from 'lodash-es/isUndefined';
+import isDate from 'lodash/isDate';
+import isNull from 'lodash/isNull';
+import isString from 'lodash/isString';
+import isUndefined from 'lodash/isUndefined';
 
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';

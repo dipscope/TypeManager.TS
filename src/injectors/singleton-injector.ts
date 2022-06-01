@@ -1,4 +1,4 @@
-import isNil from 'lodash-es/isNil';
+import isNil from 'lodash/isNil';
 
 import { isCtorFunction } from '../functions';
 import { Injector } from '../injector';

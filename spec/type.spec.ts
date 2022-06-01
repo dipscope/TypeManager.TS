@@ -1,7 +1,4 @@
-import { Type, TypeManager } from '../src';
-import { TypeFactory } from '../src/factories';
-import { SingletonInjector } from '../src/injectors';
-import { TypeSerializer } from '../src/serializers';
+import { SingletonInjector, Type, TypeFactory, TypeManager, TypeSerializer } from '../src';
 
 @Type({
     alias: 'User:Type',

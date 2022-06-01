@@ -1,8 +1,8 @@
-import isArray from 'lodash-es/isArray';
-import isNil from 'lodash-es/isNil';
-import isString from 'lodash-es/isString';
-import isUndefined from 'lodash-es/isUndefined';
-import merge from 'lodash-es/merge';
+import isArray from 'lodash/isArray';
+import isNil from 'lodash/isNil';
+import isString from 'lodash/isString';
+import isUndefined from 'lodash/isUndefined';
+import merge from 'lodash/merge';
 
 import { Alias } from './alias';
 import { TypeFactory } from './factories';
@@ -44,8 +44,6 @@ export class TypeManager<TType>
      * @type {TypeOptionsBase<any>}
      */
     public static readonly typeOptionsBase: TypeOptionsBase<any> = {
-        serializedDefaultValue: undefined,
-        deserializedDefaultValue: undefined,
         discriminator: '$type',
         factory: new TypeFactory(),
         injector: new SingletonInjector(),
