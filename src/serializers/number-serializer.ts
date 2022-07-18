@@ -3,7 +3,6 @@ import isNull from 'lodash/isNull';
 import isNumber from 'lodash/isNumber';
 import isString from 'lodash/isString';
 import isUndefined from 'lodash/isUndefined';
-
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -30,7 +29,12 @@ export class NumberSerializer implements Serializer<number>
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x) || isNumber(x))
+        if (isNull(x))
+        {
+            return serializerContext.serializedNullValue;
+        }
+
+        if (isNumber(x))
         {
             return x;
         }
@@ -42,7 +46,7 @@ export class NumberSerializer implements Serializer<number>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as number.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as number.`, x);
         }
 
         return undefined;
@@ -63,7 +67,12 @@ export class NumberSerializer implements Serializer<number>
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x) || isNumber(x))
+        if (isNull(x))
+        {
+            return serializerContext.deserializedNullValue;
+        }
+
+        if (isNumber(x))
         {
             return x;
         }
@@ -75,7 +84,7 @@ export class NumberSerializer implements Serializer<number>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value as number.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as number.`, x);
         }
 
         return undefined;
@@ -98,7 +107,7 @@ export class NumberSerializer implements Serializer<number>
         
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot convert value to a number.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot convert value to a number.`, x);
         }
 
         return undefined;

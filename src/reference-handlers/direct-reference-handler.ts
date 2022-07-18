@@ -1,10 +1,8 @@
 import isNil from 'lodash/isNil';
-
 import { ReferenceHandler } from '../reference-handler';
 import { ReferenceKey } from '../reference-key';
 import { ReferenceValue } from '../reference-value';
-import { ReferenceValueInitializer } from '../reference-value-initializer';
-import { ReferenceValueResolver } from '../reference-value-resolver';
+import { ReferenceValueGetter } from '../reference-value-getter';
 import { SerializerContext } from '../serializer-context';
 
 /**
@@ -19,11 +17,11 @@ export class DirectReferenceHandler implements ReferenceHandler
      * 
      * @param {SerializerContext<any>} serializerContext Serializer context.
      * @param {ReferenceKey} referenceKey Reference which acts as a key. This is basically a serializing object.
-     * @param {ReferenceValueInitializer} referenceValueInitializer Function to initialize a reference value when one is not yet present for a key.
+     * @param {ReferenceValueGetter} referenceValueGetter Function to get a reference value when one is not yet present for a key.
      * 
-     * @returns {ReferenceValue|ReferenceValueResolver} Resolved reference value or reference resolver when circular dependency is detected.
+     * @returns {ReferenceValue} Resolved reference value.
      */
-    public define(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey, referenceValueInitializer: ReferenceValueInitializer): ReferenceValue | ReferenceValueResolver
+    public define(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey, referenceValueGetter: ReferenceValueGetter): ReferenceValue
     {
         const referenceMap = serializerContext.referenceMap;
         const referenceValue = referenceMap.get(referenceKey);
@@ -32,7 +30,7 @@ export class DirectReferenceHandler implements ReferenceHandler
         {
             referenceMap.set(referenceKey, referenceKey);
 
-            const value = referenceValueInitializer();
+            const value = referenceValueGetter();
 
             referenceMap.set(referenceKey, value);
 
@@ -43,7 +41,9 @@ export class DirectReferenceHandler implements ReferenceHandler
 
         if (referenceValue === referenceKey)
         {
-            return () => referenceMap.get(referenceKey);
+            serializerContext.registerReferenceCallback(referenceKey);
+
+            return undefined;
         }
 
         return referenceValue;
@@ -54,11 +54,11 @@ export class DirectReferenceHandler implements ReferenceHandler
      * 
      * @param {SerializerContext<any>} serializerContext Serializer context.
      * @param {ReferenceKey} referenceKey Reference which acts as a key. This is basically a deserializing object.
-     * @param {ReferenceValueInitializer} referenceValueInitializer Function to initialize a reference value when one is not yet present for a key.
+     * @param {ReferenceValueGetter} referenceValueGetter Function to get a reference value when one is not yet present for a key.
      * 
-     * @returns {ReferenceValue|ReferenceValueResolver} Resolved reference value or reference resolver when circular dependency is detected.
+     * @returns {ReferenceValue} Resolved reference value.
      */
-    public restore(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey, referenceValueInitializer: ReferenceValueInitializer): ReferenceValue | ReferenceValueResolver
+    public restore(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey, referenceValueGetter: ReferenceValueGetter): ReferenceValue
     {
         const referenceMap = serializerContext.referenceMap;
         const referenceValue = referenceMap.get(referenceKey);
@@ -67,7 +67,7 @@ export class DirectReferenceHandler implements ReferenceHandler
         {
             referenceMap.set(referenceKey, referenceKey);
 
-            const value = referenceValueInitializer();
+            const value = referenceValueGetter();
 
             referenceMap.set(referenceKey, value);
 
@@ -78,7 +78,9 @@ export class DirectReferenceHandler implements ReferenceHandler
 
         if (referenceValue === referenceKey)
         {
-            return () => referenceMap.get(referenceKey);
+            serializerContext.registerReferenceCallback(referenceKey);
+
+            return undefined;
         }
 
         return referenceValue;

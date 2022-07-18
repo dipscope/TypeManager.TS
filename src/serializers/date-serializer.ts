@@ -2,7 +2,6 @@ import isDate from 'lodash/isDate';
 import isNull from 'lodash/isNull';
 import isString from 'lodash/isString';
 import isUndefined from 'lodash/isUndefined';
-
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -31,7 +30,7 @@ export class DateSerializer implements Serializer<Date>
 
         if (isNull(x))
         {
-            return x;
+            return serializerContext.serializedNullValue;
         }
 
         if (isDate(x))
@@ -41,7 +40,7 @@ export class DateSerializer implements Serializer<Date>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as date.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as date.`, x);
         }
 
         return undefined;
@@ -64,7 +63,7 @@ export class DateSerializer implements Serializer<Date>
 
         if (isNull(x))
         {
-            return x;
+            return serializerContext.deserializedNullValue;
         }
 
         if (isString(x))
@@ -74,7 +73,7 @@ export class DateSerializer implements Serializer<Date>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value as date.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as date.`, x);
         }
 
         return undefined;

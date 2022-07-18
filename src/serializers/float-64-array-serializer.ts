@@ -1,7 +1,6 @@
 import isArray from 'lodash/isArray';
 import isNull from 'lodash/isNull';
 import isUndefined from 'lodash/isUndefined';
-
 import { isFloat64Array } from '../functions';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
@@ -31,7 +30,7 @@ export class Float64ArraySerializer implements Serializer<Float64Array>
 
         if (isNull(x))
         {
-            return x;
+            return serializerContext.serializedNullValue;
         }
 
         if (isFloat64Array(x))
@@ -41,7 +40,7 @@ export class Float64ArraySerializer implements Serializer<Float64Array>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as float 64 array.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as float 64 array.`, x);
         }
 
         return undefined;
@@ -64,7 +63,7 @@ export class Float64ArraySerializer implements Serializer<Float64Array>
 
         if (isNull(x))
         {
-            return x;
+            return serializerContext.deserializedNullValue;
         }
 
         if (isArray(x))
@@ -74,7 +73,7 @@ export class Float64ArraySerializer implements Serializer<Float64Array>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value to a float 64 array.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value to a float 64 array.`, x);
         }
 
         return undefined;

@@ -1,12 +1,10 @@
 import isNil from 'lodash/isNil';
 import isObject from 'lodash/isObject';
 import isString from 'lodash/isString';
-
 import { ReferenceHandler } from '../reference-handler';
 import { ReferenceKey } from '../reference-key';
 import { ReferenceValue } from '../reference-value';
-import { ReferenceValueInitializer } from '../reference-value-initializer';
-import { ReferenceValueResolver } from '../reference-value-resolver';
+import { ReferenceValueGetter } from '../reference-value-getter';
 import { SerializerContext } from '../serializer-context';
 
 /**
@@ -28,22 +26,20 @@ export class PathReferenceHandler implements ReferenceHandler
      * 
      * @param {SerializerContext<any>} serializerContext Serializer context.
      * @param {ReferenceKey} referenceKey Reference which acts as a key. This is basically a serializing object.
-     * @param {ReferenceValueInitializer} referenceValueInitializer Function to initialize a reference value when one is not yet present for a key.
+     * @param {ReferenceValueGetter} referenceValueGetter Function to get a reference value when one is not yet present for a key.
      * 
-     * @returns {ReferenceValue|ReferenceValueResolver} Resolved reference value or reference resolver when circular dependency is detected.
+     * @returns {ReferenceValue} Resolved reference value.
      */
-    public define(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey, referenceValueInitializer: ReferenceValueInitializer): ReferenceValue | ReferenceValueResolver
+    public define(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey, referenceValueGetter: ReferenceValueGetter): ReferenceValue
     {
         const referenceMap = serializerContext.referenceMap;
         const referencePath = referenceMap.get(referenceKey);
 
         if (isNil(referencePath))
         {
-            referenceMap.set(referenceKey, serializerContext.path);
+            referenceMap.set(referenceKey, serializerContext.jsonPath);
 
-            const value = referenceValueInitializer();
-
-            serializerContext.resolveReferenceCallbacks(referenceKey);
+            const value = referenceValueGetter();
 
             return value;
         }
@@ -56,11 +52,11 @@ export class PathReferenceHandler implements ReferenceHandler
      * 
      * @param {SerializerContext<any>} serializerContext Serializer context.
      * @param {ReferenceKey} referenceKey Reference which acts as a key. This is basically a deserializing object.
-     * @param {ReferenceValueInitializer} referenceValueInitializer Function to initialize a reference value when one is not yet present for a key.
+     * @param {ReferenceValueGetter} referenceValueGetter Function to get a reference value when one is not yet present for a key.
      * 
-     * @returns {ReferenceValue|ReferenceValueResolver} Resolved reference value or reference resolver when circular dependency is detected.
+     * @returns {ReferenceValue} Resolved reference value.
      */
-    public restore(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey, referenceValueInitializer: ReferenceValueInitializer): ReferenceValue | ReferenceValueResolver
+    public restore(serializerContext: SerializerContext<any>, referenceKey: ReferenceKey, referenceValueGetter: ReferenceValueGetter): ReferenceValue
     {
         const referenceMap = serializerContext.referenceMap;
         const referenceTarget = this.defineReferenceTarget(serializerContext, referenceKey);
@@ -70,7 +66,7 @@ export class PathReferenceHandler implements ReferenceHandler
         {
             referenceMap.set(referenceTarget, referenceTarget);
 
-            const value = referenceValueInitializer();
+            const value = referenceValueGetter();
 
             referenceMap.set(referenceTarget, value);
 
@@ -89,7 +85,9 @@ export class PathReferenceHandler implements ReferenceHandler
 
         if (referenceTarget === referenceValue)
         {
-             return () => referenceMap.get(referenceTarget);
+            serializerContext.registerReferenceCallback(referenceTarget);
+
+            return undefined;
         }
 
         return referenceValue;

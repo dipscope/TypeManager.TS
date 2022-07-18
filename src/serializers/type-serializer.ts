@@ -1,9 +1,7 @@
-import isFunction from 'lodash/isFunction';
 import isNil from 'lodash/isNil';
 import isNull from 'lodash/isNull';
 import isObject from 'lodash/isObject';
 import isUndefined from 'lodash/isUndefined';
-
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeContext } from '../type-context';
@@ -34,7 +32,7 @@ export class TypeSerializer implements Serializer<Record<string, any>>
 
         if (isNull(x))
         {
-            return null;
+            return serializerContext.serializedNullValue;
         }
 
         if (isObject(x))
@@ -58,29 +56,23 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                     const propertyValue = type[deserializedPropertyName];
 
                     const propertySerializerContext = typeSerializerContext.defineChildSerializerContext({
+                        jsonPathKey: serializedPropertyName,
                         propertyMetadata: propertyMetadata,
                         typeMetadata: propertyMetadata.typeMetadata,
                         genericArguments: propertyMetadata.genericArguments,
-                        path: `${typeSerializerContext.path}['${deserializedPropertyName}']`
-                    });
-    
-                    const value = propertySerializerContext.serialize(propertyValue);
-
-                    if (isFunction(value))
-                    {
-                        propertySerializerContext.pushReferenceCallback(propertyValue, () =>
+                        referenceValueSetter: v => 
                         {
                             const declaringObject = propertySerializerContext.referenceMap.get(type);
         
                             if (!isNil(declaringObject))
                             {
-                                declaringObject[serializedPropertyName] = value();
+                                declaringObject[serializedPropertyName] = v;
                             }
-                        });
-        
-                        continue;
-                    }
-    
+                        }
+                    });
+
+                    const value = propertySerializerContext.serialize(propertyValue);
+
                     object[serializedPropertyName] = value;
                 }
 
@@ -99,7 +91,7 @@ export class TypeSerializer implements Serializer<Record<string, any>>
 
         if (serializerContext.log.errorEnabled)
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as type.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as type.`, x);
         }
 
         return undefined;
@@ -122,7 +114,7 @@ export class TypeSerializer implements Serializer<Record<string, any>>
 
         if (isNull(x))
         {
-            return null;
+            return serializerContext.deserializedNullValue;
         }
 
         if (isObject(x))
@@ -146,28 +138,22 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                     const propertyValue = object[serializedPropertyName];
 
                     const propertySerializerContext = typeSerializerContext.defineChildSerializerContext({
+                        jsonPathKey: deserializedPropertyName,
                         propertyMetadata: propertyMetadata,
                         typeMetadata: propertyMetadata.typeMetadata,
                         genericArguments: propertyMetadata.genericArguments,
-                        path: `${typeSerializerContext.path}['${deserializedPropertyName}']`
-                    });
-    
-                    const value = propertySerializerContext.deserialize(propertyValue);
-
-                    if (isFunction(value))
-                    {
-                        propertySerializerContext.pushReferenceCallback(propertyValue, () =>
+                        referenceValueSetter: v => 
                         {
                             const declaringType = propertySerializerContext.referenceMap.get(object);
         
                             if (!isNil(declaringType))
                             {
-                                declaringType[deserializedPropertyName] = value();
+                                declaringType[deserializedPropertyName] = v;
                             }
-                        });
-        
-                        continue;
-                    }
+                        }
+                    });
+    
+                    const value = propertySerializerContext.deserialize(propertyValue);
 
                     typeContext.set(deserializedPropertyName, new TypeContextEntry(deserializedPropertyName, value, propertyMetadata));
                     typeContext.set(serializedPropertyName, new TypeContextEntry(serializedPropertyName, value, propertyMetadata));
@@ -200,7 +186,7 @@ export class TypeSerializer implements Serializer<Record<string, any>>
         
         if (serializerContext.log.errorEnabled)
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value as type.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as type.`, x);
         }
 
         return undefined;

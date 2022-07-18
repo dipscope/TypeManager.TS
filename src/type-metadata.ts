@@ -2,7 +2,6 @@ import isFunction from 'lodash/isFunction';
 import isNil from 'lodash/isNil';
 import isUndefined from 'lodash/isUndefined';
 import merge from 'lodash/merge';
-
 import { Alias } from './alias';
 import { CustomData } from './custom-data';
 import { Discriminant } from './discriminant';
@@ -36,13 +35,6 @@ import { TypeOptionsBase } from './type-options-base';
  */
 export class TypeMetadata<TType> extends Metadata
 {
-    /**
-     * Parent type metadata.
-     * 
-     * @type {TypeMetadata<any>}
-     */
-    public readonly parentTypeMetadata?: TypeMetadata<any>;
-
     /**
      * Type name. 
      * 
@@ -100,6 +92,13 @@ export class TypeMetadata<TType> extends Metadata
      * @type {Map<InjectIndex, InjectMetadata<TType, any>>}
      */
     public readonly injectMetadataMap: Map<InjectIndex, InjectMetadata<TType, any>> = new Map<InjectIndex, InjectMetadata<TType, any>>();
+
+    /**
+     * Parent type metadata.
+     * 
+     * @type {TypeMetadata<any>}
+     */
+    public readonly parentTypeMetadata?: TypeMetadata<any>;
 
     /**
      * Constructor.
@@ -169,6 +168,21 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
+     * Gets serialized null value.
+     * 
+     * @returns {any|undefined} Resolved serialized null value or undefined.
+     */
+    public get serializedNullValue(): any | undefined
+    {
+        if (this.preserveNull)
+        {
+            return null;
+        }
+
+        return this.serializedDefaultValue;
+    }
+
+    /**
      * Gets serialized default value.
      * 
      * @returns {any|undefined} Resolved serialized default value or undefined.
@@ -185,6 +199,21 @@ export class TypeMetadata<TType> extends Metadata
         return undefined;
     }
 
+    /**
+     * Gets deserialized null value.
+     * 
+     * @returns {any|undefined} Resolved deserialized null value or undefined.
+     */
+    public get deserializedNullValue(): any | undefined
+    {
+        if (this.preserveNull)
+        {
+            return null;
+        }
+
+        return this.deserializedDefaultValue;
+    }
+    
     /**
      * Gets deserialized default value.
      * 
@@ -337,6 +366,16 @@ export class TypeMetadata<TType> extends Metadata
     public get serializer(): Serializer<TType>
     {
         return this.typeOptions.serializer ?? this.typeOptionsBase.serializer;
+    }
+
+    /**
+     * Gets indicator if null value should be preserved.
+     * 
+     * @returns {boolean} True when null value should be preserved. False otherwise.
+     */
+    public get preserveNull(): boolean
+    {
+        return this.typeOptions.preserveNull ?? this.typeOptionsBase.preserveNull;
     }
 
     /**
@@ -654,9 +693,14 @@ export class TypeMetadata<TType> extends Metadata
             this.typeOptions.referenceHandler = typeOptions.referenceHandler;
         }
 
-        if (!isUndefined(typeOptions.serializer)) 
+        if (!isUndefined(typeOptions.serializer))
         {
             this.typeOptions.serializer = typeOptions.serializer;
+        }
+
+        if (!isUndefined(typeOptions.preserveNull))
+        {
+            this.typeOptions.preserveNull = typeOptions.preserveNull;
         }
 
         if (!isUndefined(typeOptions.useDefaultValue)) 

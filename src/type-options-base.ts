@@ -12,7 +12,7 @@ import { Serializer } from './serializer';
  * 
  * @type {TypeOptionsBase<TType>}
  */
-export interface TypeOptionsBase<TType>
+export type TypeOptionsBase<TType> =
 {
     /**
      * Custom developer data.
@@ -77,6 +77,14 @@ export interface TypeOptionsBase<TType>
      * @type {Serializer<TType>}
      */
     serializer: Serializer<TType>;
+    
+    /**
+     * If set to true then null values are preserved. Otherwise they will be 
+     * treated as undefined.
+     * 
+     * @type {boolean}
+     */
+    preserveNull: boolean,
 
     /**
      * Use default value assignment for undefined values?

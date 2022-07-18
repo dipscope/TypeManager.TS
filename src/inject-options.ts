@@ -5,7 +5,7 @@ import { TypeFn } from './type-fn';
  * 
  * @type {InjectOptions<TType>}
  */
-export interface InjectOptions<TType>
+export type InjectOptions<TType> =
 {
     /**
      * Parameter key to inject within a type context. If specified then

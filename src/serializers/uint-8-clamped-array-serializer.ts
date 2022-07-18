@@ -1,7 +1,6 @@
 import isArray from 'lodash/isArray';
 import isNull from 'lodash/isNull';
 import isUndefined from 'lodash/isUndefined';
-
 import { isUint8ClampedArray } from '../functions';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
@@ -31,7 +30,7 @@ export class Uint8ClampedArraySerializer implements Serializer<Uint8ClampedArray
 
         if (isNull(x))
         {
-            return x;
+            return serializerContext.serializedNullValue;
         }
 
         if (isUint8ClampedArray(x))
@@ -41,7 +40,7 @@ export class Uint8ClampedArraySerializer implements Serializer<Uint8ClampedArray
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as uint 8 clamped array.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as uint 8 clamped array.`, x);
         }
 
         return undefined;
@@ -64,7 +63,7 @@ export class Uint8ClampedArraySerializer implements Serializer<Uint8ClampedArray
 
         if (isNull(x))
         {
-            return x;
+            return serializerContext.deserializedNullValue;
         }
 
         if (isArray(x))
@@ -74,7 +73,7 @@ export class Uint8ClampedArraySerializer implements Serializer<Uint8ClampedArray
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value as uint 8 clamped array.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as uint 8 clamped array.`, x);
         }
 
         return undefined;

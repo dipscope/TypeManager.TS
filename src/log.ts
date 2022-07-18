@@ -1,6 +1,5 @@
 import isFunction from 'lodash/isFunction';
 import isObject from 'lodash/isObject';
-
 import { LogLevel } from './log-level';
 
 /**

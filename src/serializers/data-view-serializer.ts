@@ -1,7 +1,6 @@
 import isNull from 'lodash/isNull';
 import isString from 'lodash/isString';
 import isUndefined from 'lodash/isUndefined';
-
 import { isDataView } from '../functions';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
@@ -31,7 +30,7 @@ export class DataViewSerializer implements Serializer<DataView>
 
         if (isNull(x))
         {
-            return x;
+            return serializerContext.serializedNullValue;
         }
 
         if (isDataView(x))
@@ -44,7 +43,7 @@ export class DataViewSerializer implements Serializer<DataView>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as data view.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as data view.`, x);
         }
 
         return undefined;
@@ -67,7 +66,7 @@ export class DataViewSerializer implements Serializer<DataView>
 
         if (isNull(x))
         {
-            return x;
+            return serializerContext.deserializedNullValue;
         }
 
         if (isString(x))
@@ -85,7 +84,7 @@ export class DataViewSerializer implements Serializer<DataView>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value as data view.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as data view.`, x);
         }
 
         return undefined;

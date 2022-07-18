@@ -5,7 +5,6 @@ import isNumber from 'lodash/isNumber';
 import isObject from 'lodash/isObject';
 import isString from 'lodash/isString';
 import isUndefined from 'lodash/isUndefined';
-
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -32,7 +31,12 @@ export class StringSerializer implements Serializer<string>
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x) || isString(x))
+        if (isNull(x))
+        {
+            return serializerContext.serializedNullValue;
+        }
+
+        if (isString(x))
         {
             return x;
         }
@@ -44,7 +48,7 @@ export class StringSerializer implements Serializer<string>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as string.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as string.`, x);
         }
 
         return undefined;
@@ -65,7 +69,12 @@ export class StringSerializer implements Serializer<string>
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x) || isString(x))
+        if (isNull(x))
+        {
+            return serializerContext.deserializedNullValue;
+        }
+
+        if (isString(x))
         {
             return x;
         }
@@ -77,7 +86,7 @@ export class StringSerializer implements Serializer<string>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value as string.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as string.`, x);
         }
 
         return undefined;
@@ -110,7 +119,7 @@ export class StringSerializer implements Serializer<string>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot convert value to string.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot convert value to string.`, x);
         }
         
         return undefined;

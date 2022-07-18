@@ -2,7 +2,6 @@ import isArrayBuffer from 'lodash/isArrayBuffer';
 import isNull from 'lodash/isNull';
 import isString from 'lodash/isString';
 import isUndefined from 'lodash/isUndefined';
-
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -31,7 +30,7 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
 
         if (isNull(x))
         {
-            return x;
+            return serializerContext.serializedNullValue;
         }
 
         if (isArrayBuffer(x))
@@ -44,7 +43,7 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
 
         if (serializerContext.log.errorEnabled)
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as array buffer.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as array buffer.`, x);
         }
 
         return undefined;
@@ -67,7 +66,7 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
 
         if (isNull(x))
         {
-            return x;
+            return serializerContext.deserializedNullValue;
         }
 
         if (isString(x))
@@ -85,7 +84,7 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
         
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value as array buffer.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as array buffer.`, x);
         }
 
         return undefined;

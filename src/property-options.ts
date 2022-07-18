@@ -12,7 +12,7 @@ import { TypeArgument } from './type-argument';
  * 
  * @type {PropertyOptions<TType>}
  */
-export interface PropertyOptions<TType>
+export type PropertyOptions<TType> =
 {
     /**
      * Property alias.
@@ -106,6 +106,14 @@ export interface PropertyOptions<TType>
      * @type {TypeArgument<TType>}
      */
     typeArgument?: TypeArgument<TType>;
+
+    /**
+     * If set to true then null values are preserved. Otherwise they will be 
+     * treated as undefined.
+     * 
+     * @type {boolean}
+     */
+    preserveNull?: boolean,
 
     /**
      * Use default value assignment for undefined values?

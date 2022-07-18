@@ -1,5 +1,4 @@
 import isNil from 'lodash/isNil';
-
 import { isCtorFunction } from '../functions';
 import { Injector } from '../injector';
 import { TypeMetadata } from '../type-metadata';

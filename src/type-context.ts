@@ -1,5 +1,4 @@
 import isNil from 'lodash/isNil';
-
 import { TypeContextEntry } from './type-context-entry';
 import { TypeMetadata } from './type-metadata';
 

@@ -2,7 +2,6 @@ import isFunction from 'lodash/isFunction';
 import isNil from 'lodash/isNil';
 import isUndefined from 'lodash/isUndefined';
 import merge from 'lodash/merge';
-
 import { Alias } from './alias';
 import { CustomData } from './custom-data';
 import { getReflectMetadata } from './functions';
@@ -109,6 +108,21 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     }
 
     /**
+     * Gets serialized null value.
+     * 
+     * @returns {any|undefined} Resolved serialized null value or undefined.
+     */
+    public get serializedNullValue(): any | undefined
+    {
+        if (this.preserveNull)
+        {
+            return null;
+        }
+
+        return this.serializedDefaultValue;
+    }
+
+    /**
      * Gets serialized default value.
      * 
      * @returns {any|undefined} Resolved serialized default value or undefined.
@@ -126,6 +140,21 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
         return undefined;
     }
 
+    /**
+     * Gets deserialized null value.
+     * 
+     * @returns {any|undefined} Resolved deserialized null value or undefined.
+     */
+    public get deserializedNullValue(): any | undefined
+    {
+        if (this.preserveNull)
+        {
+            return null;
+        }
+
+        return this.deserializedDefaultValue;
+    }
+    
     /**
      * Gets deserialized default value.
      * 
@@ -289,6 +318,16 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     }
 
     /**
+     * Gets indicator if null value should be preserved.
+     * 
+     * @returns {boolean} True when null value should be preserved. False otherwise.
+     */
+    public get preserveNull(): boolean
+    {
+        return this.propertyOptions.preserveNull ?? this.typeMetadata.preserveNull;
+    }
+
+    /**
      * Gets indicator if default value should be used.
      * 
      * @returns {boolean} Use default value indicator.
@@ -384,6 +423,11 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
         if (!isUndefined(propertyOptions.typeArgument)) 
         {
             this.propertyOptions.typeArgument = propertyOptions.typeArgument;
+        }
+
+        if (!isUndefined(propertyOptions.preserveNull))
+        {
+            this.propertyOptions.preserveNull = propertyOptions.preserveNull;
         }
 
         if (!isUndefined(propertyOptions.useDefaultValue))

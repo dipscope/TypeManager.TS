@@ -1,8 +1,6 @@
 import { GenericArgument } from './generic-argument';
 import { PropertyMetadata } from './property-metadata';
-import { ReferenceCallback } from './reference-callback';
-import { ReferenceKey } from './reference-key';
-import { ReferenceValue } from './reference-value';
+import { ReferenceValueSetter } from './reference-value-setter';
 import { TypeMetadata } from './type-metadata';
 
 /**
@@ -10,16 +8,23 @@ import { TypeMetadata } from './type-metadata';
  * 
  * @type {SerializerContextOptions<TType>}
  */
-export interface SerializerContextOptions<TType>
+export type SerializerContextOptions<TType> =
 {
     /**
-     * Serializer context root.
+     * Json path key of current serializer context. It equals to $ for
+     * root serializer context. Read about JSONPath for more info.
      * 
-     * This is a value passed to the root serializer.
-     * 
-     * @type {any}
+     * @type {string|number}
      */
-    $: any;
+    jsonPathKey: string | number;
+
+    /**
+     * Reference value setter if serialization may result in circular dependency
+     * which must be resolved.
+     * 
+     * @type {ReferenceValueSetter}
+     */
+    referenceValueSetter?: ReferenceValueSetter;
 
     /**
      * Generic arguments.
@@ -29,39 +34,12 @@ export interface SerializerContextOptions<TType>
     genericArguments?: Array<GenericArgument<any>>;
 
     /**
-     * JSONPath from serializer context root.
-     * 
-     * Indicates a place where serialization is performed.
-     * 
-     * @type {string}
-     */
-    path: string;
-
-    /**
      * Property metadata.
      * 
      * @type {PropertyMetadata<any, TType>}
      */
     propertyMetadata?: PropertyMetadata<any, TType>;
 
-    /**
-     * Reference callback map.
-     * 
-     * Used to assign object references in a later time due to circular dependency.
-     * 
-     * @type {WeakMap<ReferenceKey, Array<ReferenceCallback>>}
-     */
-    referenceCallbackMap: WeakMap<ReferenceKey, Array<ReferenceCallback>>;
-
-    /**
-     * Reference map.
-     * 
-     * Used to preserve object references.
-     * 
-     * @type {WeakMap<ReferenceKey, ReferenceValue>}
-     */
-    referenceMap: WeakMap<ReferenceKey, ReferenceValue>;
-    
     /**
      * Type metadata.
      * 

@@ -7,7 +7,7 @@ import { TypeOptionsBase } from './type-options-base';
  * 
  * @type {TypeManagerOptions}
  */
-export interface TypeManagerOptions
+export type TypeManagerOptions =
 {
     /**
      * Global type options shared among all types.

@@ -16,7 +16,7 @@ class UserStatus
 class User
 {
     @Property(String) public createdAt?: string;
-    @Property(UserStatus, { namingConvention: new CamelCaseNamingConvention() })public userStatus?: UserStatus;
+    @Property(UserStatus, { namingConvention: new CamelCaseNamingConvention() }) public userStatus?: UserStatus;
 }
 
 describe('Naming conventions', () =>
@@ -24,7 +24,7 @@ describe('Naming conventions', () =>
     it('should properly handle names during serialization and deserialization', () =>
     {
         const userJson = { CREATED_AT: '1', userStatus: { created_at: '2', updated_at: '3' } };
-        const user = TypeManager.deserialize(User, userJson)
+        const user = TypeManager.deserialize(User, userJson);
         
         expect(user).toBeInstanceOf(User);
         expect(user.createdAt).toBe('1');

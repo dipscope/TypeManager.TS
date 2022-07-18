@@ -5,7 +5,7 @@ class User
     @Property() public name?: string;
     @Property({ typeArgument: 'String', alias: 'my@mail.ru' }) public email?: string;
     @Property(() => String, { serializable: true }) public group?: string;
-    @Property({ deserializable: true }) public rank?: number;
+    @Property({ deserializable: true, preserveNull: false }) public rank?: number;
     @Property('Number', { deserializedDefaultValue: 10 }) public priority?: number;
     @Property(() => Number, { useDefaultValue: true }) public loginCount?: number;
     @Property({ useImplicitConversion: true, serializer: new TypeSerializer() }) public active?: boolean;
@@ -70,6 +70,7 @@ describe('Property decorator', () =>
         expect(userRankMetadata?.propertyOptions.serializable).toBeUndefined();
         expect(userRankMetadata?.propertyOptions.deserializable).toBeTrue();
         expect(userRankMetadata?.propertyOptions.deserializedDefaultValue).toBeUndefined();
+        expect(userRankMetadata?.propertyOptions.preserveNull).toBeFalse();
         expect(userRankMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
         expect(userRankMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
         expect(userRankMetadata?.propertyOptions.typeArgument).toBeUndefined();

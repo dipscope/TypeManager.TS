@@ -3,7 +3,6 @@ import isNumber from 'lodash/isNumber';
 import isObject from 'lodash/isObject';
 import isString from 'lodash/isString';
 import isUndefined from 'lodash/isUndefined';
-
 import { isCtorFunction, nameOf } from './functions';
 import { InjectOptions } from './inject-options';
 import { TypeFn } from './type-fn';

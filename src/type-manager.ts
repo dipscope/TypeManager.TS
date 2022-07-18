@@ -3,7 +3,6 @@ import isNil from 'lodash/isNil';
 import isString from 'lodash/isString';
 import isUndefined from 'lodash/isUndefined';
 import merge from 'lodash/merge';
-
 import { Alias } from './alias';
 import { TypeFactory } from './factories';
 import { isArrowFunction } from './functions';
@@ -51,6 +50,7 @@ export class TypeManager<TType>
         preserveDiscriminator: false,
         referenceHandler: new DirectReferenceHandler(),
         serializer: new TypeSerializer(),
+        preserveNull: true,
         useDefaultValue: false,
         useImplicitConversion: false
     };
@@ -335,13 +335,11 @@ export class TypeManager<TType>
      */
     private static defineSerializerContext<TType>(typeFn: TypeFn<TType>, x: any, genericArguments?: Array<GenericArgument<any>>): SerializerContext<TType>
     {
-        return new SerializerContext({
-            $: x,
-            path: '$',
+        return new SerializerContext(x, new WeakMap<ReferenceKey, ReferenceValue>(), new WeakMap<ReferenceKey, Array<ReferenceCallback>>(), 
+        {
+            jsonPathKey: '$',
             typeMetadata: this.extractTypeMetadata(typeFn),
-            genericArguments: genericArguments,
-            referenceCallbackMap: new WeakMap<ReferenceKey, Array<ReferenceCallback>>(),
-            referenceMap: new WeakMap<ReferenceKey, ReferenceValue>()
+            genericArguments: genericArguments
         });
     }
 
@@ -363,7 +361,7 @@ export class TypeManager<TType>
 
         if (isArray(x) && typeFn !== arrayFn)
         {
-            return this.defineSerializerContext(arrayFn, x, [typeFn]).serialize(x as any);
+            return this.defineSerializerContext(arrayFn, x, [typeFn]).serialize(x);
         }
 
         return this.defineSerializerContext(typeFn, x).serialize(x as any);
@@ -387,7 +385,7 @@ export class TypeManager<TType>
 
         if (isArray(x) && typeFn !== arrayFn)
         {
-            return this.defineSerializerContext(arrayFn, x, [typeFn]).deserialize(x as any);
+            return this.defineSerializerContext(arrayFn, x, [typeFn]).deserialize(x);
         }
 
         return this.defineSerializerContext(typeFn, x).deserialize(x as any);
@@ -627,13 +625,11 @@ export class TypeManager<TType>
      */
     private defineSerializerContext(x: any, genericArguments?: Array<GenericArgument<any>>): SerializerContext<TType>
     {
-        return new SerializerContext({
-            $: x,
-            path: '$',
+        return new SerializerContext(x, new WeakMap<ReferenceKey, ReferenceValue>(), new WeakMap<ReferenceKey, Array<ReferenceCallback>>(), 
+        {
+            jsonPathKey: '$',
             typeMetadata: this.typeMetadata,
-            genericArguments: genericArguments,
-            referenceCallbackMap: new WeakMap<ReferenceKey, Array<ReferenceCallback>>(),
-            referenceMap: new WeakMap<ReferenceKey, ReferenceValue>()
+            genericArguments: genericArguments
         });
     }
 
@@ -655,13 +651,14 @@ export class TypeManager<TType>
         if (isArray(x) && this.typeMetadata.typeFn !== arrayFn)
         {
             const arrayMetadata = this.extractTypeMetadata(arrayFn);
-
-            const arraySerializerContext = this.defineSerializerContext(x).defineChildSerializerContext({
+            const arraySerializerContext = new SerializerContext(x, new WeakMap<ReferenceKey, ReferenceValue>(), new WeakMap<ReferenceKey, Array<ReferenceCallback>>(), 
+            {
+                jsonPathKey: '$',
                 typeMetadata: arrayMetadata,
                 genericArguments: [this.typeMetadata.typeFn]
             });
 
-            return arraySerializerContext.serialize(x as any);
+            return arraySerializerContext.serialize(x);
         }
 
         return this.defineSerializerContext(x).serialize(x as any);
@@ -685,13 +682,14 @@ export class TypeManager<TType>
         if (isArray(x) && this.typeMetadata.typeFn !== arrayFn)
         {
             const arrayMetadata = this.extractTypeMetadata(arrayFn);
-
-            const arraySerializerContext = this.defineSerializerContext(x).defineChildSerializerContext({
+            const arraySerializerContext = new SerializerContext(x, new WeakMap<ReferenceKey, ReferenceValue>(), new WeakMap<ReferenceKey, Array<ReferenceCallback>>(), 
+            {
+                jsonPathKey: '$',
                 typeMetadata: arrayMetadata,
                 genericArguments: [this.typeMetadata.typeFn]
             });
 
-            return arraySerializerContext.deserialize(x as any);
+            return arraySerializerContext.deserialize(x);
         }
 
         return this.defineSerializerContext(x).deserialize(x as any);

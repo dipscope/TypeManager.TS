@@ -3,7 +3,9 @@ import { SingletonInjector, Type, TypeFactory, TypeManager, TypeSerializer } fro
 @Type({
     alias: 'User:Type',
     customData: { rank: 1 },
+    serializedDefaultValue: () => new User(),
     deserializedDefaultValue: () => new User(),
+    preserveNull: false,
     useDefaultValue: true,
     useImplicitConversion: false,
     injectable: true,
@@ -29,8 +31,11 @@ describe('Type decorator', () =>
         expect(userMetadata.typeOptions.alias).toBe('User:Type');
         expect(userMetadata.typeOptions.customData).toBeDefined();
         expect(userMetadata.typeOptions.customData?.rank).toBe(1);
+        expect(userMetadata.typeOptions.serializedDefaultValue).toBeDefined();
+        expect(userMetadata.typeOptions.serializedDefaultValue()).toBeInstanceOf(User);
         expect(userMetadata.typeOptions.deserializedDefaultValue).toBeDefined();
         expect(userMetadata.typeOptions.deserializedDefaultValue()).toBeInstanceOf(User);
+        expect(userMetadata.typeOptions.preserveNull).toBeFalse();
         expect(userMetadata.typeOptions.useDefaultValue).toBeTrue();
         expect(userMetadata.typeOptions.useImplicitConversion).toBeFalse();
         expect(userMetadata.typeOptions.injectable).toBeTrue();

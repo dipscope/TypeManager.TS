@@ -3,7 +3,6 @@ import isFunction from 'lodash/isFunction';
 import isNull from 'lodash/isNull';
 import isSet from 'lodash/isSet';
 import isUndefined from 'lodash/isUndefined';
-
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -32,7 +31,7 @@ export class SetSerializer implements Serializer<Set<any>>
 
         if (isNull(x))
         {
-            return x;
+            return serializerContext.serializedNullValue;
         }
 
         if (isSet(x))
@@ -50,22 +49,12 @@ export class SetSerializer implements Serializer<Set<any>>
                     i++;
 
                     const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({
-                        path: `${genericSerializerContext.path}[${i}]`
+                        jsonPathKey: i,
+                        typeMetadata: genericSerializerContext.typeMetadata,
+                        referenceValueSetter: v => array[i] = v
                     });
 
-                    const value = valueSerializerContext.serialize(v);
-
-                    if (isFunction(value))
-                    {
-                        valueSerializerContext.pushReferenceCallback(v, () =>
-                        {
-                            array[i] = value();
-                        });
-        
-                        continue;
-                    }
-        
-                    array[i] = value;
+                    array[i] = valueSerializerContext.serialize(v);
                 }
 
                 return array;
@@ -74,7 +63,7 @@ export class SetSerializer implements Serializer<Set<any>>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot serialize value as set.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as set.`, x);
         }
 
         return undefined;
@@ -97,7 +86,7 @@ export class SetSerializer implements Serializer<Set<any>>
 
         if (isNull(x))
         {
-            return x;
+            return serializerContext.deserializedNullValue;
         }
 
         if (isArray(x))
@@ -111,22 +100,12 @@ export class SetSerializer implements Serializer<Set<any>>
                 for (let i = 0; i < array.length; i++)
                 {
                     const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({
-                        path: `${genericSerializerContext.path}[${i}]`
+                        jsonPathKey: i,
+                        typeMetadata: genericSerializerContext.typeMetadata,
+                        referenceValueSetter: v => set.add(v)
                     });
 
-                    const value = valueSerializerContext.deserialize(array[i]);
-        
-                    if (isFunction(value))
-                    {
-                        genericSerializerContext.pushReferenceCallback(array[i], () =>
-                        {
-                            set.add(value());
-                        });
-        
-                        continue;
-                    }
-        
-                    set.add(value);
+                    set.add(valueSerializerContext.deserialize(array[i]));
                 }
 
                 return set;
@@ -135,7 +114,7 @@ export class SetSerializer implements Serializer<Set<any>>
 
         if (serializerContext.log.errorEnabled) 
         {
-            serializerContext.log.error(`${serializerContext.path}: cannot deserialize value as set.`, x);
+            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as set.`, x);
         }
 
         return undefined;

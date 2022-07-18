@@ -4,7 +4,6 @@ import isObject from 'lodash/isObject';
 import isString from 'lodash/isString';
 import isSymbol from 'lodash/isSymbol';
 import merge from 'lodash/merge';
-
 import { isCtorFunction, nameOf } from './functions';
 import { GenericArgument } from './generic-argument';
 import { PropertyOptions } from './property-options';
