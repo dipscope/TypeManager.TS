@@ -568,17 +568,38 @@ export class SerializerContext<TType> extends Metadata
     }
 
     /**
+     * Defines serializer context options based on partial.
+     * 
+     * @param {Partial<SerializerContextOptions<any>>} serializerContextOptions Partial serializer context options.
+     * 
+     * @returns {SerializerContextOptions<any>} Complete serializer context options.
+     */
+    private defineSerializerContextOptions(serializerContextOptions: Partial<SerializerContextOptions<any>>): SerializerContextOptions<any>
+    {
+        return {
+            jsonPathKey: serializerContextOptions.jsonPathKey ?? this.serializerContextOptions.jsonPathKey,
+            typeMetadata: serializerContextOptions.typeMetadata ?? this.serializerContextOptions.typeMetadata,
+            genericArguments: serializerContextOptions.genericArguments ?? this.serializerContextOptions.genericArguments,
+            propertyMetadata: serializerContextOptions.propertyMetadata ?? this.serializerContextOptions.propertyMetadata,
+            referenceValueSetter: serializerContextOptions.referenceValueSetter ?? this.serializerContextOptions.referenceValueSetter
+        };
+    }
+
+    /**
      * Defines child serializer context.
      * 
      * Called by serializers on drill down.
      * 
-     * @param {SerializerContextOptions<any>} serializerContextOptions Child serializer context options.
+     * @param {Partial<SerializerContextOptions<any>>} childSerializerContextOptions Child serializer context options.
      * 
      * @returns {SerializerContext<any>} Child serializer context.
      */
-    public defineChildSerializerContext(serializerContextOptions: SerializerContextOptions<any>): SerializerContext<any>
+    public defineChildSerializerContext(childSerializerContextOptions: Partial<SerializerContextOptions<any>>): SerializerContext<any>
     {
-        return new SerializerContext(this.$, this.referenceMap, this.referenceCallbackMap, serializerContextOptions, this);
+        const parentSerializerContext = isNil(childSerializerContextOptions.jsonPathKey) ? this.parentSerializerContext : this;
+        const serializerContextOptions = this.defineSerializerContextOptions(childSerializerContextOptions);
+
+        return new SerializerContext(this.$, this.referenceMap, this.referenceCallbackMap, serializerContextOptions, parentSerializerContext);
     }
 
     /**
@@ -609,7 +630,7 @@ export class SerializerContext<TType> extends Metadata
         const genericTypeArgument = isArray(genericArgument) ? genericArgument[0] : genericArgument;
         const genericGenericArguments = isArray(genericArgument) ? genericArgument[1] : undefined;
         const typeMetadata = this.defineTypeMetadata(genericTypeArgument);
-        const serializerContextOptions = Object.assign({}, this.serializerContextOptions);
+        const serializerContextOptions = this.defineSerializerContextOptions(this.serializerContextOptions);
 
         serializerContextOptions.typeMetadata = typeMetadata;
         serializerContextOptions.genericArguments = genericGenericArguments;
@@ -649,7 +670,7 @@ export class SerializerContext<TType> extends Metadata
         }
 
         const typeMetadata = this.defineTypeMetadata(typeFn);
-        const serializerContextOptions = Object.assign({}, this.serializerContextOptions);
+        const serializerContextOptions = this.defineSerializerContextOptions(this.serializerContextOptions);
 
         serializerContextOptions.typeMetadata = typeMetadata;
 
@@ -671,14 +692,14 @@ export class SerializerContext<TType> extends Metadata
 
             if (record[typeMetadata.discriminator] === discriminant)
             {
-                const serializerContextOptions = Object.assign({}, this.serializerContextOptions);
+                const serializerContextOptions = this.defineSerializerContextOptions(this.serializerContextOptions);
 
                 serializerContextOptions.typeMetadata = typeMetadata;
 
                 return new SerializerContext(this.$, this.referenceMap, this.referenceCallbackMap, serializerContextOptions, this.parentSerializerContext);
             }
         }
-        
+
         throw new Error(`${this.jsonPath}: cannot define discriminant of polymorphic type. This is usually caused by invalid configuration.`);
     }
 }

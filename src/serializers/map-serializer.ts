@@ -1,6 +1,4 @@
-import { PropertyName } from 'lodash';
 import isArray from 'lodash/isArray';
-import isFunction from 'lodash/isFunction';
 import isMap from 'lodash/isMap';
 import isNull from 'lodash/isNull';
 import isUndefined from 'lodash/isUndefined';
@@ -67,24 +65,16 @@ export class MapSerializer implements Serializer<Map<any, any>>
                     array[i] = {};
 
                     const keySerializerContext = genericKeySerializerContext.defineChildSerializerContext({
-                        jsonPathKey: i,
-                        typeMetadata: genericKeySerializerContext.typeMetadata,
-                        genericArguments: genericKeySerializerContext.genericArguments
+                        jsonPathKey: i
                     }).defineChildSerializerContext({
                         jsonPathKey: MapSerializer.key,
-                        typeMetadata: genericKeySerializerContext.typeMetadata,
-                        genericArguments: genericKeySerializerContext.genericArguments,
                         referenceValueSetter: v => array[i][MapSerializer.key] = v
                     });
 
                     const valueSerializerContext = genericValueSerializerContext.defineChildSerializerContext({
-                        jsonPathKey: i,
-                        typeMetadata: genericValueSerializerContext.typeMetadata,
-                        genericArguments: genericValueSerializerContext.genericArguments
+                        jsonPathKey: i
                     }).defineChildSerializerContext({
                         jsonPathKey: MapSerializer.value,
-                        typeMetadata: genericValueSerializerContext.typeMetadata,
-                        genericArguments: genericValueSerializerContext.genericArguments,
                         referenceValueSetter: v => array[i][MapSerializer.value] = v
                     });
 
@@ -139,26 +129,18 @@ export class MapSerializer implements Serializer<Map<any, any>>
                     const v = array[i][MapSerializer.value];
 
                     const keySerializerContext = genericKeySerializerContext.defineChildSerializerContext({
-                        jsonPathKey: i,
-                        typeMetadata: genericKeySerializerContext.typeMetadata,
-                        genericArguments: genericKeySerializerContext.genericArguments
+                        jsonPathKey: i
                     }).defineChildSerializerContext({
                         jsonPathKey: MapSerializer.key,
-                        typeMetadata: genericKeySerializerContext.typeMetadata,
-                        genericArguments: genericKeySerializerContext.genericArguments,
                         referenceValueSetter: v => map.set(v, undefined)
                     });
 
                     const key = keySerializerContext.deserialize(k);
 
                     const valueSerializerContext = genericValueSerializerContext.defineChildSerializerContext({
-                        jsonPathKey: i,
-                        typeMetadata: genericValueSerializerContext.typeMetadata,
-                        genericArguments: genericValueSerializerContext.genericArguments
+                        jsonPathKey: i
                     }).defineChildSerializerContext({
                         jsonPathKey: MapSerializer.value,
-                        typeMetadata: genericValueSerializerContext.typeMetadata,
-                        genericArguments: genericValueSerializerContext.genericArguments,
                         referenceValueSetter: v => map.set(key, v)
                     });
                     

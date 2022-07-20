@@ -31,6 +31,7 @@ If you like or are using this project please give it a star. Thanks!
     * [Injector option](#injector-option)
     * [Naming convention option](#naming-convention-option)
     * [Preserve discriminator option](#preserve-discriminator-option)
+    * [Preserve null option](#preserve-null-option)
     * [Reference handler option](#reference-handler-option)
     * [Serializable option](#serializable-option)
     * [Serializer option](#serializer-option)
@@ -699,7 +700,7 @@ import { Type, Property } from '@dipscope/type-manager';
 })
 export class User
 {
-    @Property(String, { serializedDefaultValue: 'BestName', deserializedDefaultValue: 'BestName' }) public name: string;
+    @Property(String, { serializedDefaultValue: 'SerializedName', deserializedDefaultValue: 'DeserializedName' }) public name: string;
 }
 ```
 
@@ -865,6 +866,24 @@ export class User
 ```
 
 By default discriminator is not preserved and only used during deserialization of polymorphic types. You can read more about handling of polymorphic types in this [section](#configuring-usage-of-polymorphic-types).
+
+### Preserve null option
+
+This option defines if null values should be preserved during serialization and deserialization.
+
+```typescript
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type({
+    preserveNull: true
+})
+export class User
+{
+    @Property(String, { preserveNull: false }) public name: string;
+}
+```
+
+By default null values are preserved. You can set it to `false` per type, property or globally using `TypeManager` configure method. This will result in treating null values as undefined so you will get all related behaviours like setting default values.
 
 ### Reference handler option
 

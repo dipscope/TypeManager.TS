@@ -1,5 +1,4 @@
 import isArray from 'lodash/isArray';
-import isFunction from 'lodash/isFunction';
 import isNull from 'lodash/isNull';
 import isSet from 'lodash/isSet';
 import isUndefined from 'lodash/isUndefined';
@@ -50,7 +49,6 @@ export class SetSerializer implements Serializer<Set<any>>
 
                     const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({
                         jsonPathKey: i,
-                        typeMetadata: genericSerializerContext.typeMetadata,
                         referenceValueSetter: v => array[i] = v
                     });
 
@@ -101,7 +99,6 @@ export class SetSerializer implements Serializer<Set<any>>
                 {
                     const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({
                         jsonPathKey: i,
-                        typeMetadata: genericSerializerContext.typeMetadata,
                         referenceValueSetter: v => set.add(v)
                     });
 

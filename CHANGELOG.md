@@ -9,10 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Preserve null option.
 - Performance improvements.
 
 ### Changed
 
+- Simplify handling of object references inside serializers.
 - Separate modules are now merged into one to reduce final application bundle size and simplify usage.
 
 ### Removed

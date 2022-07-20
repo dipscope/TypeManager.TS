@@ -44,7 +44,6 @@ export class ArraySerializer implements Serializer<Array<any>>
                 {
                     const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({
                         jsonPathKey: i,
-                        typeMetadata: genericSerializerContext.typeMetadata,
                         referenceValueSetter: v => arrayOutput[i] = v
                     });
 
@@ -95,7 +94,6 @@ export class ArraySerializer implements Serializer<Array<any>>
                 {
                     const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({
                         jsonPathKey: i,
-                        typeMetadata: genericSerializerContext.typeMetadata,
                         referenceValueSetter: v => arrayOutput[i] = v
                     });
 
