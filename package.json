@@ -47,5 +47,5 @@
     "lint": "eslint . --ext .ts"
   },
   "types": "index.d.ts",
-  "version": "5.0.0-beta.0"
+  "version": "5.0.0-beta.1"
 }
