@@ -40,6 +40,7 @@ export class SetSerializer implements Serializer<Set<any>>
                 const set = x;
                 const array = new Array<any>();
                 const genericSerializerContext = serializerContext.defineGenericSerializerContext(0);
+                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({ jsonPathKey: genericSerializerContext.jsonPathKey });
 
                 let i = -1;
                 
@@ -47,10 +48,8 @@ export class SetSerializer implements Serializer<Set<any>>
                 {
                     i++;
 
-                    const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({
-                        jsonPathKey: i,
-                        referenceValueSetter: v => array[i] = v
-                    });
+                    valueSerializerContext.configureJsonPathKey(i);
+                    valueSerializerContext.configureReferenceValueSetter(v => array[i] = v);
 
                     array[i] = valueSerializerContext.serialize(v);
                 }
@@ -94,13 +93,12 @@ export class SetSerializer implements Serializer<Set<any>>
                 const array = x;
                 const set = new Set<any>();
                 const genericSerializerContext = serializerContext.defineGenericSerializerContext(0);
-
+                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({ jsonPathKey: genericSerializerContext.jsonPathKey });
+                
                 for (let i = 0; i < array.length; i++)
                 {
-                    const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({
-                        jsonPathKey: i,
-                        referenceValueSetter: v => set.add(v)
-                    });
+                    valueSerializerContext.configureJsonPathKey(i);
+                    valueSerializerContext.configureReferenceValueSetter(v => set.add(v));
 
                     set.add(valueSerializerContext.deserialize(array[i]));
                 }

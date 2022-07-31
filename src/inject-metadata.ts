@@ -1,6 +1,6 @@
 import isNil from 'lodash/isNil';
 import isUndefined from 'lodash/isUndefined';
-import { getOwnReflectMetadata } from './functions';
+import { getOwnReflectMetadata } from './functions/get-own-reflect-metadata';
 import { InjectIndex } from './inject-index';
 import { InjectOptions } from './inject-options';
 import { Metadata } from './metadata';
@@ -101,22 +101,50 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
     }
 
     /**
+     * Configures key.
+     * 
+     * @param {string} key Key.
+     * 
+     * @returns {InjectMetadata<TDeclaringType, TType>} Current instance of inject metadata.
+     */
+    public configureKey(key: string): InjectMetadata<TDeclaringType, TType>
+    {
+        this.injectOptions.key = key;
+
+        return this;
+    }
+
+    /**
+     * Configures type function.
+     * 
+     * @param {TypeFn<TType>} typeFn Type function.
+     * 
+     * @returns {InjectMetadata<TDeclaringType, TType>} Current instance of inject metadata.
+     */
+    public configureTypeFn(typeFn: TypeFn<TType>): InjectMetadata<TDeclaringType, TType>
+    {
+        this.injectOptions.typeFn = typeFn;
+
+        return this;
+    }
+
+    /**
      * Configures inject metadata based on provided options.
      * 
      * @param {InjectOptions<TType>} injectOptions Inject options.
      * 
-     * @returns {InjectMetadata<TDeclaringType, TType>} Instance of inject metadata.
+     * @returns {InjectMetadata<TDeclaringType, TType>} Current instance of inject metadata.
      */
     public configure(injectOptions: InjectOptions<TType>): InjectMetadata<TDeclaringType, TType>
     {
         if (!isUndefined(injectOptions.key))
         {
-            this.injectOptions.key = injectOptions.key;
+            this.configureKey(injectOptions.key);
         }
 
         if (!isUndefined(injectOptions.typeFn)) 
         {
-            this.injectOptions.typeFn = injectOptions.typeFn;
+            this.configureTypeFn(injectOptions.typeFn);
         }
 
         return this;

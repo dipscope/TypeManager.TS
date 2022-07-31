@@ -41,6 +41,7 @@ export class TypeSerializer implements Serializer<Record<string, any>>
             {
                 const type = x as Record<string, any>;
                 const typeSerializerContext = serializerContext.polymorphic ? serializerContext.definePolymorphicSerializerContext(x.constructor) : serializerContext;
+                const propertySerializerContext = typeSerializerContext.defineChildSerializerContext({ jsonPathKey: typeSerializerContext.jsonPathKey });
                 const typeMetadata = typeSerializerContext.typeMetadata;
                 const object = {} as Record<string, any>;
 
@@ -55,19 +56,18 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                     const deserializedPropertyName = propertyMetadata.deserializedPropertyName;
                     const propertyValue = type[deserializedPropertyName];
 
-                    const propertySerializerContext = typeSerializerContext.defineChildSerializerContext({
-                        jsonPathKey: serializedPropertyName,
-                        propertyMetadata: propertyMetadata,
-                        typeMetadata: propertyMetadata.typeMetadata,
-                        genericArguments: propertyMetadata.genericArguments,
-                        referenceValueSetter: v => 
-                        {
-                            const declaringObject = propertySerializerContext.referenceMap.get(type);
+                    propertySerializerContext.configureJsonPathKey(serializedPropertyName);
+                    propertySerializerContext.configurePropertyMetadata(propertyMetadata);
+                    propertySerializerContext.configureTypeMetadata(propertyMetadata.typeMetadata);
+                    propertySerializerContext.configureGenericArguments(propertyMetadata.genericArguments);
+                    
+                    propertySerializerContext.configureReferenceValueSetter(v => 
+                    {
+                        const declaringObject = propertySerializerContext.referenceMap.get(type);
         
-                            if (!isNil(declaringObject))
-                            {
-                                declaringObject[serializedPropertyName] = v;
-                            }
+                        if (!isNil(declaringObject))
+                        {
+                            declaringObject[serializedPropertyName] = v;
                         }
                     });
 
@@ -123,6 +123,7 @@ export class TypeSerializer implements Serializer<Record<string, any>>
             {
                 const object = x as Record<string, any>;
                 const typeSerializerContext = serializerContext.polymorphic ? serializerContext.definePolymorphicSerializerContext(x) : serializerContext;
+                const propertySerializerContext = typeSerializerContext.defineChildSerializerContext({ jsonPathKey: typeSerializerContext.jsonPath });
                 const typeMetadata = typeSerializerContext.typeMetadata;
                 const typeContext = new TypeContext(typeMetadata);
 
@@ -137,22 +138,21 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                     const deserializedPropertyName = propertyMetadata.deserializedPropertyName;
                     const propertyValue = object[serializedPropertyName];
 
-                    const propertySerializerContext = typeSerializerContext.defineChildSerializerContext({
-                        jsonPathKey: deserializedPropertyName,
-                        propertyMetadata: propertyMetadata,
-                        typeMetadata: propertyMetadata.typeMetadata,
-                        genericArguments: propertyMetadata.genericArguments,
-                        referenceValueSetter: v => 
+                    propertySerializerContext.configureJsonPathKey(deserializedPropertyName);
+                    propertySerializerContext.configurePropertyMetadata(propertyMetadata);
+                    propertySerializerContext.configureTypeMetadata(propertyMetadata.typeMetadata);
+                    propertySerializerContext.configureGenericArguments(propertyMetadata.genericArguments);
+
+                    propertySerializerContext.configureReferenceValueSetter(v => 
+                    {
+                        const declaringType = propertySerializerContext.referenceMap.get(object);
+    
+                        if (!isNil(declaringType))
                         {
-                            const declaringType = propertySerializerContext.referenceMap.get(object);
-        
-                            if (!isNil(declaringType))
-                            {
-                                declaringType[deserializedPropertyName] = v;
-                            }
+                            declaringType[deserializedPropertyName] = v;
                         }
                     });
-    
+
                     const value = propertySerializerContext.deserialize(propertyValue);
 
                     typeContext.set(deserializedPropertyName, new TypeContextEntry(deserializedPropertyName, value, propertyMetadata));

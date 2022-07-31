@@ -1,4 +1,4 @@
-import { getWords } from '../functions';
+import { getWords } from '../functions/get-words';
 import { NamingConvention } from '../naming-convention';
 
 /**

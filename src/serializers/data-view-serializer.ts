@@ -1,7 +1,7 @@
 import isNull from 'lodash/isNull';
 import isString from 'lodash/isString';
 import isUndefined from 'lodash/isUndefined';
-import { isDataView } from '../functions';
+import { isDataView } from '../functions/is-data-view';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';

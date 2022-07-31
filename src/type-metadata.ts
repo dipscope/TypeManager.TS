@@ -4,10 +4,12 @@ import isUndefined from 'lodash/isUndefined';
 import merge from 'lodash/merge';
 import { Alias } from './alias';
 import { CustomData } from './custom-data';
+import { DefaultValue } from './default-value';
 import { Discriminant } from './discriminant';
 import { Discriminator } from './discriminator';
 import { Factory } from './factory';
-import { getOwnReflectMetadata, nameOf } from './functions';
+import { getOwnReflectMetadata } from './functions/get-own-reflect-metadata';
+import { nameOf } from './functions/name-of';
 import { GenericArgument } from './generic-argument';
 import { GenericMetadata } from './generic-metadata';
 import { InjectIndex } from './inject-index';
@@ -52,6 +54,13 @@ export class TypeMetadata<TType> extends Metadata
     public readonly typeFn: TypeFn<TType>;
 
     /**
+     * Type function map for types with aliases.
+     * 
+     * @type {Map<Alias, TypeFn<any>>}
+     */
+    public readonly typeFnMap: Map<Alias, TypeFn<any>>;
+
+    /**
      * Type options used by default.
      * 
      * @type {TypeOptionsBase<TType>}
@@ -66,11 +75,11 @@ export class TypeMetadata<TType> extends Metadata
     public readonly typeOptions: TypeOptions<TType>;
 
     /**
-     * Children type metadatas.
+     * Children type metadata map.
      * 
      * @type {Map<TypeFn<TType>, TypeMetadata<any>>}
      */
-    public readonly childrenTypeMetadatas: Map<TypeFn<any>, TypeMetadata<any>> = new Map<TypeFn<any>, TypeMetadata<any>>();
+    public readonly childrenTypeMetadataMap: Map<TypeFn<any>, TypeMetadata<any>> = new Map<TypeFn<any>, TypeMetadata<any>>();
 
     /**
      * Discriminant map.
@@ -105,6 +114,7 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {TypeMetadataResolver<any>} typeMetadataResolver Type metadata resolver.
      * @param {TypeFn<any>} typeFn Type function.
+     * @param {Map<Alias, TypeFn<any>>} typeFnMap Type function map.
      * @param {TypeOptionsBase<TType>} typeOptionsBase Type options used by default.
      * @param {TypeOptions<TType>} typeOptions Type options.
      * @param {TypeMetadata<any>} parentTypeMetadata Parent type metadata.
@@ -112,6 +122,7 @@ export class TypeMetadata<TType> extends Metadata
     public constructor(
         typeMetadataResolver: TypeMetadataResolver<any>, 
         typeFn: TypeFn<TType>, 
+        typeFnMap: Map<Alias, TypeFn<any>>,
         typeOptionsBase: TypeOptionsBase<TType>, 
         typeOptions: TypeOptions<TType>, 
         parentTypeMetadata?: TypeMetadata<any>
@@ -121,6 +132,7 @@ export class TypeMetadata<TType> extends Metadata
 
         this.typeName = nameOf(typeFn);
         this.typeFn = typeFn;
+        this.typeFnMap = typeFnMap;
         this.typeOptionsBase = typeOptionsBase;
         this.typeOptions = typeOptions;
         this.parentTypeMetadata = parentTypeMetadata;
@@ -453,7 +465,7 @@ export class TypeMetadata<TType> extends Metadata
             this.propertyMetadataMap.set(propertyName, propertyMetadata);
         }
 
-        this.parentTypeMetadata.childrenTypeMetadatas.set(this.typeFn, this);
+        this.parentTypeMetadata.childrenTypeMetadataMap.set(this.typeFn, this);
 
         return this;
     }
@@ -486,6 +498,127 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
+     * Configures alias.
+     * 
+     * @param {Alias} alias Alias.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configureAlias(alias: Alias): TypeMetadata<TType>
+    {
+        this.releaseAlias();
+
+        this.typeOptions.alias = alias;
+
+        this.typeFnMap.set(alias, this.typeFn);
+
+        return this;
+    }
+
+    /**
+     * Releases alias.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata. 
+     */
+    private releaseAlias(): TypeMetadata<TType>
+    {
+        const alias = this.alias;
+
+        if (!isNil(alias) && this.typeFnMap.has(alias))
+        {
+            this.typeFnMap.delete(alias);
+        }
+
+        return this;
+    }
+
+    /**
+     * Configures custom data.
+     * 
+     * @param {CustomData} customData Custom data.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configureCustomData(customData: CustomData): TypeMetadata<TType>
+    {
+        this.typeOptions.customData = merge(this.typeOptions.customData ?? {}, customData);
+
+        return this;
+    }
+
+    /**
+     * Configures default value.
+     * 
+     * @param {DefaultValue} defaultValue Default value.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configureDefaultValue(defaultValue: DefaultValue): TypeMetadata<TType>
+    {
+        this.typeOptions.defaultValue = defaultValue;
+
+        return this;
+    }
+
+    /**
+     * Configures serialized default value.
+     * 
+     * @param {DefaultValue} serializedDefaultValue Serialized default value.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configureSerializedDefaultValue(serializedDefaultValue: DefaultValue): TypeMetadata<TType>
+    {
+        this.typeOptions.serializedDefaultValue = serializedDefaultValue;
+
+        return this;
+    }
+
+    /**
+     * Configures deserialized default value.
+     * 
+     * @param {DefaultValue} deserializedDefaultValue Deserialized default value.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configureDeserializedDefaultValue(deserializedDefaultValue: DefaultValue): TypeMetadata<TType>
+    {
+        this.typeOptions.deserializedDefaultValue = deserializedDefaultValue;
+
+        return this;
+    }
+
+    /**
+     * Configures discriminator.
+     * 
+     * @param {Discriminator} discriminator Discriminator.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configureDiscriminator(discriminator: Discriminator): TypeMetadata<TType>
+    {
+        this.typeOptions.discriminator = discriminator;
+
+        return this;
+    }
+
+    /**
+     * Configures discriminant.
+     * 
+     * @param {Discriminant} discriminant Discriminant.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configureDiscriminant(discriminant: Discriminant): TypeMetadata<TType>
+    {
+        this.typeOptions.discriminant = discriminant;
+
+        this.provideDiscriminant(this.typeFn, discriminant);
+
+        return this;
+    }
+
+    /**
      * Provides discriminant.
      * 
      * @param {TypeFn<any>} typeFn Type function.
@@ -506,35 +639,173 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
-     * Configures discriminant.
+     * Configures factory.
      * 
-     * @param {Discriminant} discriminant Discriminant.
+     * @param {Factory} factory Factory.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    private configureDiscriminant(discriminant: Discriminant): TypeMetadata<TType>
+    public configureFactory(factory: Factory): TypeMetadata<TType>
     {
-        this.typeOptions.discriminant = discriminant;
-
-        this.provideDiscriminant(this.typeFn, discriminant);
+        this.typeOptions.factory = factory;
 
         return this;
     }
 
     /**
-     * Configures custom data.
+     * Configures generic arguments.
      * 
-     * @param {CustomData} customData Custom data.
+     * @param {Array<GenericArgument<any>>|undefined} genericArguments Generic arguments.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    private configureCustomData(customData: CustomData): TypeMetadata<TType>
+    public configureGenericArguments(genericArguments: Array<GenericArgument<any>> | undefined): TypeMetadata<TType>
     {
-        this.typeOptions.customData = merge(this.typeOptions.customData ?? {}, customData);
+        this.typeOptions.genericArguments = genericArguments;
 
         return this;
     }
-    
+
+    /**
+     * Configures injectable.
+     * 
+     * @param {boolean} injectable Injectable.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configureInjectable(injectable: boolean): TypeMetadata<TType>
+    {
+        this.typeOptions.injectable = injectable;
+
+        return this;
+    }
+
+    /**
+     * Configures injector.
+     * 
+     * @param {Injector} injector Injector.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configureInjector(injector: Injector): TypeMetadata<TType>
+    {
+        this.typeOptions.injector = injector;
+
+        return this;
+    }
+
+    /**
+     * Configures log.
+     * 
+     * @param {Log} log Log.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configureLog(log: Log): TypeMetadata<TType>
+    {
+        this.typeOptions.log = log;
+
+        return this;
+    }
+
+    /**
+     * Configures naming convention.
+     * 
+     * @param {NamingConvention} namingConvention Naming convention.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configureNamingConvention(namingConvention: NamingConvention): TypeMetadata<TType>
+    {
+        this.typeOptions.namingConvention = namingConvention;
+
+        return this;
+    }
+
+    /**
+     * Configures preserve discriminator.
+     * 
+     * @param {boolean} preserveDiscriminator Preserve discriminator.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configurePreserveDiscriminator(preserveDiscriminator: boolean): TypeMetadata<TType>
+    {
+        this.typeOptions.preserveDiscriminator = preserveDiscriminator;
+
+        return this;
+    }
+
+    /**
+     * Configures reference handler.
+     * 
+     * @param {ReferenceHandler} referenceHandler Reference handler.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configureReferenceHandler(referenceHandler: ReferenceHandler): TypeMetadata<TType>
+    {
+        this.typeOptions.referenceHandler = referenceHandler;
+
+        return this;
+    }
+
+    /**
+     * Configures serializer.
+     * 
+     * @param {Serializer<TType>} serializer Serializer.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configureSerializer(serializer: Serializer<TType>): TypeMetadata<TType>
+    {
+        this.typeOptions.serializer = serializer;
+
+        return this;
+    }
+
+    /**
+     * Configures preserve null.
+     * 
+     * @param {boolean} preserveNull Preserve null.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configurePreserveNull(preserveNull: boolean): TypeMetadata<TType>
+    {
+        this.typeOptions.preserveNull = preserveNull;
+
+        return this;
+    }
+
+    /**
+     * Configures use default value.
+     * 
+     * @param {boolean} useDefaultValue Use default value.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configureUseDefaultValue(useDefaultValue: boolean): TypeMetadata<TType>
+    {
+        this.typeOptions.useDefaultValue = useDefaultValue;
+
+        return this;
+    }
+
+    /**
+     * Configures use implicit convertion.
+     * 
+     * @param {boolean} useImplicitConversion Use implicit convertion.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public configureUseImplicitConversion(useImplicitConversion: boolean): TypeMetadata<TType>
+    {
+        this.typeOptions.useImplicitConversion = useImplicitConversion;
+
+        return this;
+    }
+
     /**
      * Configures certain property metadata.
      * 
@@ -630,97 +901,97 @@ export class TypeMetadata<TType> extends Metadata
     {
         if (!isUndefined(typeOptions.alias)) 
         {
-            this.typeOptions.alias = typeOptions.alias;
+            this.configureAlias(typeOptions.alias);
         }
 
-        if (!isUndefined(typeOptions.defaultValue))
-        {
-            this.typeOptions.defaultValue = typeOptions.defaultValue;
-        }
-
-        if (!isUndefined(typeOptions.serializedDefaultValue))
-        {
-            this.typeOptions.serializedDefaultValue = typeOptions.serializedDefaultValue;
-        }
-
-        if (!isUndefined(typeOptions.deserializedDefaultValue)) 
-        {
-            this.typeOptions.deserializedDefaultValue = typeOptions.deserializedDefaultValue;
-        }
-
-        if (!isUndefined(typeOptions.discriminator)) 
-        {
-            this.typeOptions.discriminator = typeOptions.discriminator;
-        }
-
-        if (!isUndefined(typeOptions.factory)) 
-        {
-            this.typeOptions.factory = typeOptions.factory;
-        }
-
-        if (!isUndefined(typeOptions.genericArguments)) 
-        {
-            this.typeOptions.genericArguments = typeOptions.genericArguments;
-        }
-
-        if (!isUndefined(typeOptions.injectable))
-        {
-            this.typeOptions.injectable = typeOptions.injectable;
-        }
-
-        if (!isUndefined(typeOptions.injector))
-        {
-            this.typeOptions.injector = typeOptions.injector;
-        }
-
-        if (!isUndefined(typeOptions.log))
-        {
-            this.typeOptions.log = typeOptions.log;
-        }
-
-        if (!isUndefined(typeOptions.namingConvention))
-        {
-            this.typeOptions.namingConvention = typeOptions.namingConvention;
-        }
-
-        if (!isUndefined(typeOptions.preserveDiscriminator))
-        {
-            this.typeOptions.preserveDiscriminator = typeOptions.preserveDiscriminator;
-        }
-
-        if (!isUndefined(typeOptions.referenceHandler))
-        {
-            this.typeOptions.referenceHandler = typeOptions.referenceHandler;
-        }
-
-        if (!isUndefined(typeOptions.serializer))
-        {
-            this.typeOptions.serializer = typeOptions.serializer;
-        }
-
-        if (!isUndefined(typeOptions.preserveNull))
-        {
-            this.typeOptions.preserveNull = typeOptions.preserveNull;
-        }
-
-        if (!isUndefined(typeOptions.useDefaultValue)) 
-        {
-            this.typeOptions.useDefaultValue = typeOptions.useDefaultValue;
-        }
-
-        if (!isUndefined(typeOptions.useImplicitConversion)) 
-        {
-            this.typeOptions.useImplicitConversion = typeOptions.useImplicitConversion;
-        }
-        
         if (!isUndefined(typeOptions.customData))
         {
             this.configureCustomData(typeOptions.customData);
         }
 
+        if (!isUndefined(typeOptions.defaultValue))
+        {
+            this.configureDefaultValue(typeOptions.defaultValue);
+        }
+
+        if (!isUndefined(typeOptions.serializedDefaultValue))
+        {
+            this.configureSerializedDefaultValue(typeOptions.serializedDefaultValue);
+        }
+
+        if (!isUndefined(typeOptions.deserializedDefaultValue)) 
+        {
+            this.configureDeserializedDefaultValue(typeOptions.deserializedDefaultValue);
+        }
+
+        if (!isUndefined(typeOptions.discriminator)) 
+        {
+            this.configureDiscriminator(typeOptions.discriminator);
+        }
+
         if (!isUndefined(typeOptions.discriminant))
         {
             this.configureDiscriminant(typeOptions.discriminant);
+        }
+
+        if (!isUndefined(typeOptions.factory)) 
+        {
+            this.configureFactory(typeOptions.factory);
+        }
+
+        if (!isUndefined(typeOptions.genericArguments)) 
+        {
+            this.configureGenericArguments(typeOptions.genericArguments);
+        }
+
+        if (!isUndefined(typeOptions.injectable))
+        {
+            this.configureInjectable(typeOptions.injectable);
+        }
+
+        if (!isUndefined(typeOptions.injector))
+        {
+            this.configureInjector(typeOptions.injector);
+        }
+
+        if (!isUndefined(typeOptions.log))
+        {
+            this.configureLog(typeOptions.log);
+        }
+
+        if (!isUndefined(typeOptions.namingConvention))
+        {
+            this.configureNamingConvention(typeOptions.namingConvention);
+        }
+
+        if (!isUndefined(typeOptions.preserveDiscriminator))
+        {
+            this.configurePreserveDiscriminator(typeOptions.preserveDiscriminator);
+        }
+
+        if (!isUndefined(typeOptions.referenceHandler))
+        {
+            this.configureReferenceHandler(typeOptions.referenceHandler);
+        }
+
+        if (!isUndefined(typeOptions.serializer))
+        {
+            this.configureSerializer(typeOptions.serializer);
+        }
+
+        if (!isUndefined(typeOptions.preserveNull))
+        {
+            this.configurePreserveNull(typeOptions.preserveNull);
+        }
+
+        if (!isUndefined(typeOptions.useDefaultValue)) 
+        {
+            this.configureUseDefaultValue(typeOptions.useDefaultValue);
+        }
+
+        if (!isUndefined(typeOptions.useImplicitConversion)) 
+        {
+            this.configureUseImplicitConversion(typeOptions.useImplicitConversion);
         }
 
         if (!isUndefined(typeOptions.propertyOptionsMap))

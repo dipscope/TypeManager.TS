@@ -1,7 +1,7 @@
 import isArray from 'lodash/isArray';
 import isNull from 'lodash/isNull';
 import isUndefined from 'lodash/isUndefined';
-import { isUint8ClampedArray } from '../functions';
+import { isUint8ClampedArray } from '../functions/is-uint-8-clamped-array';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';

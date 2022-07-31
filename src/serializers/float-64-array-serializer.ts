@@ -1,7 +1,7 @@
 import isArray from 'lodash/isArray';
 import isNull from 'lodash/isNull';
 import isUndefined from 'lodash/isUndefined';
-import { isFloat64Array } from '../functions';
+import { isFloat64Array } from '../functions/is-float-64-array';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';

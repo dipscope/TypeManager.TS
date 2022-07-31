@@ -1,7 +1,7 @@
 import isNil from 'lodash/isNil';
 import isUndefined from 'lodash/isUndefined';
 import { Factory } from '../factory';
-import { isCtorFunction } from '../functions';
+import { isCtorFunction } from '../functions/is-ctor-function';
 import { Injector } from '../injector';
 import { TypeContext } from '../type-context';
 

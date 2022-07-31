@@ -155,7 +155,18 @@ for (const user of users)
 }
 ```
 
-Now we can use all power provided by `JavaScript` class instances. Want to know more? Let's dive into the details.
+Now we can use all power provided by `JavaScript` class instances. 
+
+Furthermore `TypeManager.TS` provides you:
+
+* Reflection abilities at runtime;
+* Support for generic types;
+* Handling of cyclic object references and different ways of serialization when they appear;
+* Ability to configure serialization of 3rd party classes;
+* Support for polymorphic types;
+* Great alternative for similar packages like [class-transformer](https://github.com/typestack/class-transformer), [TypedJSON](https://github.com/JohnWeisz/TypedJSON) and [jackson-js](https://github.com/pichillilorenzo/jackson-js);
+
+Want to know more? Let's dive into the details.
 
 ## Installation
 

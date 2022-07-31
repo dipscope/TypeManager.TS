@@ -4,23 +4,36 @@ import isString from 'lodash/isString';
 import isUndefined from 'lodash/isUndefined';
 import merge from 'lodash/merge';
 import { Alias } from './alias';
-import { TypeFactory } from './factories';
-import { isArrowFunction } from './functions';
+import { TypeFactory } from './factories/type-factory';
+import { isArrowFunction } from './functions/is-arrow-function';
 import { GenericArgument } from './generic-argument';
-import { SingletonInjector } from './injectors';
+import { SingletonInjector } from './injectors/singleton-injector';
 import { Log } from './log';
 import { LogLevel } from './log-level';
 import { ReferenceCallback } from './reference-callback';
-import { DirectReferenceHandler } from './reference-handlers';
+import { DirectReferenceHandler } from './reference-handlers/direct-reference-handler';
 import { ReferenceKey } from './reference-key';
 import { ReferenceValue } from './reference-value';
 import { SerializerContext } from './serializer-context';
-import { ArrayBufferSerializer, ArraySerializer, BooleanSerializer, DataViewSerializer } from './serializers';
-import { DateSerializer, Float32ArraySerializer, Float64ArraySerializer } from './serializers';
-import { Int16ArraySerializer, Int32ArraySerializer, Int8ArraySerializer } from './serializers';
-import { MapSerializer, NumberSerializer, SetSerializer } from './serializers';
-import { StringSerializer, TypeSerializer, Uint16ArraySerializer } from './serializers';
-import { Uint32ArraySerializer, Uint8ArraySerializer, Uint8ClampedArraySerializer } from './serializers';
+import { ArrayBufferSerializer } from './serializers/array-buffer-serializer';
+import { ArraySerializer } from './serializers/array-serializer';
+import { BooleanSerializer } from './serializers/boolean-serializer';
+import { DataViewSerializer } from './serializers/data-view-serializer';
+import { DateSerializer } from './serializers/date-serializer';
+import { Float32ArraySerializer } from './serializers/float-32-array-serializer';
+import { Float64ArraySerializer } from './serializers/float-64-array-serializer';
+import { Int16ArraySerializer } from './serializers/int-16-array-serializer';
+import { Int32ArraySerializer } from './serializers/int-32-array-serializer';
+import { Int8ArraySerializer } from './serializers/int-8-array-serializer';
+import { MapSerializer } from './serializers/map-serializer';
+import { NumberSerializer } from './serializers/number-serializer';
+import { SetSerializer } from './serializers/set-serializer';
+import { StringSerializer } from './serializers/string-serializer';
+import { TypeSerializer } from './serializers/type-serializer';
+import { Uint16ArraySerializer } from './serializers/uint-16-array-serializer';
+import { Uint32ArraySerializer } from './serializers/uint-32-array-serializer';
+import { Uint8ArraySerializer } from './serializers/uint-8-array-serializer';
+import { Uint8ClampedArraySerializer } from './serializers/uint-8-clamped-array-serializer';
 import { TypeArgument } from './type-argument';
 import { TypeFn } from './type-fn';
 import { TypeLike } from './type-like';
@@ -178,10 +191,11 @@ export class TypeManager<TType>
         }
 
         const typeMetadataResolver = this.resolveTypeMetadata.bind(this);
+        const typeFnMap = this.typeFnMap;
         const typeOptionsBase = this.typeOptionsBase;
         const parentPrototype = Object.getPrototypeOf(typeFn.prototype) ?? {};
         const parentTypeMetadata = parentPrototype[typeMetadataSymbol];
-        const typeMetadata = new TypeMetadata(typeMetadataResolver, typeFn, typeOptionsBase, typeOptions, parentTypeMetadata);
+        const typeMetadata = new TypeMetadata(typeMetadataResolver, typeFn, typeFnMap, typeOptionsBase, typeOptions, parentTypeMetadata);
 
         return typeMetadata;
     }
@@ -213,11 +227,6 @@ export class TypeManager<TType>
         if (!isNil(typeOptions))
         {
             typeMetadata.configure(typeOptions);
-        }
-
-        if (!isNil(typeMetadata.alias))
-        {
-            this.typeFnMap.set(typeMetadata.alias, typeMetadata.typeFn);
         }
 
         return typeMetadata;
@@ -439,10 +448,11 @@ export class TypeManager<TType>
         }
 
         const typeMetadataResolver = this.resolveTypeMetadata.bind(this);
+        const typeFnMap = this.typeFnMap;
         const typeOptionsBase = this.typeOptionsBase;
         const parentPrototype = Object.getPrototypeOf(typeFn.prototype) ?? {};
         const parentTypeMetadata = this.typeMetadataMap.get(parentPrototype.constructor);
-        const typeMetadata = new TypeMetadata(typeMetadataResolver, typeFn, typeOptionsBase, typeOptions, parentTypeMetadata);
+        const typeMetadata = new TypeMetadata(typeMetadataResolver, typeFn, typeFnMap, typeOptionsBase, typeOptions, parentTypeMetadata);
 
         return typeMetadata;
     }
@@ -469,11 +479,6 @@ export class TypeManager<TType>
         if (!isNil(typeOptions))
         {
             typeMetadata.configure(typeOptions);
-        }
-
-        if (!isNil(typeMetadata.alias))
-        {
-            this.typeFnMap.set(typeMetadata.alias, typeMetadata.typeFn);
         }
 
         return typeMetadata;

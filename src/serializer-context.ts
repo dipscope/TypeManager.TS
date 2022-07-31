@@ -1,12 +1,13 @@
 import isArray from 'lodash/isArray';
 import isNil from 'lodash/isNil';
 import isNumber from 'lodash/isNumber';
+import isUndefined from 'lodash/isUndefined';
 import merge from 'lodash/merge';
 import { CustomData } from './custom-data';
 import { Discriminant } from './discriminant';
 import { Discriminator } from './discriminator';
 import { Factory } from './factory';
-import { isCtorFunction } from './functions';
+import { isCtorFunction } from './functions/is-ctor-function';
 import { GenericArgument } from './generic-argument';
 import { GenericMetadata } from './generic-metadata';
 import { Injector } from './injector';
@@ -701,5 +702,112 @@ export class SerializerContext<TType> extends Metadata
         }
 
         throw new Error(`${this.jsonPath}: cannot define discriminant of polymorphic type. This is usually caused by invalid configuration.`);
+    }
+
+    /**
+     * Configures json path key.
+     * 
+     * @param {string|number} jsonPathKey Json path key.
+     * 
+     * @returns {SerializerContext<TType>} Current instance of serializer context.
+     */
+    public configureJsonPathKey(jsonPathKey: string | number): SerializerContext<TType>
+    {
+        this.serializerContextOptions.jsonPathKey = jsonPathKey;
+
+        return this;
+    }
+    
+    /**
+     * Configures reference value setter.
+     * 
+     * @param {ReferenceValueSetter} referenceValueSetter Reference value setter.
+     * 
+     * @returns {SerializerContext<TType>} Current instance of serializer context.
+     */
+    public configureReferenceValueSetter(referenceValueSetter: ReferenceValueSetter): SerializerContext<TType>
+    {
+        this.serializerContextOptions.referenceValueSetter = referenceValueSetter;
+
+        return this;
+    }
+
+    /**
+     * Configures generic arguments.
+     * 
+     * @param {Array<GenericArgument<any>>|undefined} genericArguments Generic arguments.
+     * 
+     * @returns {SerializerContext<TType>} Current instance of serializer context.
+     */
+    public configureGenericArguments(genericArguments: Array<GenericArgument<any>> | undefined): SerializerContext<TType>
+    {
+        this.serializerContextOptions.genericArguments = genericArguments;
+
+        return this;
+    }
+
+    /**
+     * Configures property metadata
+     * 
+     * @param {PropertyMetadata<any,TType>} propertyMetadata Property metadata.
+     * 
+     * @returns {SerializerContext<TType>} Current instance of serializer context.
+     */
+    public configurePropertyMetadata(propertyMetadata: PropertyMetadata<any, TType>): SerializerContext<TType>
+    {
+        this.serializerContextOptions.propertyMetadata = propertyMetadata;
+
+        return this;
+    }
+
+    /**
+     * Configures type metadata
+     * 
+     * @param {TypeMetadata<TType>} typeMetadata Type metadata.
+     * 
+     * @returns {SerializerContext<TType>} Current instance of serializer context.
+     */
+    public configureTypeMetadata(typeMetadata: TypeMetadata<TType>): SerializerContext<TType>
+    {
+        this.serializerContextOptions.typeMetadata = typeMetadata;
+
+        return this;
+    }
+
+    /**
+     * Configures serializer context based on provided options.
+     * 
+     * @param {SerializerContextOptions<TType>} serializerContextOptions Serializer context options.
+     * 
+     * @returns {SerializerContext<TType>} Current instance of serializer context.
+     */
+    public configure(serializerContextOptions: SerializerContextOptions<TType>): SerializerContext<TType>
+    {
+        if (!isUndefined(serializerContextOptions.jsonPathKey))
+        {
+            this.configureJsonPathKey(serializerContextOptions.jsonPathKey);
+        }
+
+        if (!isUndefined(serializerContextOptions.referenceValueSetter))
+        {
+            this.configureReferenceValueSetter(serializerContextOptions.referenceValueSetter);
+        }
+
+        if (!isUndefined(serializerContextOptions.genericArguments))
+        {
+            this.configureGenericArguments(serializerContextOptions.genericArguments);
+        }
+
+        if (!isUndefined(serializerContextOptions.propertyMetadata))
+        {
+            this.configurePropertyMetadata(serializerContextOptions.propertyMetadata);
+        }
+
+        if (!isUndefined(serializerContextOptions.typeMetadata))
+        {
+            this.configureTypeMetadata(serializerContextOptions.typeMetadata);
+        }
+
+        return this;
     }
 }
