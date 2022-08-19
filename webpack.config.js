@@ -3,7 +3,7 @@ const CircularDependencyPlugin = require('circular-dependency-plugin');
 
 module.exports = {
     mode: 'production',
-    devtool: false,
+    devtool: 'source-map',
     entry: {
         index: './src/index.ts'
     },
@@ -14,6 +14,14 @@ module.exports = {
         libraryTarget: 'umd',
         globalObject: 'this',
         umdNamedDefine: true
+    },
+    externals: {
+        lodash: {
+            commonjs: 'lodash',
+            commonjs2: 'lodash',
+            amd: 'lodash',
+            root: '_',
+        }
     },
     plugins: [
         new CircularDependencyPlugin({

@@ -1,7 +1,4 @@
-import isArrayBuffer from 'lodash/isArrayBuffer';
-import isNull from 'lodash/isNull';
-import isString from 'lodash/isString';
-import isUndefined from 'lodash/isUndefined';
+import { isArrayBuffer, isNull, isString, isUndefined } from 'lodash';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';

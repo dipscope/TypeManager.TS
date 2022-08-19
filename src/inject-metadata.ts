@@ -1,5 +1,4 @@
-import isNil from 'lodash/isNil';
-import isUndefined from 'lodash/isUndefined';
+import { isNil, isUndefined } from 'lodash';
 import { getOwnReflectMetadata } from './functions/get-own-reflect-metadata';
 import { InjectIndex } from './inject-index';
 import { InjectOptions } from './inject-options';

@@ -1,8 +1,4 @@
-import isArray from 'lodash/isArray';
-import isNil from 'lodash/isNil';
-import isNumber from 'lodash/isNumber';
-import isUndefined from 'lodash/isUndefined';
-import merge from 'lodash/merge';
+import { isArray, isNil, isNumber, isUndefined, merge } from 'lodash';
 import { CustomData } from './custom-data';
 import { Discriminant } from './discriminant';
 import { Discriminator } from './discriminator';

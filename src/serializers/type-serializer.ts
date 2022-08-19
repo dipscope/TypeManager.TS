@@ -1,7 +1,4 @@
-import isNil from 'lodash/isNil';
-import isNull from 'lodash/isNull';
-import isObject from 'lodash/isObject';
-import isUndefined from 'lodash/isUndefined';
+import { isNil, isNull, isObject, isUndefined } from 'lodash';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeContext } from '../type-context';

@@ -1,4 +1,4 @@
-import words from 'lodash/words';
+import { words } from 'lodash';
 
 /**
  * Gets words from a string.

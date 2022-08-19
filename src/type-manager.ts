@@ -1,8 +1,4 @@
-import isArray from 'lodash/isArray';
-import isNil from 'lodash/isNil';
-import isString from 'lodash/isString';
-import isUndefined from 'lodash/isUndefined';
-import merge from 'lodash/merge';
+import { isArray, isNil, isString, isUndefined, merge } from 'lodash';
 import { Alias } from './alias';
 import { TypeFactory } from './factories/type-factory';
 import { isArrowFunction } from './functions/is-arrow-function';

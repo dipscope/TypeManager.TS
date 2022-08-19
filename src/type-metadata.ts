@@ -1,7 +1,4 @@
-import isFunction from 'lodash/isFunction';
-import isNil from 'lodash/isNil';
-import isUndefined from 'lodash/isUndefined';
-import merge from 'lodash/merge';
+import { isFunction, isNil, isUndefined, merge } from 'lodash';
 import { Alias } from './alias';
 import { CustomData } from './custom-data';
 import { DefaultValue } from './default-value';

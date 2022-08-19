@@ -1,9 +1,4 @@
-import isArray from 'lodash/isArray';
-import isFunction from 'lodash/isFunction';
-import isObject from 'lodash/isObject';
-import isString from 'lodash/isString';
-import isSymbol from 'lodash/isSymbol';
-import merge from 'lodash/merge';
+import { isArray, isFunction, isObject, isString, isSymbol, merge } from 'lodash';
 import { isCtorFunction } from './functions/is-ctor-function';
 import { nameOf } from './functions/name-of';
 import { GenericArgument } from './generic-argument';

@@ -1,9 +1,9 @@
 {
   "author": "DipScope authors and contributors",
-  "dependencies": {
-    "lodash": "^4.17.21"
-  },
   "description": "Transform JSON strings or plain objects into JS class instances.",
+  "peerDependencies": {
+    "lodash": "^4.17.0"
+  },
   "devDependencies": {
     "@types/jasmine": "^3.6.3",
     "@types/lodash": "^4.14.182",

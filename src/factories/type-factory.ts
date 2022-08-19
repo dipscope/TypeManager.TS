@@ -1,5 +1,4 @@
-import isNil from 'lodash/isNil';
-import isUndefined from 'lodash/isUndefined';
+import { isNil, isUndefined } from 'lodash';
 import { Factory } from '../factory';
 import { isCtorFunction } from '../functions/is-ctor-function';
 import { Injector } from '../injector';
