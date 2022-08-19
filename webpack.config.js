@@ -16,11 +16,11 @@ module.exports = {
         umdNamedDefine: true
     },
     externals: {
-        lodash: {
+        'lodash': {
             commonjs: 'lodash',
             commonjs2: 'lodash',
             amd: 'lodash',
-            root: '_',
+            root: '_'
         }
     },
     plugins: [
