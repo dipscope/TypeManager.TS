@@ -42,7 +42,7 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                 const typeMetadata = typeSerializerContext.typeMetadata;
                 const object = {} as Record<string, any>;
 
-                for (const propertyMetadata of typeMetadata.propertyMetadataMap.values())
+                for (const propertyMetadata of typeMetadata.sortedPropertyMetadatas)
                 {
                     if (propertyMetadata.serializationConfigured && !propertyMetadata.serializable)
                     {
@@ -53,12 +53,12 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                     const deserializedPropertyName = propertyMetadata.deserializedPropertyName;
                     const propertyValue = type[deserializedPropertyName];
 
-                    propertySerializerContext.configureJsonPathKey(serializedPropertyName);
-                    propertySerializerContext.configurePropertyMetadata(propertyMetadata);
-                    propertySerializerContext.configureTypeMetadata(propertyMetadata.typeMetadata);
-                    propertySerializerContext.configureGenericArguments(propertyMetadata.genericArguments);
+                    propertySerializerContext.hasJsonPathKey(serializedPropertyName);
+                    propertySerializerContext.hasPropertyMetadata(propertyMetadata);
+                    propertySerializerContext.hasTypeMetadata(propertyMetadata.typeMetadata);
+                    propertySerializerContext.hasGenericArguments(propertyMetadata.genericArguments);
                     
-                    propertySerializerContext.configureReferenceValueSetter(v => 
+                    propertySerializerContext.hasReferenceValueSetter(v => 
                     {
                         const declaringObject = propertySerializerContext.referenceMap.get(type);
         
@@ -124,7 +124,7 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                 const typeMetadata = typeSerializerContext.typeMetadata;
                 const typeContext = new TypeContext(typeMetadata);
 
-                for (const propertyMetadata of typeMetadata.propertyMetadataMap.values())
+                for (const propertyMetadata of typeMetadata.sortedPropertyMetadatas)
                 {
                     if (propertyMetadata.serializationConfigured && !propertyMetadata.deserializable)
                     {
@@ -135,12 +135,12 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                     const deserializedPropertyName = propertyMetadata.deserializedPropertyName;
                     const propertyValue = object[serializedPropertyName];
 
-                    propertySerializerContext.configureJsonPathKey(deserializedPropertyName);
-                    propertySerializerContext.configurePropertyMetadata(propertyMetadata);
-                    propertySerializerContext.configureTypeMetadata(propertyMetadata.typeMetadata);
-                    propertySerializerContext.configureGenericArguments(propertyMetadata.genericArguments);
+                    propertySerializerContext.hasJsonPathKey(deserializedPropertyName);
+                    propertySerializerContext.hasPropertyMetadata(propertyMetadata);
+                    propertySerializerContext.hasTypeMetadata(propertyMetadata.typeMetadata);
+                    propertySerializerContext.hasGenericArguments(propertyMetadata.genericArguments);
 
-                    propertySerializerContext.configureReferenceValueSetter(v => 
+                    propertySerializerContext.hasReferenceValueSetter(v => 
                     {
                         const declaringType = propertySerializerContext.referenceMap.get(object);
     

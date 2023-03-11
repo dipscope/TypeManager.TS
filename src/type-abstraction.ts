@@ -3,7 +3,4 @@
  * 
  * @type {TypeAbstraction<TType>}
  */
-export type TypeAbstraction<TType> = Function & 
-{ 
-    prototype: TType
-};
+export type TypeAbstraction<TType> = abstract new (...args: Array<any>) => TType;

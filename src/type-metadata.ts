@@ -11,12 +11,14 @@ import { GenericArgument } from './generic-argument';
 import { GenericMetadata } from './generic-metadata';
 import { InjectIndex } from './inject-index';
 import { InjectMetadata } from './inject-metadata';
+import { InjectMetadataSorter } from './inject-metadata-sorter';
 import { InjectOptions } from './inject-options';
 import { Injector } from './injector';
 import { Log } from './log';
 import { Metadata } from './metadata';
 import { NamingConvention } from './naming-convention';
 import { PropertyMetadata } from './property-metadata';
+import { PropertyMetadataSorter } from './property-metadata-sorter';
 import { PropertyName } from './property-name';
 import { PropertyOptions } from './property-options';
 import { ReferenceHandler } from './reference-handler';
@@ -135,7 +137,7 @@ export class TypeMetadata<TType> extends Metadata
         this.parentTypeMetadata = parentTypeMetadata;
 
         this.deriveParentTypeMetadataProperties();
-        this.configureDiscriminant(this.discriminant);
+        this.hasDiscriminant(this.discriminant);
         this.configurePropertyMetadataMap(this.propertyOptionsMap);
         this.configureInjectMetadataMap(this.injectOptionsMap);
 
@@ -239,7 +241,7 @@ export class TypeMetadata<TType> extends Metadata
 
         return undefined;
     }
-
+    
     /**
      * Gets discriminant.
      * 
@@ -408,6 +410,66 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
+     * Gets property metadata sorter.
+     * 
+     * @returns {PropertyMetadataSorter|undefined} Property metadata sorter or undefined.
+     */
+    public get propertyMetadataSorter(): PropertyMetadataSorter | undefined
+    {
+        return this.typeOptions.propertyMetadataSorter ?? this.typeOptionsBase.propertyMetadataSorter;
+    }
+
+    /**
+     * Gets sorted property metadatas.
+     * 
+     * @returns {IterableIterator<PropertyMetadata<TType, any>>} Iterable of property metadatas.
+     */
+    public get sortedPropertyMetadatas(): IterableIterator<PropertyMetadata<TType, any>>
+    {
+        const propertyMetadataSorter = this.propertyMetadataSorter;
+        const propertyMetadatas = this.propertyMetadataMap.values();
+
+        if (isNil(propertyMetadataSorter))
+        {
+            return propertyMetadatas;
+        }
+
+        const sortedPropertyMetadatas = Array.from(propertyMetadatas).sort(propertyMetadataSorter.sort);
+
+        return sortedPropertyMetadatas[Symbol.iterator]();
+    }
+
+    /**
+     * Gets inject metadata sorter.
+     * 
+     * @returns {InjectMetadataSorter|undefined} Property metadata sorter or undefined.
+     */
+    public get injectMetadataSorter(): InjectMetadataSorter | undefined
+    {
+        return this.typeOptions.injectMetadataSorter ?? this.typeOptionsBase.injectMetadataSorter;
+    }
+
+    /**
+     * Gets sorted inject metadatas.
+     * 
+     * @returns {IterableIterator<InjectMetadata<TType, any>>} Iterable of inject metadatas.
+     */
+    public get sortedInjectMetadatas(): IterableIterator<InjectMetadata<TType, any>>
+    {
+        const injectMetadataSorter = this.injectMetadataSorter;
+        const injectMetadatas = this.injectMetadataMap.values();
+
+        if (isNil(injectMetadataSorter))
+        {
+            return injectMetadatas;
+        }
+        
+        const sortedInjectMetadatas = Array.from(injectMetadatas).sort(injectMetadataSorter.sort);
+        
+        return sortedInjectMetadatas[Symbol.iterator]();
+    }
+
+    /**
      * Gets property options map.
      * 
      * @returns {Map<PropertyName, PropertyOptions<any>>} Property options map.
@@ -497,17 +559,20 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures alias.
      * 
-     * @param {Alias} alias Alias.
+     * @param {Alias|undefined} alias Alias.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureAlias(alias: Alias): TypeMetadata<TType>
+    public hasAlias(alias: Alias | undefined): TypeMetadata<TType>
     {
         this.releaseAlias();
 
         this.typeOptions.alias = alias;
 
-        this.typeFnMap.set(alias, this.typeFn);
+        if (!isNil(alias)) 
+        {
+            this.typeFnMap.set(alias, this.typeFn);
+        }
 
         return this;
     }
@@ -532,13 +597,21 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures custom data.
      * 
-     * @param {CustomData} customData Custom data.
+     * @param {CustomData|undefined} customData Custom data.
+     * @param {boolean} extend Extend existing custom data?
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureCustomData(customData: CustomData): TypeMetadata<TType>
+    public hasCustomData(customData: CustomData | undefined, extend: boolean = true): TypeMetadata<TType>
     {
-        this.typeOptions.customData = merge(this.typeOptions.customData ?? {}, customData);
+        if (extend) 
+        {
+            this.typeOptions.customData = merge(this.typeOptions.customData ?? {}, customData ?? {});
+
+            return this;
+        }
+
+        this.typeOptions.customData = customData;
 
         return this;
     }
@@ -550,7 +623,7 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureDefaultValue(defaultValue: DefaultValue): TypeMetadata<TType>
+    public hasDefaultValue(defaultValue: DefaultValue): TypeMetadata<TType>
     {
         this.typeOptions.defaultValue = defaultValue;
 
@@ -564,7 +637,7 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureSerializedDefaultValue(serializedDefaultValue: DefaultValue): TypeMetadata<TType>
+    public hasSerializedDefaultValue(serializedDefaultValue: DefaultValue): TypeMetadata<TType>
     {
         this.typeOptions.serializedDefaultValue = serializedDefaultValue;
 
@@ -578,7 +651,7 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureDeserializedDefaultValue(deserializedDefaultValue: DefaultValue): TypeMetadata<TType>
+    public hasDeserializedDefaultValue(deserializedDefaultValue: DefaultValue): TypeMetadata<TType>
     {
         this.typeOptions.deserializedDefaultValue = deserializedDefaultValue;
 
@@ -588,11 +661,11 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures discriminator.
      * 
-     * @param {Discriminator} discriminator Discriminator.
+     * @param {Discriminator|undefined} discriminator Discriminator.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureDiscriminator(discriminator: Discriminator): TypeMetadata<TType>
+    public hasDiscriminator(discriminator: Discriminator | undefined): TypeMetadata<TType>
     {
         this.typeOptions.discriminator = discriminator;
 
@@ -602,15 +675,18 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures discriminant.
      * 
-     * @param {Discriminant} discriminant Discriminant.
+     * @param {Discriminant|undefined} discriminant Discriminant.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureDiscriminant(discriminant: Discriminant): TypeMetadata<TType>
+    public hasDiscriminant(discriminant: Discriminant | undefined): TypeMetadata<TType>
     {
         this.typeOptions.discriminant = discriminant;
 
-        this.provideDiscriminant(this.typeFn, discriminant);
+        if (!isNil(discriminant)) 
+        {
+            this.provideDiscriminant(this.typeFn, discriminant);
+        }
 
         return this;
     }
@@ -638,11 +714,11 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures factory.
      * 
-     * @param {Factory} factory Factory.
+     * @param {Factory|undefined} factory Factory.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureFactory(factory: Factory): TypeMetadata<TType>
+    public hasFactory(factory: Factory | undefined): TypeMetadata<TType>
     {
         this.typeOptions.factory = factory;
 
@@ -656,7 +732,7 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureGenericArguments(genericArguments: Array<GenericArgument<any>> | undefined): TypeMetadata<TType>
+    public hasGenericArguments(genericArguments: Array<GenericArgument<any>> | undefined): TypeMetadata<TType>
     {
         this.typeOptions.genericArguments = genericArguments;
 
@@ -670,7 +746,7 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureInjectable(injectable: boolean): TypeMetadata<TType>
+    public isInjectable(injectable: boolean = true): TypeMetadata<TType>
     {
         this.typeOptions.injectable = injectable;
 
@@ -680,11 +756,11 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures injector.
      * 
-     * @param {Injector} injector Injector.
+     * @param {Injector|undefined} injector Injector.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureInjector(injector: Injector): TypeMetadata<TType>
+    public hasInjector(injector: Injector | undefined): TypeMetadata<TType>
     {
         this.typeOptions.injector = injector;
 
@@ -694,11 +770,11 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures log.
      * 
-     * @param {Log} log Log.
+     * @param {Log|undefined} log Log.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureLog(log: Log): TypeMetadata<TType>
+    public hasLog(log: Log | undefined): TypeMetadata<TType>
     {
         this.typeOptions.log = log;
 
@@ -708,11 +784,11 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures naming convention.
      * 
-     * @param {NamingConvention} namingConvention Naming convention.
+     * @param {NamingConvention|undefined} namingConvention Naming convention.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureNamingConvention(namingConvention: NamingConvention): TypeMetadata<TType>
+    public hasNamingConvention(namingConvention: NamingConvention | undefined): TypeMetadata<TType>
     {
         this.typeOptions.namingConvention = namingConvention;
 
@@ -726,7 +802,7 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configurePreserveDiscriminator(preserveDiscriminator: boolean): TypeMetadata<TType>
+    public shouldPreserveDiscriminator(preserveDiscriminator: boolean = true): TypeMetadata<TType>
     {
         this.typeOptions.preserveDiscriminator = preserveDiscriminator;
 
@@ -736,11 +812,11 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures reference handler.
      * 
-     * @param {ReferenceHandler} referenceHandler Reference handler.
+     * @param {ReferenceHandler|undefined} referenceHandler Reference handler.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureReferenceHandler(referenceHandler: ReferenceHandler): TypeMetadata<TType>
+    public hasReferenceHandler(referenceHandler: ReferenceHandler | undefined): TypeMetadata<TType>
     {
         this.typeOptions.referenceHandler = referenceHandler;
 
@@ -750,11 +826,11 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures serializer.
      * 
-     * @param {Serializer<TType>} serializer Serializer.
+     * @param {Serializer<TType>|undefined} serializer Serializer.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureSerializer(serializer: Serializer<TType>): TypeMetadata<TType>
+    public hasSerializer(serializer: Serializer<TType> | undefined): TypeMetadata<TType>
     {
         this.typeOptions.serializer = serializer;
 
@@ -768,7 +844,7 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configurePreserveNull(preserveNull: boolean): TypeMetadata<TType>
+    public shouldPreserveNull(preserveNull: boolean = true): TypeMetadata<TType>
     {
         this.typeOptions.preserveNull = preserveNull;
 
@@ -782,7 +858,7 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureUseDefaultValue(useDefaultValue: boolean): TypeMetadata<TType>
+    public shouldUseDefaultValue(useDefaultValue: boolean = true): TypeMetadata<TType>
     {
         this.typeOptions.useDefaultValue = useDefaultValue;
 
@@ -796,9 +872,37 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureUseImplicitConversion(useImplicitConversion: boolean): TypeMetadata<TType>
+    public shouldUseImplicitConversion(useImplicitConversion: boolean = true): TypeMetadata<TType>
     {
         this.typeOptions.useImplicitConversion = useImplicitConversion;
+
+        return this;
+    }
+
+    /**
+     * Configures property metadata sorter.
+     * 
+     * @param {PropertyMetadataSorter|undefined} propertyMetadataSorter Property metadata sorter.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public hasPropertyMetadataSorter(propertyMetadataSorter: PropertyMetadataSorter | undefined): TypeMetadata<TType>
+    {
+        this.typeOptions.propertyMetadataSorter = propertyMetadataSorter;
+
+        return this;
+    }
+
+    /**
+     * Configures inject metadata sorter.
+     * 
+     * @param {InjectMetadataSorter|undefined} injectMetadataSorter Inject metadata sorter.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public hasInjectMetadataSorter(injectMetadataSorter: InjectMetadataSorter | undefined): TypeMetadata<TType>
+    {
+        this.typeOptions.injectMetadataSorter = injectMetadataSorter;
 
         return this;
     }
@@ -811,7 +915,7 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @returns {PropertyMetadata<TType, TPropertyType>} Configured property metadata.
      */
-    public configurePropertyMetadata<TPropertyType>(propertyName: PropertyName, propertyOptions: PropertyOptions<TPropertyType>): PropertyMetadata<TType, TPropertyType>
+    public configurePropertyMetadata<TPropertyType>(propertyName: PropertyName, propertyOptions: PropertyOptions<TPropertyType> = {}): PropertyMetadata<TType, TPropertyType>
     {
         let propertyMetadata = this.propertyMetadataMap.get(propertyName);
 
@@ -836,7 +940,7 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @returns {InjectMetadata<TType, TInjectType>} Configured inject metadata.
      */
-    public configureInjectMetadata<TInjectType>(injectIndex: InjectIndex, injectOptions: InjectOptions<TInjectType>): InjectMetadata<TType, TInjectType>
+    public configureInjectMetadata<TInjectType>(injectIndex: InjectIndex, injectOptions: InjectOptions<TInjectType> = {}): InjectMetadata<TType, TInjectType>
     {
         let injectMetadata = this.injectMetadataMap.get(injectIndex);
 
@@ -898,97 +1002,97 @@ export class TypeMetadata<TType> extends Metadata
     {
         if (!isUndefined(typeOptions.alias)) 
         {
-            this.configureAlias(typeOptions.alias);
+            this.hasAlias(typeOptions.alias);
         }
 
         if (!isUndefined(typeOptions.customData))
         {
-            this.configureCustomData(typeOptions.customData);
+            this.hasCustomData(typeOptions.customData);
         }
 
         if (!isUndefined(typeOptions.defaultValue))
         {
-            this.configureDefaultValue(typeOptions.defaultValue);
+            this.hasDefaultValue(typeOptions.defaultValue);
         }
 
         if (!isUndefined(typeOptions.serializedDefaultValue))
         {
-            this.configureSerializedDefaultValue(typeOptions.serializedDefaultValue);
+            this.hasSerializedDefaultValue(typeOptions.serializedDefaultValue);
         }
 
         if (!isUndefined(typeOptions.deserializedDefaultValue)) 
         {
-            this.configureDeserializedDefaultValue(typeOptions.deserializedDefaultValue);
+            this.hasDeserializedDefaultValue(typeOptions.deserializedDefaultValue);
         }
 
         if (!isUndefined(typeOptions.discriminator)) 
         {
-            this.configureDiscriminator(typeOptions.discriminator);
+            this.hasDiscriminator(typeOptions.discriminator);
         }
 
         if (!isUndefined(typeOptions.discriminant))
         {
-            this.configureDiscriminant(typeOptions.discriminant);
+            this.hasDiscriminant(typeOptions.discriminant);
         }
 
         if (!isUndefined(typeOptions.factory)) 
         {
-            this.configureFactory(typeOptions.factory);
+            this.hasFactory(typeOptions.factory);
         }
 
         if (!isUndefined(typeOptions.genericArguments)) 
         {
-            this.configureGenericArguments(typeOptions.genericArguments);
+            this.hasGenericArguments(typeOptions.genericArguments);
         }
 
         if (!isUndefined(typeOptions.injectable))
         {
-            this.configureInjectable(typeOptions.injectable);
+            this.isInjectable(typeOptions.injectable);
         }
 
         if (!isUndefined(typeOptions.injector))
         {
-            this.configureInjector(typeOptions.injector);
+            this.hasInjector(typeOptions.injector);
         }
 
         if (!isUndefined(typeOptions.log))
         {
-            this.configureLog(typeOptions.log);
+            this.hasLog(typeOptions.log);
         }
 
         if (!isUndefined(typeOptions.namingConvention))
         {
-            this.configureNamingConvention(typeOptions.namingConvention);
+            this.hasNamingConvention(typeOptions.namingConvention);
         }
 
         if (!isUndefined(typeOptions.preserveDiscriminator))
         {
-            this.configurePreserveDiscriminator(typeOptions.preserveDiscriminator);
+            this.shouldPreserveDiscriminator(typeOptions.preserveDiscriminator);
         }
 
         if (!isUndefined(typeOptions.referenceHandler))
         {
-            this.configureReferenceHandler(typeOptions.referenceHandler);
+            this.hasReferenceHandler(typeOptions.referenceHandler);
         }
 
         if (!isUndefined(typeOptions.serializer))
         {
-            this.configureSerializer(typeOptions.serializer);
+            this.hasSerializer(typeOptions.serializer);
         }
 
         if (!isUndefined(typeOptions.preserveNull))
         {
-            this.configurePreserveNull(typeOptions.preserveNull);
+            this.shouldPreserveNull(typeOptions.preserveNull);
         }
 
         if (!isUndefined(typeOptions.useDefaultValue)) 
         {
-            this.configureUseDefaultValue(typeOptions.useDefaultValue);
+            this.shouldUseDefaultValue(typeOptions.useDefaultValue);
         }
 
         if (!isUndefined(typeOptions.useImplicitConversion)) 
         {
-            this.configureUseImplicitConversion(typeOptions.useImplicitConversion);
+            this.shouldUseImplicitConversion(typeOptions.useImplicitConversion);
         }
 
         if (!isUndefined(typeOptions.propertyOptionsMap))
@@ -999,6 +1103,16 @@ export class TypeMetadata<TType> extends Metadata
         if (!isUndefined(typeOptions.injectOptionsMap))
         {
             this.configureInjectMetadataMap(typeOptions.injectOptionsMap);
+        }
+
+        if (!isUndefined(typeOptions.propertyMetadataSorter))
+        {
+            this.hasPropertyMetadataSorter(typeOptions.propertyMetadataSorter);
+        }
+
+        if (!isUndefined(typeOptions.injectMetadataSorter))
+        {
+            this.hasInjectMetadataSorter(typeOptions.injectMetadataSorter);
         }
 
         return this;

@@ -32,7 +32,7 @@ export class TypeFactory implements Factory
         const injectedKeys = new Array<any>();
         const args = new Array<any>(typeCtor.length).fill(undefined);
 
-        for (const injectMetadata of typeMetadata.injectMetadataMap.values())
+        for (const injectMetadata of typeMetadata.sortedInjectMetadatas)
         {
             const argKey = injectMetadata.key;
 
@@ -54,7 +54,11 @@ export class TypeFactory implements Factory
         {
             const propertyMetadata = typeContextEntry.propertyMetadata;
 
-            if (!isNil(propertyMetadata) && !isUndefined(typeContextEntry.value) && !injectedKeys.includes(propertyMetadata.propertyName))
+            if (
+                !isNil(propertyMetadata)
+                && !isUndefined(typeContextEntry.value)
+                && !injectedKeys.includes(propertyMetadata.propertyName)
+            )
             {
                 type[propertyMetadata.propertyName] = typeContextEntry.value;
             }

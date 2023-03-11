@@ -1,3 +1,4 @@
+import { TypeConfiguration } from './type-configuration';
 import { TypeFn } from './type-fn';
 import { TypeOptions } from './type-options';
 import { TypeOptionsBase } from './type-options-base';
@@ -10,7 +11,7 @@ import { TypeOptionsBase } from './type-options-base';
 export type TypeManagerOptions =
 {
     /**
-     * Global type options shared among all types.
+     * Type options shared among all types.
      * 
      * @type {Partial<TypeOptionsBase<any>>}
      */
@@ -24,4 +25,13 @@ export type TypeManagerOptions =
      * @type {Map<TypeFn<any>, TypeOptions<any>>}
      */
     typeOptionsMap?: Map<TypeFn<any>, TypeOptions<any>>;
+
+    /**
+     * Type configuration per type. 
+     * 
+     * Overrides global type options.
+     * 
+     * @type {Map<TypeFn<any>, TypeConfiguration<any>>}
+     */
+    typeConfigurationsMap?: Map<TypeFn<any>, TypeConfiguration<any>>;
 }

@@ -70,7 +70,7 @@ export function Property<TType>(
             throw new Error(`${nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a method.`);
         }
 
-        TypeManager.defineTypeMetadata(target.constructor).configurePropertyMetadata(propertyName, propertyOptions);
+        TypeManager.configureTypeMetadata(target.constructor).configurePropertyMetadata(propertyName, propertyOptions);
 
         return;
     };

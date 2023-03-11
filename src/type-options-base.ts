@@ -1,9 +1,11 @@
 import { CustomData } from './custom-data';
 import { Discriminator } from './discriminator';
 import { Factory } from './factory';
+import { InjectMetadataSorter } from './inject-metadata-sorter';
 import { Injector } from './injector';
 import { Log } from './log';
 import { NamingConvention } from './naming-convention';
+import { PropertyMetadataSorter } from './property-metadata-sorter';
 import { ReferenceHandler } from './reference-handler';
 import { Serializer } from './serializer';
 
@@ -100,4 +102,20 @@ export type TypeOptionsBase<TType> =
      * @type {boolean}
      */
     useImplicitConversion: boolean;
+
+    /**
+     * Property metadata sorter used to sort properties during serialization 
+     * and deserialization.
+     * 
+     * @type {PropertyMetadataSorter}
+     */
+    propertyMetadataSorter?: PropertyMetadataSorter;
+    
+    /**
+     * Inject metadata sorter used to sort injects during serialization 
+     * and deserialization.
+     * 
+     * @type {InjectMetadataSorter}
+     */
+    injectMetadataSorter?: InjectMetadataSorter;
 }

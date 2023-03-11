@@ -3,4 +3,4 @@
  * 
  * @type {unique symbol}
  */
- export const typeMetadataSymbol: unique symbol = Symbol.for('$TMTypeMetadata');
+ export const typeMetadataSymbol: unique symbol = Symbol.for('$DSTypeMetadata');

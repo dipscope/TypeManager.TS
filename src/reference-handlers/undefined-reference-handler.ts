@@ -6,11 +6,12 @@ import { ReferenceValueGetter } from '../reference-value-getter';
 import { SerializerContext } from '../serializer-context';
 
 /**
- * Direct reference handler which preserves references as is.
+ * Undefined reference handler preserves references except circular. If circular reference is detected the it will 
+ * be setted to undefined so only first occurance is handled.
  * 
- * @type {DirectReferenceHandler}
+ * @type {UndefinedReferenceHandler}
  */
-export class DirectReferenceHandler implements ReferenceHandler
+export class UndefinedReferenceHandler implements ReferenceHandler
 {
     /**
      * Defines reference. Called during serialization.
@@ -34,15 +35,11 @@ export class DirectReferenceHandler implements ReferenceHandler
 
             referenceMap.set(referenceKey, value);
 
-            serializerContext.resolveReferenceCallbacks(referenceKey);
-
             return value;
         }
 
         if (referenceValue === referenceKey)
         {
-            serializerContext.registerReferenceCallback(referenceKey);
-
             return undefined;
         }
 
@@ -71,15 +68,11 @@ export class DirectReferenceHandler implements ReferenceHandler
 
             referenceMap.set(referenceKey, value);
 
-            serializerContext.resolveReferenceCallbacks(referenceKey);
-
             return value;
         }
 
         if (referenceValue === referenceKey)
         {
-            serializerContext.registerReferenceCallback(referenceKey);
-
             return undefined;
         }
 

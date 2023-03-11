@@ -6,11 +6,11 @@ import { ReferenceValueGetter } from '../reference-value-getter';
 import { SerializerContext } from '../serializer-context';
 
 /**
- * Path reference handler preserves references using JSONPath.
+ * Json path reference handler preserves references using JSONPath.
  * 
- * @type {PathReferenceHandler}
+ * @type {JsonPathReferenceHandler}
  */
-export class PathReferenceHandler implements ReferenceHandler
+export class JsonPathReferenceHandler implements ReferenceHandler
 {
     /**
      * Regular expression used to get array key from a certain place of the JSONPath.

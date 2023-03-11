@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "../dist/types",
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "module": "es2015",
+    "removeComments": false,
+    "target": "es2020"
+  }
+}

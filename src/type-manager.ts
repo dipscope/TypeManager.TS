@@ -2,12 +2,14 @@ import { isArray, isNil, isString, isUndefined, merge } from 'lodash';
 import { Alias } from './alias';
 import { TypeFactory } from './factories/type-factory';
 import { isArrowFunction } from './functions/is-arrow-function';
+import { jsonParse } from './functions/json-parse';
+import { jsonStringify } from './functions/json-stringify';
 import { GenericArgument } from './generic-argument';
 import { SingletonInjector } from './injectors/singleton-injector';
 import { Log } from './log';
 import { LogLevel } from './log-level';
 import { ReferenceCallback } from './reference-callback';
-import { DirectReferenceHandler } from './reference-handlers/direct-reference-handler';
+import { DefaultReferenceHandler } from './reference-handlers/default-reference-handler';
 import { ReferenceKey } from './reference-key';
 import { ReferenceValue } from './reference-value';
 import { SerializerContext } from './serializer-context';
@@ -31,6 +33,7 @@ import { Uint32ArraySerializer } from './serializers/uint-32-array-serializer';
 import { Uint8ArraySerializer } from './serializers/uint-8-array-serializer';
 import { Uint8ClampedArraySerializer } from './serializers/uint-8-clamped-array-serializer';
 import { TypeArgument } from './type-argument';
+import { TypeConfiguration } from './type-configuration';
 import { TypeFn } from './type-fn';
 import { TypeLike } from './type-like';
 import { TypeManagerOptions } from './type-manager-options';
@@ -57,11 +60,13 @@ export class TypeManager<TType>
         injector: new SingletonInjector(),
         log: new Log(LogLevel.Error),
         preserveDiscriminator: false,
-        referenceHandler: new DirectReferenceHandler(),
+        referenceHandler: new DefaultReferenceHandler(),
         serializer: new TypeSerializer(),
         preserveNull: true,
         useDefaultValue: false,
-        useImplicitConversion: false
+        useImplicitConversion: false,
+        propertyMetadataSorter: undefined,
+        injectMetadataSorter: undefined
     };
     
     /**
@@ -197,14 +202,14 @@ export class TypeManager<TType>
     }
 
     /**
-     * Defines type metadata for the type prototype.
+     * Configures type metadata for the type prototype.
      * 
      * @param {TypeFn<TType>} typeFn Type function.
      * @param {TypeOptions<TType>} typeOptions Type options.
      * 
      * @returns {TypeMetadata<TType>} Type metadata for provided type function.
      */
-    public static defineTypeMetadata<TType>(typeFn: TypeFn<TType>, typeOptions?: TypeOptions<TType>): TypeMetadata<TType>
+    public static configureTypeMetadata<TType>(typeFn: TypeFn<TType>, typeOptions?: TypeOptions<TType>): TypeMetadata<TType>
     {
         const prototype = typeFn.prototype;
         const metadataDefined = prototype.hasOwnProperty(typeMetadataSymbol);
@@ -239,7 +244,7 @@ export class TypeManager<TType>
     {
         const prototype = typeFn.prototype;
         const metadataDefined = prototype.hasOwnProperty(typeMetadataSymbol);
-        const typeMetadata = metadataDefined ? prototype[typeMetadataSymbol] as TypeMetadata<TType> : this.defineTypeMetadata(typeFn);
+        const typeMetadata = metadataDefined ? prototype[typeMetadataSymbol] as TypeMetadata<TType> : this.configureTypeMetadata(typeFn);
 
         return typeMetadata;
     }
@@ -255,7 +260,7 @@ export class TypeManager<TType>
 
         if (isNil(typeFn))
         {
-            throw new Error(`Cannot resolve type metadata for provided type argument: ${JSON.stringify(typeArgument)}. This is usually caused by invalid configuration.`);
+            throw new Error(`Cannot resolve type metadata for provided type argument: ${jsonStringify(typeArgument)}. This is usually caused by invalid configuration.`);
         }
 
         return this.extractTypeMetadata(typeFn);
@@ -285,7 +290,7 @@ export class TypeManager<TType>
      */
     public static configureTypeOptions<TType>(typeFn: TypeFn<TType>, typeOptions: TypeOptions<TType>): typeof TypeManager
     {
-        this.defineTypeMetadata(typeFn, typeOptions);
+        this.configureTypeMetadata(typeFn, typeOptions);
 
         return this;
     }
@@ -325,6 +330,23 @@ export class TypeManager<TType>
         {
             this.configureTypeOptionsMap(typeManagerOptions.typeOptionsMap);
         }
+
+        return this;
+    }
+
+    /**
+     * Applies type configuration in static context.
+     * 
+     * @param {TypeFn<TType>} typeFn Type function.
+     * @param {TypeConfiguration<TType>} typeConfiguration Type configuration.
+     * 
+     * @returns {typeof TypeManager} Static instance of type manager.
+     */
+    public static applyTypeConfiguration<TType>(typeFn: TypeFn<TType>, typeConfiguration: TypeConfiguration<TType>): typeof TypeManager
+    {
+        const typeMetadata = this.extractTypeMetadata(typeFn);
+
+        typeConfiguration.configure(typeMetadata);
 
         return this;
     }
@@ -408,7 +430,7 @@ export class TypeManager<TType>
      */
     public static stringify<TType>(typeFn: TypeFn<TType>, x: any, replacer?: (this: any, key: string, value: any) => any | Array<number> | Array<string> | null, space?: string | number): string
     {
-        return JSON.stringify(this.serialize(typeFn, x), replacer, space);
+        return jsonStringify(this.serialize(typeFn, x), replacer, space);
     }
 
     /**
@@ -422,7 +444,7 @@ export class TypeManager<TType>
      */
     public static parse<TType>(typeFn: TypeFn<TType>, x: string, reviver?: (this: any, key: string, value: any) => any): TypeLike<TType>
     {
-        return this.deserialize(typeFn, JSON.parse(x, reviver));
+        return this.deserialize(typeFn, jsonParse(x, reviver));
     }
 
     /**
@@ -454,14 +476,14 @@ export class TypeManager<TType>
     }
 
     /**
-     * Defines type metadata in the type metadata map.
+     * Configures type metadata in the type metadata map.
      * 
      * @param {TypeFn<TType>} typeFn Type function.
      * @param {TypeOptions<TType>} typeOptions Type options.
      * 
      * @returns {TypeMetadata<TType>} Type metadata for provided type function.
      */
-    public defineTypeMetadata<TType>(typeFn: TypeFn<TType>, typeOptions?: TypeOptions<TType>): TypeMetadata<TType>
+    public configureTypeMetadata<TType>(typeFn: TypeFn<TType>, typeOptions?: TypeOptions<TType>): TypeMetadata<TType>
     {
         let typeMetadata = this.typeMetadataMap.get(typeFn);
 
@@ -489,7 +511,7 @@ export class TypeManager<TType>
      */
     public extractTypeMetadata<TType>(typeFn: TypeFn<TType>): TypeMetadata<TType>
     {
-        return this.typeMetadataMap.get(typeFn) ?? this.defineTypeMetadata(typeFn);
+        return this.typeMetadataMap.get(typeFn) ?? this.configureTypeMetadata(typeFn);
     }
 
     /**
@@ -503,7 +525,7 @@ export class TypeManager<TType>
 
         if (isNil(typeFn))
         {
-            throw new Error(`Cannot resolve type metadata for provided type argument: ${JSON.stringify(typeArgument)}. This is usually caused by invalid configuration.`);
+            throw new Error(`Cannot resolve type metadata for provided type argument: ${jsonStringify(typeArgument)}. This is usually caused by invalid configuration.`);
         }
 
         return this.extractTypeMetadata(typeFn);
@@ -533,7 +555,7 @@ export class TypeManager<TType>
      */
     public configureTypeOptions(typeFn: TypeFn<any>, typeOptions: TypeOptions<any>): TypeManager<TType>
     {
-        this.defineTypeMetadata(typeFn, typeOptions);
+        this.configureTypeMetadata(typeFn, typeOptions);
 
         return this;
     }
@@ -573,6 +595,23 @@ export class TypeManager<TType>
         {
             this.configureTypeOptionsMap(typeManagerOptions.typeOptionsMap);
         }
+
+        return this;
+    }
+
+    /**
+     * Applies type configuration in static context.
+     * 
+     * @param {TypeFn<TType>} typeFn Type function.
+     * @param {TypeConfiguration<TType>} typeConfiguration Type configuration.
+     * 
+     * @returns {typeof TypeManager} Static instance of type manager.
+     */
+    public applyTypeConfiguration(typeFn: TypeFn<any>, typeConfiguration: TypeConfiguration<any>): TypeManager<TType>
+    {
+        const typeMetadata = this.extractTypeMetadata(typeFn);
+
+        typeConfiguration.configure(typeMetadata);
 
         return this;
     }
@@ -707,7 +746,7 @@ export class TypeManager<TType>
      */
     public stringify(x: any, replacer?: (this: any, key: string, value: any) => any | Array<number> | Array<string> | null, space?: string | number): string
     {
-        return JSON.stringify(this.serialize(x), replacer, space);
+        return jsonStringify(this.serialize(x), replacer, space);
     }
 
     /**
@@ -720,6 +759,6 @@ export class TypeManager<TType>
      */
     public parse(x: string, reviver?: (this: any, key: string, value: any) => any): TypeLike<TType>
     {
-        return this.deserialize(JSON.parse(x, reviver));
+        return this.deserialize(jsonParse(x, reviver));
     }
 }

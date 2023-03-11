@@ -707,7 +707,7 @@ export class SerializerContext<TType> extends Metadata
      * 
      * @returns {SerializerContext<TType>} Current instance of serializer context.
      */
-    public configureJsonPathKey(jsonPathKey: string | number): SerializerContext<TType>
+    public hasJsonPathKey(jsonPathKey: string | number): SerializerContext<TType>
     {
         this.serializerContextOptions.jsonPathKey = jsonPathKey;
 
@@ -721,7 +721,7 @@ export class SerializerContext<TType> extends Metadata
      * 
      * @returns {SerializerContext<TType>} Current instance of serializer context.
      */
-    public configureReferenceValueSetter(referenceValueSetter: ReferenceValueSetter): SerializerContext<TType>
+    public hasReferenceValueSetter(referenceValueSetter: ReferenceValueSetter): SerializerContext<TType>
     {
         this.serializerContextOptions.referenceValueSetter = referenceValueSetter;
 
@@ -735,7 +735,7 @@ export class SerializerContext<TType> extends Metadata
      * 
      * @returns {SerializerContext<TType>} Current instance of serializer context.
      */
-    public configureGenericArguments(genericArguments: Array<GenericArgument<any>> | undefined): SerializerContext<TType>
+    public hasGenericArguments(genericArguments: Array<GenericArgument<any>> | undefined): SerializerContext<TType>
     {
         this.serializerContextOptions.genericArguments = genericArguments;
 
@@ -745,11 +745,11 @@ export class SerializerContext<TType> extends Metadata
     /**
      * Configures property metadata
      * 
-     * @param {PropertyMetadata<any,TType>} propertyMetadata Property metadata.
+     * @param {PropertyMetadata<any,TType>|undefined} propertyMetadata Property metadata.
      * 
      * @returns {SerializerContext<TType>} Current instance of serializer context.
      */
-    public configurePropertyMetadata(propertyMetadata: PropertyMetadata<any, TType>): SerializerContext<TType>
+    public hasPropertyMetadata(propertyMetadata: PropertyMetadata<any, TType> | undefined): SerializerContext<TType>
     {
         this.serializerContextOptions.propertyMetadata = propertyMetadata;
 
@@ -763,7 +763,7 @@ export class SerializerContext<TType> extends Metadata
      * 
      * @returns {SerializerContext<TType>} Current instance of serializer context.
      */
-    public configureTypeMetadata(typeMetadata: TypeMetadata<TType>): SerializerContext<TType>
+    public hasTypeMetadata(typeMetadata: TypeMetadata<TType>): SerializerContext<TType>
     {
         this.serializerContextOptions.typeMetadata = typeMetadata;
 
@@ -781,27 +781,27 @@ export class SerializerContext<TType> extends Metadata
     {
         if (!isUndefined(serializerContextOptions.jsonPathKey))
         {
-            this.configureJsonPathKey(serializerContextOptions.jsonPathKey);
+            this.hasJsonPathKey(serializerContextOptions.jsonPathKey);
         }
 
         if (!isUndefined(serializerContextOptions.referenceValueSetter))
         {
-            this.configureReferenceValueSetter(serializerContextOptions.referenceValueSetter);
+            this.hasReferenceValueSetter(serializerContextOptions.referenceValueSetter);
         }
 
         if (!isUndefined(serializerContextOptions.genericArguments))
         {
-            this.configureGenericArguments(serializerContextOptions.genericArguments);
+            this.hasGenericArguments(serializerContextOptions.genericArguments);
         }
 
         if (!isUndefined(serializerContextOptions.propertyMetadata))
         {
-            this.configurePropertyMetadata(serializerContextOptions.propertyMetadata);
+            this.hasPropertyMetadata(serializerContextOptions.propertyMetadata);
         }
 
         if (!isUndefined(serializerContextOptions.typeMetadata))
         {
-            this.configureTypeMetadata(serializerContextOptions.typeMetadata);
+            this.hasTypeMetadata(serializerContextOptions.typeMetadata);
         }
 
         return this;

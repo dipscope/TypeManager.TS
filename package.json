@@ -37,19 +37,24 @@
     "metadata"
   ],
   "license": "Apache-2.0",
-  "main": "index.js",
+  "main": "./dist/umd/index.js",
+  "module": "./dist/es5/index.js",
+  "es2015": "./dist/es2015/index.js",
+  "types": "./dist/types/index.d.ts",
   "name": "@dipscope/type-manager",
   "repository": {
     "type": "git",
     "url": "https://github.com/dipscope/TypeManager.TS.git"
   },
   "scripts": {
-    "build": "npm run clean && npx webpack --config=webpack.config.js && npm run copy",
-    "clean": "shx rm -rf dist",
-    "copy": "shx cp CHANGELOG.md dist && shx cp LICENSE.md dist && shx cp package.json dist && shx cp README.md dist",
+    "build": "npm run build:clean && npm run build:types && npm run build:es5 && npm run build:es2015 && npm run build:umd",
+    "build:clean": "shx rm -rf dist",
+    "build:types": "tsc -p tsconfig/tsconfig.types.json",
+    "build:es5": "tsc -p tsconfig/tsconfig.es5.json",
+    "build:es2015": "tsc -p tsconfig/tsconfig.es2015.json",
+    "build:umd": "npx webpack --config=webpack.config.js",
     "test": "jasmine-ts --config=jasmine.json",
     "lint": "eslint . --ext .ts"
   },
-  "types": "index.d.ts",
   "version": "5.0.0"
 }

@@ -13,4 +13,6 @@ export * from './is-uint-8-array';
 export * from './is-uint-8-clamped-array';
 export * from './is-uint-16-array';
 export * from './is-uint-32-array';
+export * from './json-parse';
+export * from './json-stringify';
 export * from './name-of';

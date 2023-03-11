@@ -59,7 +59,11 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * @param {PropertyName} propertyName Property name.
      * @param {PropertyOptions<TType>} propertyOptions Property options.
      */
-    public constructor(declaringTypeMetadata: TypeMetadata<TDeclaringType>, propertyName: PropertyName, propertyOptions: PropertyOptions<TType>)
+    public constructor(
+        declaringTypeMetadata: TypeMetadata<TDeclaringType>, 
+        propertyName: PropertyName, 
+        propertyOptions: PropertyOptions<TType>
+    )
     {
         super(declaringTypeMetadata.typeMetadataResolver);
 
@@ -170,7 +174,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
 
         return undefined;
     }
-    
+
     /**
      * Gets serialized property name.
      * 
@@ -352,7 +356,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public configureAlias(alias: Alias): PropertyMetadata<TDeclaringType, TType>
+    public hasAlias(alias: Alias | undefined): PropertyMetadata<TDeclaringType, TType>
     {
         this.propertyOptions.alias = alias;
 
@@ -362,11 +366,11 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Configures custom data.
      * 
-     * @param {CustomData} customData Custom data.
+     * @param {CustomData|undefined} customData Custom data.
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public configureCustomData(customData: CustomData): PropertyMetadata<TDeclaringType, TType>
+    public hasCustomData(customData: CustomData | undefined): PropertyMetadata<TDeclaringType, TType>
     {
         this.propertyOptions.customData = merge(this.propertyOptions.customData ?? {}, customData);
 
@@ -380,7 +384,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public configureDefaultValue(defaultValue: DefaultValue): PropertyMetadata<TDeclaringType, TType>
+    public hasDefaultValue(defaultValue: DefaultValue): PropertyMetadata<TDeclaringType, TType>
     {
         this.propertyOptions.defaultValue = defaultValue;
 
@@ -394,7 +398,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public configureSerializedDefaultValue(serializedDefaultValue: DefaultValue): PropertyMetadata<TDeclaringType, TType>
+    public hasSerializedDefaultValue(serializedDefaultValue: DefaultValue): PropertyMetadata<TDeclaringType, TType>
     {
         this.propertyOptions.serializedDefaultValue = serializedDefaultValue;
 
@@ -408,7 +412,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public configureDeserializedDefaultValue(deserializedDefaultValue: DefaultValue): PropertyMetadata<TDeclaringType, TType>
+    public hasDeserializedDefaultValue(deserializedDefaultValue: DefaultValue): PropertyMetadata<TDeclaringType, TType>
     {
         this.propertyOptions.deserializedDefaultValue = deserializedDefaultValue;
 
@@ -422,7 +426,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public configureDeserializable(deserializable: boolean): PropertyMetadata<TDeclaringType, TType>
+    public isDeserializable(deserializable: boolean = true): PropertyMetadata<TDeclaringType, TType>
     {
         this.propertyOptions.deserializable = deserializable;
 
@@ -436,7 +440,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public configureSerializable(serializable: boolean): PropertyMetadata<TDeclaringType, TType>
+    public isSerializable(serializable: boolean = true): PropertyMetadata<TDeclaringType, TType>
     {
         this.propertyOptions.serializable = serializable;
 
@@ -450,7 +454,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public configureGenericArguments(genericArguments: Array<GenericArgument<any>> | undefined): PropertyMetadata<TDeclaringType, TType>
+    public hasGenericArguments(genericArguments: Array<GenericArgument<any>> | undefined): PropertyMetadata<TDeclaringType, TType>
     {
         this.propertyOptions.genericArguments = genericArguments;
 
@@ -460,11 +464,11 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Configures naming convention.
      * 
-     * @param {NamingConvention} namingConvention Naming convention.
+     * @param {NamingConvention|undefined} namingConvention Naming convention.
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public configureNamingConvention(namingConvention: NamingConvention): PropertyMetadata<TDeclaringType, TType>
+    public hasNamingConvention(namingConvention: NamingConvention | undefined): PropertyMetadata<TDeclaringType, TType>
     {
         this.propertyOptions.namingConvention = namingConvention;
 
@@ -474,11 +478,11 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Configures reference handler.
      * 
-     * @param {ReferenceHandler} referenceHandler Reference handler.
+     * @param {ReferenceHandler|undefined} referenceHandler Reference handler.
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public configureReferenceHandler(referenceHandler: ReferenceHandler): PropertyMetadata<TDeclaringType, TType>
+    public hasReferenceHandler(referenceHandler: ReferenceHandler | undefined): PropertyMetadata<TDeclaringType, TType>
     {
         this.propertyOptions.referenceHandler = referenceHandler;
 
@@ -488,11 +492,11 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Configures serializer.
      * 
-     * @param {Serializer<TType>} serializer Serializer.
+     * @param {Serializer<TType>|undefined} serializer Serializer.
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public configureSerializer(serializer: Serializer<TType>): PropertyMetadata<TDeclaringType, TType>
+    public hasSerializer(serializer: Serializer<TType> | undefined): PropertyMetadata<TDeclaringType, TType>
     {
         this.propertyOptions.serializer = serializer;
 
@@ -502,11 +506,11 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Configures type argument.
      * 
-     * @param {TypeArgument<TType>} typeArgument Type argument.
+     * @param {TypeArgument<TType>|undefined} typeArgument Type argument.
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public configureTypeArgument(typeArgument: TypeArgument<TType>): PropertyMetadata<TDeclaringType, TType>
+    public hasTypeArgument(typeArgument: TypeArgument<TType> | undefined): PropertyMetadata<TDeclaringType, TType>
     {
         this.propertyOptions.typeArgument = typeArgument;
 
@@ -520,7 +524,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public configurePreserveNull(preserveNull: boolean): PropertyMetadata<TDeclaringType, TType>
+    public shouldPreserveNull(preserveNull: boolean = true): PropertyMetadata<TDeclaringType, TType>
     {
         this.propertyOptions.preserveNull = preserveNull;
 
@@ -534,7 +538,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public configureUseDefaultValue(useDefaultValue: boolean): PropertyMetadata<TDeclaringType, TType>
+    public shouldUseDefaultValue(useDefaultValue: boolean = true): PropertyMetadata<TDeclaringType, TType>
     {
         this.propertyOptions.useDefaultValue = useDefaultValue;
 
@@ -548,7 +552,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public configureUseImplicitConversion(useImplicitConversion: boolean): PropertyMetadata<TDeclaringType, TType>
+    public shouldUseImplicitConversion(useImplicitConversion: boolean = true): PropertyMetadata<TDeclaringType, TType>
     {
         this.propertyOptions.useImplicitConversion = useImplicitConversion;
 
@@ -566,77 +570,77 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     {
         if (!isUndefined(propertyOptions.alias))
         {
-            this.configureAlias(propertyOptions.alias);
+            this.hasAlias(propertyOptions.alias);
         }
 
         if (!isUndefined(propertyOptions.customData))
         {
-            this.configureCustomData(propertyOptions.customData);
+            this.hasCustomData(propertyOptions.customData);
         }
 
         if (!isUndefined(propertyOptions.defaultValue))
         {
-            this.configureDefaultValue(propertyOptions.defaultValue);
+            this.hasDefaultValue(propertyOptions.defaultValue);
         }
 
         if (!isUndefined(propertyOptions.serializedDefaultValue))
         {
-            this.configureSerializedDefaultValue(propertyOptions.serializedDefaultValue);
+            this.hasSerializedDefaultValue(propertyOptions.serializedDefaultValue);
         }
 
         if (!isUndefined(propertyOptions.deserializedDefaultValue))
         {
-            this.configureDeserializedDefaultValue(propertyOptions.deserializedDefaultValue);
+            this.hasDeserializedDefaultValue(propertyOptions.deserializedDefaultValue);
         }
 
         if (!isUndefined(propertyOptions.deserializable))
         {
-            this.configureDeserializable(propertyOptions.deserializable);
+            this.isDeserializable(propertyOptions.deserializable);
         }
 
         if (!isUndefined(propertyOptions.genericArguments)) 
         {
-            this.configureGenericArguments(propertyOptions.genericArguments);
+            this.hasGenericArguments(propertyOptions.genericArguments);
         }
 
         if (!isUndefined(propertyOptions.namingConvention))
         {
-            this.configureNamingConvention(propertyOptions.namingConvention);
+            this.hasNamingConvention(propertyOptions.namingConvention);
         }
 
         if (!isUndefined(propertyOptions.referenceHandler)) 
         {
-            this.configureReferenceHandler(propertyOptions.referenceHandler);
+            this.hasReferenceHandler(propertyOptions.referenceHandler);
         }
 
         if (!isUndefined(propertyOptions.serializable)) 
         {
-            this.configureSerializable(propertyOptions.serializable);
+            this.isSerializable(propertyOptions.serializable);
         }
 
         if (!isUndefined(propertyOptions.serializer)) 
         {
-            this.configureSerializer(propertyOptions.serializer);
+            this.hasSerializer(propertyOptions.serializer);
         }
 
         if (!isUndefined(propertyOptions.typeArgument)) 
         {
-            this.configureTypeArgument(propertyOptions.typeArgument);
+            this.hasTypeArgument(propertyOptions.typeArgument);
         }
 
         if (!isUndefined(propertyOptions.preserveNull))
         {
-            this.configurePreserveNull(propertyOptions.preserveNull);
+            this.shouldPreserveNull(propertyOptions.preserveNull);
         }
 
         if (!isUndefined(propertyOptions.useDefaultValue))
         {
-            this.configureUseDefaultValue(propertyOptions.useDefaultValue);
+            this.shouldUseDefaultValue(propertyOptions.useDefaultValue);
         }
 
         if (!isUndefined(propertyOptions.useImplicitConversion)) 
         {
-            this.configureUseImplicitConversion(propertyOptions.useImplicitConversion);
+            this.shouldUseImplicitConversion(propertyOptions.useImplicitConversion);
         }
 
         return this;

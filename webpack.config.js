@@ -8,9 +8,9 @@ module.exports = {
         index: './src/index.ts'
     },
     output: {
-        path: Path.resolve(__dirname, 'dist'),
+        path: Path.resolve(__dirname, 'dist/umd'),
         filename: '[name].js',
-        library: 'TypeManager',
+        library: '$DSTypeManager',
         libraryTarget: 'umd',
         globalObject: 'this',
         umdNamedDefine: true
@@ -38,7 +38,7 @@ module.exports = {
             use: [{
                 loader: 'ts-loader',
                 options: {
-                    configFile: 'tsconfig.webpack.json'
+                    configFile: 'tsconfig/tsconfig.umd.json'
                 }
             }],
             exclude: /node_modules/,

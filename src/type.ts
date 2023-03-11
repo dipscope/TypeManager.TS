@@ -12,7 +12,7 @@ export function Type<TType>(typeOptions?: TypeOptions<TType>): ClassDecorator
 {
     return function (target: any): any
     {
-        TypeManager.defineTypeMetadata(target, typeOptions).reflectInjectMetadata();
+        TypeManager.configureTypeMetadata(target, typeOptions).reflectInjectMetadata();
 
         return target;
     };

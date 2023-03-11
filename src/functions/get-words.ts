@@ -9,5 +9,5 @@ import { words } from 'lodash';
  */
 export function getWords(x: string): Array<string>
 {
-    return words(x)
+    return words(x);
 }

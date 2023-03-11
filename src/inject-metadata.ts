@@ -50,7 +50,11 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
      * @param {InjectIndex} injectIndex Index of injection within a type constructor function.
      * @param {InjectOptions<TType>} injectOptions Inject options.
      */
-    public constructor(declaringTypeMetadata: TypeMetadata<TDeclaringType>, injectIndex: InjectIndex, injectOptions: InjectOptions<TType>)
+    public constructor(
+        declaringTypeMetadata: TypeMetadata<TDeclaringType>, 
+        injectIndex: InjectIndex, 
+        injectOptions: InjectOptions<TType>
+    )
     {
         super(declaringTypeMetadata.typeMetadataResolver);
 
@@ -98,15 +102,15 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
 
         return this.defineTypeMetadata(typeFn);
     }
-
+    
     /**
      * Configures key.
      * 
-     * @param {string} key Key.
+     * @param {string|undefined} key Key.
      * 
      * @returns {InjectMetadata<TDeclaringType, TType>} Current instance of inject metadata.
      */
-    public configureKey(key: string): InjectMetadata<TDeclaringType, TType>
+    public hasKey(key: string | undefined): InjectMetadata<TDeclaringType, TType>
     {
         this.injectOptions.key = key;
 
@@ -116,11 +120,11 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Configures type function.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
+     * @param {TypeFn<TType>|undefined} typeFn Type function.
      * 
      * @returns {InjectMetadata<TDeclaringType, TType>} Current instance of inject metadata.
      */
-    public configureTypeFn(typeFn: TypeFn<TType>): InjectMetadata<TDeclaringType, TType>
+    public hasTypeFn(typeFn: TypeFn<TType> | undefined): InjectMetadata<TDeclaringType, TType>
     {
         this.injectOptions.typeFn = typeFn;
 
@@ -138,12 +142,12 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
     {
         if (!isUndefined(injectOptions.key))
         {
-            this.configureKey(injectOptions.key);
+            this.hasKey(injectOptions.key);
         }
-
-        if (!isUndefined(injectOptions.typeFn)) 
+        
+        if (!isUndefined(injectOptions.typeFn))
         {
-            this.configureTypeFn(injectOptions.typeFn);
+            this.hasTypeFn(injectOptions.typeFn);
         }
 
         return this;

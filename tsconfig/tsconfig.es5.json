@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "importHelpers": true,
+    "module": "es2020",
+    "outDir": "../dist/es5",
+    "target": "es5"
+  }
+}
