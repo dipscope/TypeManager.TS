@@ -3,4 +3,4 @@
  * 
  * @type {ReferenceKey}
  */
-export type ReferenceKey = Record<string, any>;
+export type ReferenceKey = any;

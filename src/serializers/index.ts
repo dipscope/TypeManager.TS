@@ -1,3 +1,4 @@
+export * from './any-serializer';
 export * from './array-buffer-serializer';
 export * from './array-serializer';
 export * from './boolean-serializer';

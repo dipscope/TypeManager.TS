@@ -45,8 +45,8 @@ export class SetSerializer implements Serializer<Set<any>>
                 {
                     i++;
 
-                    valueSerializerContext.configureJsonPathKey(i);
-                    valueSerializerContext.configureReferenceValueSetter(v => array[i] = v);
+                    valueSerializerContext.hasJsonPathKey(i);
+                    valueSerializerContext.hasReferenceValueSetter(v => array[i] = v);
 
                     array[i] = valueSerializerContext.serialize(v);
                 }
@@ -94,8 +94,8 @@ export class SetSerializer implements Serializer<Set<any>>
                 
                 for (let i = 0; i < array.length; i++)
                 {
-                    valueSerializerContext.configureJsonPathKey(i);
-                    valueSerializerContext.configureReferenceValueSetter(v => set.add(v));
+                    valueSerializerContext.hasJsonPathKey(i);
+                    valueSerializerContext.hasReferenceValueSetter(v => set.add(v));
 
                     set.add(valueSerializerContext.deserialize(array[i]));
                 }

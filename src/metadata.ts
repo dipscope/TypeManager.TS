@@ -1,9 +1,17 @@
-import { isArray } from 'lodash';
+import { isArray, isNil, isString } from 'lodash';
+import { Alias } from './alias';
+import { Any } from './any';
+import { isArrowFunction } from './functions/is-arrow-function';
 import { GenericArgument } from './generic-argument';
 import { GenericMetadata } from './generic-metadata';
+import { GenericMetadataResolver } from './generic-metadata-resolver';
+import { GenericStructure } from './generic-structure';
 import { TypeArgument } from './type-argument';
+import { TypeFn } from './type-fn';
 import { TypeMetadata } from './type-metadata';
+import { TypeMetadataExtractor } from './type-metadata-extractor';
 import { TypeMetadataResolver } from './type-metadata-resolver';
+import { TypeResolver } from './type-resolver';
 
 /**
  * Metadata class.
@@ -15,53 +23,199 @@ import { TypeMetadataResolver } from './type-metadata-resolver';
 export class Metadata
 {
     /**
-     * Type metadata resolver.
+     * Type metadata extractor.
      * 
-     * @type {TypeMetadataResolver<any>}
+     * @type {TypeMetadataExtractor<any>}
      */
-    public readonly typeMetadataResolver: TypeMetadataResolver<any>;
+    public readonly typeMetadataExtractor: TypeMetadataExtractor<any>;
+    
+    /**
+     * Type function map for types with aliases.
+     * 
+     * @type {Map<Alias, TypeFn<any>>}
+     */
+    public readonly typeFnMap: Map<Alias, TypeFn<any>>;
 
     /**
      * Constructor.
      * 
-     * @param {TypeMetadataResolver<any>} typeMetadataResolver Type metadata resolver.
+     * @param {TypeMetadataExtractor<any>} typeMetadataExtractor Type metadata extractor.
+     * @param {Map<Alias, TypeFn<any>>} typeFnMap Type function map.
      */
-    public constructor(typeMetadataResolver: TypeMetadataResolver<any>)
+    public constructor(
+        typeMetadataExtractor: TypeMetadataExtractor<any>,
+        typeFnMap: Map<Alias, TypeFn<any>>
+    )
     {
-        this.typeMetadataResolver = typeMetadataResolver;
+        this.typeMetadataExtractor = typeMetadataExtractor;
+        this.typeFnMap = typeFnMap;
 
         return;
     }
 
     /**
-     * Defines type metadata based on provided type argument.
+     * Defines type metadata resolver for provided type argument.
      * 
-     * @param {TypeArgument<any>} typeArgument Type argument.
+     * @param {TypeArgument<any>|undefined} typeArgument Type argument.
      * 
-     * @returns {TypeMetadata<any>} Type metadata.
+     * @returns {TypeMetadataResolver<any>} Defined type metadata resolver.
      */
-    protected defineTypeMetadata(typeArgument: TypeArgument<any>): TypeMetadata<any>
+    public defineTypeMetadataResolver(typeArgument: TypeArgument<any> | undefined): TypeMetadataResolver<any>
     {
-        return this.typeMetadataResolver(typeArgument);
+        if (isNil(typeArgument))
+        {
+            return this.resolveTypeMetadataUsingAnyTypeFn.bind(this);
+        }
+
+        if (isString(typeArgument))
+        {
+            return this.resolveTypeMetadataUsingAlias.bind(this);
+        }
+
+        if (isArrowFunction(typeArgument))
+        {
+            return this.resolveTypeMetadataUsingTypeResolver.bind(this);
+        }
+
+        return this.resolveTypeMetadataUsingTypeFn.bind(this);
     }
 
     /**
-     * Defines generic metadatas based on provided generic arguments.
+     * Resolves type metadata using any type function.
+     * 
+     * @returns {TypeMetadata<any>} Type metadata resolved using any type function.
+     */
+    private resolveTypeMetadataUsingAnyTypeFn(): TypeMetadata<any>
+    {
+        const typeFn = Any as TypeFn<any>;
+
+        return this.typeMetadataExtractor(typeFn);
+    }
+
+    /**
+     * Resolves type metadata using alias.
+     * 
+     * @param {TypeArgument<any>} typeArgument Type argument.
+     * 
+     * @returns {TypeMetadata<any>} Type metadata resolved using alias.
+     */
+    private resolveTypeMetadataUsingAlias(typeArgument: TypeArgument<any>): TypeMetadata<any>
+    {
+        const alias = typeArgument as Alias;
+        const typeFn = this.typeFnMap.get(alias);
+
+        if (isNil(typeFn))
+        {
+            throw new Error(`Cannot resolve type metadata for provided type alias: ${alias}. This is usually caused by invalid configuration.`);
+        }
+
+        return this.typeMetadataExtractor(typeFn);
+    }
+
+    /**
+     * Resolves type metadata using type function.
+     * 
+     * @param {TypeMetadata<any>} typeArgument Type argument.
+     * 
+     * @returns {TypeMetadata<any>} Type metadata resolved using type function.
+     */
+    private resolveTypeMetadataUsingTypeFn(typeArgument: TypeArgument<any>): TypeMetadata<any>
+    {
+        const typeFn = typeArgument as TypeFn<any>;
+
+        return this.typeMetadataExtractor(typeFn);
+    }
+
+    /**
+     * Resolves type metadata using type resolver.
+     * 
+     * @param {TypeMetadata<any>} typeArgument Type argument.
+     * 
+     * @returns {TypeMetadata<any>} Type metadata resolved using type resolver.
+     */
+    private resolveTypeMetadataUsingTypeResolver(typeArgument: TypeArgument<any>): TypeMetadata<any>
+    {
+        const typeResolver = typeArgument as TypeResolver<any>;
+
+        return this.typeMetadataExtractor(typeResolver());
+    }
+
+    /**
+     * Defines generic structures based on generic arguments.
      * 
      * @param {Array<GenericArgument<any>>} genericArguments Generic arguments.
      * 
-     * @returns {Array<GenericMetadata<any>>} Generics metadatas.
+     * @returns {Array<GenericStructure<any>>} Generic structures.
      */
-    protected defineGenericMetadatas(genericArguments: Array<GenericArgument<any>>): Array<GenericMetadata<any>>
+    public defineGenericStructures(genericArguments: Array<GenericArgument<any>>): Array<GenericStructure<any>>
     {
-        const genericMetadatas = new Array<GenericMetadata<any>>();
+        const genericStructures = new Array<GenericStructure<any>>();
 
         for (const genericArgument of genericArguments)
         {
             const genericTypeArgument = isArray(genericArgument) ? genericArgument[0] : genericArgument;
             const genericGenericArguments = isArray(genericArgument) ? genericArgument[1] : new Array<GenericArgument<any>>();
             
-            genericMetadatas.push([this.defineTypeMetadata(genericTypeArgument), this.defineGenericMetadatas(genericGenericArguments)]);
+            genericStructures.push([
+                genericTypeArgument,
+                this.defineGenericStructures(genericGenericArguments)
+            ]);
+        }
+
+        return genericStructures;
+    }
+
+    /**
+     * Defines generic metadata resolvers based on provided generic structures.
+     * 
+     * @param {Array<GenericStructure<any>>} genericStructures Generic structures.
+     * 
+     * @returns {Array<GenericMetadataResolver<any>>} Generics metadata resolvers.
+     */
+    public defineGenericMetadataResolvers(genericStructures: Array<GenericStructure<any>>): Array<GenericMetadataResolver<any>>
+    {
+        const genericMetadataResolvers = new Array<GenericMetadataResolver<any>>();
+
+        for (const genericStructure of genericStructures)
+        {
+            const genericTypeArgument = genericStructure[0];
+            const genericGenericStructures = genericStructure[1];
+            
+            genericMetadataResolvers.push([
+                this.defineTypeMetadataResolver(genericTypeArgument), 
+                this.defineGenericMetadataResolvers(genericGenericStructures)
+            ]);
+        }
+
+        return genericMetadataResolvers;
+    }
+
+    /**
+     * Defines generic metadatas based on provided generic structures and metadata resolvers.
+     * 
+     * @param {Array<GenericStructure<any>>} genericStructures Generic structures.
+     * @param {Array<GenericMetadataResolver<any>>} genericMetadataResolvers Generic metadata resolvers.
+     * 
+     * @returns {Array<GenericMetadata<any>>} Generics metadatas.
+     */
+    public defineGenericMetadatas(
+        genericStructures: Array<GenericStructure<any>>, 
+        genericMetadataResolvers: Array<GenericMetadataResolver<any>>
+    ): Array<GenericMetadata<any>>
+    {
+        const genericMetadatas = new Array<GenericMetadata<any>>();
+
+        for (let i = 0; i < genericStructures.length; i++)
+        {
+            const genericTypeArgument = genericStructures[i][0];
+            const genericMetadataResolver = genericMetadataResolvers[i][0];
+            const genericGenericStructures = genericStructures[i][1];
+            const genericGenericMetadataResolvers = genericMetadataResolvers[i][1];
+
+            genericMetadatas.push([
+                genericMetadataResolver(genericTypeArgument),
+                this.defineGenericMetadatas(genericGenericStructures, genericGenericMetadataResolvers)
+            ]);
         }
 
         return genericMetadatas;

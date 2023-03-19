@@ -1,12 +1,12 @@
 import { PropertyMetadata } from './property-metadata';
 
 /**
- * Represents property metadata sorter. Used to sort properties during serialization
+ * Represents property sorter. Used to sort properties during serialization
  * and deserialization.
  * 
- * @type {PropertyMetadataSorter}
+ * @type {PropertySorter}
  */
-export interface PropertyMetadataSorter
+export interface PropertySorter
 {
     /**
      * Sort type properties. It is expected to return a negative value if the value of first property 

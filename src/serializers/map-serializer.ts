@@ -57,10 +57,10 @@ export class MapSerializer implements Serializer<Map<any, any>>
                 {
                     i++;
 
-                    keyArraySerializerContext.configureJsonPathKey(i);
-                    valueArraySerializerContext.configureJsonPathKey(i);
-                    keySerializerContext.configureReferenceValueSetter(v => array[i][keySerializerContext.jsonPathKey] = v);
-                    valueSerializerContext.configureReferenceValueSetter(v => array[i][valueSerializerContext.jsonPathKey] = v);
+                    keyArraySerializerContext.hasJsonPathKey(i);
+                    valueArraySerializerContext.hasJsonPathKey(i);
+                    keySerializerContext.hasReferenceValueSetter(v => array[i][keySerializerContext.jsonPathKey] = v);
+                    valueSerializerContext.hasReferenceValueSetter(v => array[i][valueSerializerContext.jsonPathKey] = v);
 
                     array[i] = {};
                     array[i][keySerializerContext.jsonPathKey] = keySerializerContext.serialize(mk);
@@ -125,14 +125,14 @@ export class MapSerializer implements Serializer<Map<any, any>>
                     const mk = array[i][keySerializerContext.jsonPathKey];
                     const mv = array[i][valueSerializerContext.jsonPathKey];
 
-                    keyArraySerializerContext.configureJsonPathKey(i);
-                    valueArraySerializerContext.configureJsonPathKey(i);
+                    keyArraySerializerContext.hasJsonPathKey(i);
+                    valueArraySerializerContext.hasJsonPathKey(i);
 
-                    keySerializerContext.configureReferenceValueSetter(v => map.set(v, undefined));
+                    keySerializerContext.hasReferenceValueSetter(v => map.set(v, undefined));
 
                     const key = keySerializerContext.deserialize(mk);
 
-                    valueSerializerContext.configureReferenceValueSetter(v => map.set(key, v));
+                    valueSerializerContext.hasReferenceValueSetter(v => map.set(key, v));
                     
                     const value = valueSerializerContext.deserialize(mv);
                     

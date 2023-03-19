@@ -20,7 +20,7 @@ export type TypeManagerOptions =
     /**
      * Type options per type. 
      * 
-     * Overrides global type options.
+     * Overrides shared type options.
      * 
      * @type {Map<TypeFn<any>, TypeOptions<any>>}
      */
@@ -29,9 +29,9 @@ export type TypeManagerOptions =
     /**
      * Type configuration per type. 
      * 
-     * Overrides global type options.
+     * Overrides certain type options.
      * 
      * @type {Map<TypeFn<any>, TypeConfiguration<any>>}
      */
-    typeConfigurationsMap?: Map<TypeFn<any>, TypeConfiguration<any>>;
+    typeConfigurationMap?: Map<TypeFn<any>, TypeConfiguration<any>>;
 }

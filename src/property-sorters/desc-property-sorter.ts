@@ -1,13 +1,13 @@
 import { PropertyMetadata } from '../property-metadata';
-import { PropertyMetadataSorter } from '../property-metadata-sorter';
+import { PropertySorter } from '../property-sorter';
 
 /**
- * Represents asc property metadata sorter which sorts type properties in
- * ascending order by name.
+ * Represents desc property sorter which sorts type properties in
+ * descending order by name.
  * 
- * @type {AscPropertyMetadataSorter}
+ * @type {DescPropertySorter}
  */
-export class AscPropertyMetadataSorter implements PropertyMetadataSorter
+export class DescPropertySorter implements PropertySorter
 {
     /**
      * Sort type properties. It is expected to return a negative value if the value of first property 
@@ -25,12 +25,12 @@ export class AscPropertyMetadataSorter implements PropertyMetadataSorter
 
         if (a < b)
         {
-            return -1;
+            return 1;
         }
 
         if (a > b)
         {
-            return 1;
+            return -1;
         }
 
         return 0;

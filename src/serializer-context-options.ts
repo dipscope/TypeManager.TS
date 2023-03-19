@@ -1,4 +1,5 @@
-import { GenericArgument } from './generic-argument';
+import { GenericMetadataResolver } from './generic-metadata-resolver';
+import { GenericStructure } from './generic-structure';
 import { PropertyMetadata } from './property-metadata';
 import { ReferenceValueSetter } from './reference-value-setter';
 import { TypeMetadata } from './type-metadata';
@@ -27,11 +28,18 @@ export type SerializerContextOptions<TType> =
     referenceValueSetter?: ReferenceValueSetter;
 
     /**
-     * Generic arguments.
+     * Generic structures.
      * 
-     * @type {Array<GenericArgument<any>>}
+     * @type {Array<GenericStructure<any>>}
      */
-    genericArguments?: Array<GenericArgument<any>>;
+    genericStructures?: Array<GenericStructure<any>>;
+
+    /**
+     * Generic metadata resolvers.
+     * 
+     * @type {Array<GenericMetadataResolver<any>>}
+     */
+    genericMetadataResolvers?: Array<GenericMetadataResolver<any>>;
 
     /**
      * Property metadata.

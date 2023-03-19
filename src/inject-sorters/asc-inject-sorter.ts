@@ -1,13 +1,13 @@
 import { InjectMetadata } from '../inject-metadata';
-import { InjectMetadataSorter } from '../inject-metadata-sorter';
+import { InjectSorter } from '../inject-sorter';
 
 /**
- * Represents asc inject metadata sorter which sorts type injects in
+ * Represents asc inject sorter which sorts type injects in
  * ascending order by index.
  * 
- * @type {AscInjectMetadataSorter}
+ * @type {AscInjectSorter}
  */
-export class AscInjectMetadataSorter implements InjectMetadataSorter
+export class AscInjectSorter implements InjectSorter
 {
     /**
      * Sort type injects. It is expected to return a negative value if the value of first property 

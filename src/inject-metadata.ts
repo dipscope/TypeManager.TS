@@ -1,6 +1,8 @@
-import { isNil, isUndefined } from 'lodash';
+import { isUndefined } from 'lodash';
+import { Any } from './any';
 import { getOwnReflectMetadata } from './functions/get-own-reflect-metadata';
 import { InjectIndex } from './inject-index';
+import { InjectInternals } from './inject-internals';
 import { InjectOptions } from './inject-options';
 import { Metadata } from './metadata';
 import { TypeFn } from './type-fn';
@@ -44,6 +46,13 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
     public readonly injectOptions: InjectOptions<TType>;
 
     /**
+     * Inject internals.
+     * 
+     * @type {InjectInternals<TType>}
+     */
+    public readonly injectInternals: InjectInternals<TType>;
+
+    /**
      * Constructor.
      * 
      * @param {TypeMetadata<TDeclaringType>} declaringTypeMetadata Type metadata to which inject metadata belongs to.
@@ -56,16 +65,19 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
         injectOptions: InjectOptions<TType>
     )
     {
-        super(declaringTypeMetadata.typeMetadataResolver);
+        super(declaringTypeMetadata.typeMetadataExtractor, declaringTypeMetadata.typeFnMap);
 
         this.declaringTypeMetadata = declaringTypeMetadata;
         this.reflectTypeFn = (getOwnReflectMetadata('design:paramtypes', declaringTypeMetadata.typeFn) ?? new Array<TypeFn<TType>>())[injectIndex];
         this.injectIndex = injectIndex;
-        this.injectOptions = injectOptions;
+        this.injectOptions = this.constructInjectOptions(injectOptions);
+        this.injectInternals = this.constructInjectInternals();
+
+        this.configure(injectOptions);
 
         return;
     }
-
+    
     /**
      * Gets key.
      * 
@@ -83,7 +95,7 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
      */
     public get typeFn(): TypeFn<TType> | undefined
     {
-        return this.injectOptions.typeFn ?? this.reflectTypeFn;
+        return this.injectOptions.typeFn;
     }
 
     /**
@@ -93,16 +105,45 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
      */
     public get typeMetadata(): TypeMetadata<TType>
     {
-        const typeFn = this.typeFn;
+        const typeMetadata = this.injectInternals.typeMetadataResolver(this.typeFn);
+        const anyFn = Any as TypeFn<any>;
 
-        if (isNil(typeFn))
+        if (typeMetadata.typeFn === anyFn)
         {
             throw new Error(`${this.declaringTypeMetadata.typeName}[${this.injectIndex}]: cannot resolve constructor injection type metadata. This is usually caused by invalid configuration.`);
         }
 
-        return this.defineTypeMetadata(typeFn);
+        return typeMetadata;
     }
-    
+
+    /**
+     * Constructs initial inject options by extending passed options 
+     * with default values if they are not overriden. All references are kept.
+     * 
+     * @param {InjectOptions<TType>} injectOptions Inject options.
+     * 
+     * @returns {InjectOptions<TType>} Constructed inject options.
+     */
+    private constructInjectOptions(injectOptions: InjectOptions<TType>): InjectOptions<TType>
+    {
+        injectOptions.typeFn = injectOptions.typeFn ?? this.reflectTypeFn;
+
+        return injectOptions;
+    }
+
+    /**
+     * Constructs inject internals.
+     * 
+     * @returns {InjectInternals<TType>} Inject internals.
+     */
+    private constructInjectInternals(): InjectInternals<TType>
+    {
+        const typeMetadataResolver = this.defineTypeMetadataResolver(this.injectOptions.typeFn);
+        const injectInternals = { typeMetadataResolver: typeMetadataResolver };
+
+        return injectInternals;
+    }
+
     /**
      * Configures key.
      * 
@@ -126,8 +167,9 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
      */
     public hasTypeFn(typeFn: TypeFn<TType> | undefined): InjectMetadata<TDeclaringType, TType>
     {
-        this.injectOptions.typeFn = typeFn;
-
+        this.injectOptions.typeFn = typeFn ?? this.reflectTypeFn;
+        this.injectInternals.typeMetadataResolver = this.defineTypeMetadataResolver(this.injectOptions.typeFn);
+        
         return this;
     }
 

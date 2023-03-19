@@ -7,24 +7,22 @@ import { Discriminator } from './discriminator';
 import { Factory } from './factory';
 import { getOwnReflectMetadata } from './functions/get-own-reflect-metadata';
 import { nameOf } from './functions/name-of';
-import { GenericArgument } from './generic-argument';
-import { GenericMetadata } from './generic-metadata';
 import { InjectIndex } from './inject-index';
 import { InjectMetadata } from './inject-metadata';
-import { InjectMetadataSorter } from './inject-metadata-sorter';
 import { InjectOptions } from './inject-options';
+import { InjectSorter } from './inject-sorter';
 import { Injector } from './injector';
 import { Log } from './log';
 import { Metadata } from './metadata';
 import { NamingConvention } from './naming-convention';
 import { PropertyMetadata } from './property-metadata';
-import { PropertyMetadataSorter } from './property-metadata-sorter';
 import { PropertyName } from './property-name';
 import { PropertyOptions } from './property-options';
+import { PropertySorter } from './property-sorter';
 import { ReferenceHandler } from './reference-handler';
 import { Serializer } from './serializer';
 import { TypeFn } from './type-fn';
-import { TypeMetadataResolver } from './type-metadata-resolver';
+import { TypeMetadataExtractor } from './type-metadata-extractor';
 import { TypeName } from './type-name';
 import { TypeOptions } from './type-options';
 import { TypeOptionsBase } from './type-options-base';
@@ -51,13 +49,6 @@ export class TypeMetadata<TType> extends Metadata
      * @type {TypeFn<TType>}
      */
     public readonly typeFn: TypeFn<TType>;
-
-    /**
-     * Type function map for types with aliases.
-     * 
-     * @type {Map<Alias, TypeFn<any>>}
-     */
-    public readonly typeFnMap: Map<Alias, TypeFn<any>>;
 
     /**
      * Type options used by default.
@@ -111,35 +102,33 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Constructor.
      * 
-     * @param {TypeMetadataResolver<any>} typeMetadataResolver Type metadata resolver.
-     * @param {TypeFn<any>} typeFn Type function.
+     * @param {TypeMetadataExtractor<any>} typeMetadataExtractor Type metadata extractor.
      * @param {Map<Alias, TypeFn<any>>} typeFnMap Type function map.
+     * @param {TypeFn<any>} typeFn Type function.
      * @param {TypeOptionsBase<TType>} typeOptionsBase Type options used by default.
      * @param {TypeOptions<TType>} typeOptions Type options.
      * @param {TypeMetadata<any>} parentTypeMetadata Parent type metadata.
      */
     public constructor(
-        typeMetadataResolver: TypeMetadataResolver<any>, 
-        typeFn: TypeFn<TType>, 
+        typeMetadataExtractor: TypeMetadataExtractor<any>,
         typeFnMap: Map<Alias, TypeFn<any>>,
+        typeFn: TypeFn<TType>,
         typeOptionsBase: TypeOptionsBase<TType>, 
         typeOptions: TypeOptions<TType>, 
         parentTypeMetadata?: TypeMetadata<any>
     )
     {
-        super(typeMetadataResolver);
+        super(typeMetadataExtractor, typeFnMap);
 
         this.typeName = nameOf(typeFn);
         this.typeFn = typeFn;
-        this.typeFnMap = typeFnMap;
         this.typeOptionsBase = typeOptionsBase;
-        this.typeOptions = typeOptions;
+        this.typeOptions = this.constructTypeOptions(typeOptions);
         this.parentTypeMetadata = parentTypeMetadata;
 
         this.deriveParentTypeMetadataProperties();
         this.hasDiscriminant(this.discriminant);
-        this.configurePropertyMetadataMap(this.propertyOptionsMap);
-        this.configureInjectMetadataMap(this.injectOptionsMap);
+        this.configure(typeOptions);
 
         return;
     }
@@ -273,33 +262,6 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
-     * Gets generic arguments.
-     * 
-     * @returns {Array<GenericArgument<any>>|undefined} Generic arguments or undefined.
-     */
-    public get genericArguments(): Array<GenericArgument<any>> | undefined
-    {
-        return this.typeOptions.genericArguments;
-    }
-
-    /**
-     * Gets generic metadatas.
-     * 
-     * @returns {Array<GenericMetadata<any>>|undefined} Generic metadatas.
-     */
-    public get genericMetadatas(): Array<GenericMetadata<any>> | undefined
-    {
-        const genericArguments = this.genericArguments;
-
-        if (isNil(genericArguments))
-        {
-            return undefined;
-        }
-
-        return this.defineGenericMetadatas(genericArguments);
-    }
-
-    /**
      * Gets injectable value.
      * 
      * @returns {boolean|undefined} Injectable indicator or undefined.
@@ -410,13 +372,13 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
-     * Gets property metadata sorter.
+     * Gets property sorter.
      * 
-     * @returns {PropertyMetadataSorter|undefined} Property metadata sorter or undefined.
+     * @returns {PropertySorter|undefined} Property sorter or undefined.
      */
-    public get propertyMetadataSorter(): PropertyMetadataSorter | undefined
+    public get propertySorter(): PropertySorter | undefined
     {
-        return this.typeOptions.propertyMetadataSorter ?? this.typeOptionsBase.propertyMetadataSorter;
+        return this.typeOptions.propertySorter ?? this.typeOptionsBase.propertySorter;
     }
 
     /**
@@ -426,27 +388,27 @@ export class TypeMetadata<TType> extends Metadata
      */
     public get sortedPropertyMetadatas(): IterableIterator<PropertyMetadata<TType, any>>
     {
-        const propertyMetadataSorter = this.propertyMetadataSorter;
+        const propertySorter = this.propertySorter;
         const propertyMetadatas = this.propertyMetadataMap.values();
 
-        if (isNil(propertyMetadataSorter))
+        if (isNil(propertySorter))
         {
             return propertyMetadatas;
         }
 
-        const sortedPropertyMetadatas = Array.from(propertyMetadatas).sort(propertyMetadataSorter.sort);
+        const sortedPropertyMetadatas = Array.from(propertyMetadatas).sort(propertySorter.sort);
 
         return sortedPropertyMetadatas[Symbol.iterator]();
     }
 
     /**
-     * Gets inject metadata sorter.
+     * Gets inject sorter.
      * 
-     * @returns {InjectMetadataSorter|undefined} Property metadata sorter or undefined.
+     * @returns {InjectSorter|undefined} Property sorter or undefined.
      */
-    public get injectMetadataSorter(): InjectMetadataSorter | undefined
+    public get injectSorter(): InjectSorter | undefined
     {
-        return this.typeOptions.injectMetadataSorter ?? this.typeOptionsBase.injectMetadataSorter;
+        return this.typeOptions.injectSorter ?? this.typeOptionsBase.injectSorter;
     }
 
     /**
@@ -456,15 +418,15 @@ export class TypeMetadata<TType> extends Metadata
      */
     public get sortedInjectMetadatas(): IterableIterator<InjectMetadata<TType, any>>
     {
-        const injectMetadataSorter = this.injectMetadataSorter;
+        const injectSorter = this.injectSorter;
         const injectMetadatas = this.injectMetadataMap.values();
 
-        if (isNil(injectMetadataSorter))
+        if (isNil(injectSorter))
         {
             return injectMetadatas;
         }
         
-        const sortedInjectMetadatas = Array.from(injectMetadatas).sort(injectMetadataSorter.sort);
+        const sortedInjectMetadatas = Array.from(injectMetadatas).sort(injectSorter.sort);
         
         return sortedInjectMetadatas[Symbol.iterator]();
     }
@@ -505,6 +467,19 @@ export class TypeMetadata<TType> extends Metadata
         }
 
         return injectOptionsMap;
+    }
+
+    /**
+     * Constructs initial type options by extending passed options 
+     * with default values if they are not overriden. All references are kept.
+     * 
+     * @param {TypeOptions<TType>} typeOptions Type options.
+     * 
+     * @returns {TypeOptions<TType>} Constructed type options.
+     */
+    private constructTypeOptions(typeOptions: TypeOptions<TType>): TypeOptions<TType>
+    {
+        return typeOptions;
     }
 
     /**
@@ -726,20 +701,6 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
-     * Configures generic arguments.
-     * 
-     * @param {Array<GenericArgument<any>>|undefined} genericArguments Generic arguments.
-     * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
-     */
-    public hasGenericArguments(genericArguments: Array<GenericArgument<any>> | undefined): TypeMetadata<TType>
-    {
-        this.typeOptions.genericArguments = genericArguments;
-
-        return this;
-    }
-
-    /**
      * Configures injectable.
      * 
      * @param {boolean} injectable Injectable.
@@ -880,29 +841,29 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
-     * Configures property metadata sorter.
+     * Configures property sorter.
      * 
-     * @param {PropertyMetadataSorter|undefined} propertyMetadataSorter Property metadata sorter.
+     * @param {PropertySorter|undefined} propertySorter Property sorter.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public hasPropertyMetadataSorter(propertyMetadataSorter: PropertyMetadataSorter | undefined): TypeMetadata<TType>
+    public hasPropertySorter(propertySorter: PropertySorter | undefined): TypeMetadata<TType>
     {
-        this.typeOptions.propertyMetadataSorter = propertyMetadataSorter;
+        this.typeOptions.propertySorter = propertySorter;
 
         return this;
     }
 
     /**
-     * Configures inject metadata sorter.
+     * Configures inject sorter.
      * 
-     * @param {InjectMetadataSorter|undefined} injectMetadataSorter Inject metadata sorter.
+     * @param {InjectSorter|undefined} injectSorter Inject sorter.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public hasInjectMetadataSorter(injectMetadataSorter: InjectMetadataSorter | undefined): TypeMetadata<TType>
+    public hasInjectSorter(injectSorter: InjectSorter | undefined): TypeMetadata<TType>
     {
-        this.typeOptions.injectMetadataSorter = injectMetadataSorter;
+        this.typeOptions.injectSorter = injectSorter;
 
         return this;
     }
@@ -964,7 +925,7 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configurePropertyMetadataMap<TPropertyType>(propertyOptionsMap: Map<PropertyName, PropertyOptions<TPropertyType>>): TypeMetadata<TType>
+    public hasPropertyMetadataMap<TPropertyType>(propertyOptionsMap: Map<PropertyName, PropertyOptions<TPropertyType>>): TypeMetadata<TType>
     {
         for (const [propertyName, propertyOptions] of propertyOptionsMap)
         {
@@ -981,7 +942,7 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public configureInjectMetadataMap<TInjectType>(injectOptionsMap: Map<InjectIndex, InjectOptions<TInjectType>>): TypeMetadata<TType>
+    public hasInjectMetadataMap<TInjectType>(injectOptionsMap: Map<InjectIndex, InjectOptions<TInjectType>>): TypeMetadata<TType>
     {
         for (const [injectIndex, injectOptions] of injectOptionsMap)
         {
@@ -1040,11 +1001,6 @@ export class TypeMetadata<TType> extends Metadata
             this.hasFactory(typeOptions.factory);
         }
 
-        if (!isUndefined(typeOptions.genericArguments)) 
-        {
-            this.hasGenericArguments(typeOptions.genericArguments);
-        }
-
         if (!isUndefined(typeOptions.injectable))
         {
             this.isInjectable(typeOptions.injectable);
@@ -1097,22 +1053,22 @@ export class TypeMetadata<TType> extends Metadata
 
         if (!isUndefined(typeOptions.propertyOptionsMap))
         {
-            this.configurePropertyMetadataMap(typeOptions.propertyOptionsMap);
+            this.hasPropertyMetadataMap(typeOptions.propertyOptionsMap);
         }
 
         if (!isUndefined(typeOptions.injectOptionsMap))
         {
-            this.configureInjectMetadataMap(typeOptions.injectOptionsMap);
+            this.hasInjectMetadataMap(typeOptions.injectOptionsMap);
         }
 
-        if (!isUndefined(typeOptions.propertyMetadataSorter))
+        if (!isUndefined(typeOptions.propertySorter))
         {
-            this.hasPropertyMetadataSorter(typeOptions.propertyMetadataSorter);
+            this.hasPropertySorter(typeOptions.propertySorter);
         }
 
-        if (!isUndefined(typeOptions.injectMetadataSorter))
+        if (!isUndefined(typeOptions.injectSorter))
         {
-            this.hasInjectMetadataSorter(typeOptions.injectMetadataSorter);
+            this.hasInjectSorter(typeOptions.injectSorter);
         }
 
         return this;

@@ -7,4 +7,4 @@ import { TypeResolver } from './type-resolver';
  * 
  * @type {TypeArgument<TType>}
  */
-export type TypeArgument<TType> = Alias | TypeFn<TType> | TypeResolver<TType>;
+export type TypeArgument<TType> = Alias | TypeFn<TType> | TypeResolver<TType> | undefined;

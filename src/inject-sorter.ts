@@ -1,12 +1,12 @@
 import { InjectMetadata } from './inject-metadata';
 
 /**
- * Represents inject metadata sorter. Used to sort injects during serialization
+ * Represents inject sorter. Used to sort injects during serialization
  * and deserialization.
  * 
- * @type {InjectMetadataSorter}
+ * @type {InjectSorter}
  */
-export interface InjectMetadataSorter
+export interface InjectSorter
 {
     /**
      * Sort type injects. It is expected to return a negative value if the value of first property 

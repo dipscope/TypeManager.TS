@@ -41,8 +41,8 @@ export class ArraySerializer implements Serializer<Array<any>>
 
                 for (let i = 0; i < arrayInput.length; i++)
                 {
-                    valueSerializerContext.configureJsonPathKey(i);
-                    valueSerializerContext.configureReferenceValueSetter(v => arrayOutput[i] = v);
+                    valueSerializerContext.hasJsonPathKey(i);
+                    valueSerializerContext.hasReferenceValueSetter(v => arrayOutput[i] = v);
 
                     arrayOutput[i] = valueSerializerContext.serialize(arrayInput[i]);
                 }
@@ -90,8 +90,8 @@ export class ArraySerializer implements Serializer<Array<any>>
                 
                 for (let i = 0; i < arrayInput.length; i++)
                 {
-                    valueSerializerContext.configureJsonPathKey(i);
-                    valueSerializerContext.configureReferenceValueSetter(v => arrayOutput[i] = v);
+                    valueSerializerContext.hasJsonPathKey(i);
+                    valueSerializerContext.hasReferenceValueSetter(v => arrayOutput[i] = v);
                     
                     arrayOutput[i] = valueSerializerContext.deserialize(arrayInput[i]);
                 }

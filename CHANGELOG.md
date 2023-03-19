@@ -14,7 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Property metadata sorters.
 - Inject metadata sorters.
 - Stable json stringify and parse functions.
-- Performance improvements when using multiple type manager instances.
+- Any type serializer.
+- Performance improvements.
+- JSON.NET reference handler.
+
+### Changed
+
+- Allow serialization without spicify concrete type serializers.
 
 ### Migrating from previous version
 

@@ -1,7 +1,6 @@
 import { Alias } from './alias';
 import { DefaultValue } from './default-value';
 import { Discriminant } from './discriminant';
-import { GenericArgument } from './generic-argument';
 import { InjectIndex } from './inject-index';
 import { InjectOptions } from './inject-options';
 import { PropertyName } from './property-name';
@@ -58,13 +57,6 @@ export type TypeOptions<TType> = Partial<TypeOptionsBase<TType>> &
      * @type {Discriminant}
      */
     discriminant?: Discriminant;
-
-    /**
-     * Generic arguments.
-     * 
-     * @type {Array<GenericArgument<any>>}
-     */
-    genericArguments?: Array<GenericArgument<any>>;
 
     /**
      * Injectable type?

@@ -56,7 +56,8 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                     propertySerializerContext.hasJsonPathKey(serializedPropertyName);
                     propertySerializerContext.hasPropertyMetadata(propertyMetadata);
                     propertySerializerContext.hasTypeMetadata(propertyMetadata.typeMetadata);
-                    propertySerializerContext.hasGenericArguments(propertyMetadata.genericArguments);
+                    propertySerializerContext.hasGenericStructures(propertyMetadata.genericStructures);
+                    propertySerializerContext.hasGenericMetadataResolvers(propertyMetadata.genericMetadataResolvers);
                     
                     propertySerializerContext.hasReferenceValueSetter(v => 
                     {
@@ -138,7 +139,8 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                     propertySerializerContext.hasJsonPathKey(deserializedPropertyName);
                     propertySerializerContext.hasPropertyMetadata(propertyMetadata);
                     propertySerializerContext.hasTypeMetadata(propertyMetadata.typeMetadata);
-                    propertySerializerContext.hasGenericArguments(propertyMetadata.genericArguments);
+                    propertySerializerContext.hasGenericStructures(propertyMetadata.genericStructures);
+                    propertySerializerContext.hasGenericMetadataResolvers(propertyMetadata.genericMetadataResolvers);
 
                     propertySerializerContext.hasReferenceValueSetter(v => 
                     {

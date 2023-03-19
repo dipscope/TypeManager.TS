@@ -5,8 +5,11 @@ import { DefaultValue } from './default-value';
 import { getReflectMetadata } from './functions/get-reflect-metadata';
 import { GenericArgument } from './generic-argument';
 import { GenericMetadata } from './generic-metadata';
+import { GenericMetadataResolver } from './generic-metadata-resolver';
+import { GenericStructure } from './generic-structure';
 import { Metadata } from './metadata';
 import { NamingConvention } from './naming-convention';
+import { PropertyInternals } from './property-internals';
 import { PropertyName } from './property-name';
 import { PropertyOptions } from './property-options';
 import { ReferenceHandler } from './reference-handler';
@@ -14,6 +17,7 @@ import { Serializer } from './serializer';
 import { TypeArgument } from './type-argument';
 import { TypeFn } from './type-fn';
 import { TypeMetadata } from './type-metadata';
+import { TypeMetadataResolver } from './type-metadata-resolver';
 
 /**
  * Main class used to describe a certain property.
@@ -30,15 +34,6 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     public readonly declaringTypeMetadata: TypeMetadata<TDeclaringType>;
 
     /**
-     * Type function defined using reflect metadata.
-     * 
-     * Used as a fallback when type argument is not defined.
-     * 
-     * @type {TypeFn<TType>}
-     */
-    public readonly reflectTypeFn: TypeFn<TType>;
-
-    /**
      * Property name as declared in type.
      * 
      * @type {PropertyName}
@@ -53,6 +48,22 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     public readonly propertyOptions: PropertyOptions<TType>;
 
     /**
+     * Property internals.
+     * 
+     * @type {PropertyInternals<TType>}
+     */
+    public readonly propertyInternals: PropertyInternals<TType>;
+
+    /**
+     * Type function defined using reflect metadata.
+     * 
+     * Used as a fallback when type argument is not defined.
+     * 
+     * @type {TypeFn<TType>}
+     */
+    public readonly reflectTypeFn?: TypeFn<TType>;
+
+    /**
      * Constructor.
      * 
      * @param {TypeMetadata<TDeclaringType>} declaringTypeMetadata Type metadata to which property metadata belongs to.
@@ -65,12 +76,15 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
         propertyOptions: PropertyOptions<TType>
     )
     {
-        super(declaringTypeMetadata.typeMetadataResolver);
-
+        super(declaringTypeMetadata.typeMetadataExtractor, declaringTypeMetadata.typeFnMap);
+        
         this.declaringTypeMetadata = declaringTypeMetadata;
         this.propertyName = propertyName;
         this.reflectTypeFn = getReflectMetadata('design:type', declaringTypeMetadata.typeFn.prototype, propertyName);
-        this.propertyOptions = propertyOptions;
+        this.propertyOptions = this.constructPropertyOptions(propertyOptions);
+        this.propertyInternals = this.constructPropertyInternals();
+
+        this.configure(propertyOptions);
 
         return;
     }
@@ -222,7 +236,27 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public get genericArguments(): Array<GenericArgument<any>> | undefined
     {
-        return this.propertyOptions.genericArguments ?? this.typeMetadata.genericArguments;
+        return this.propertyOptions.genericArguments;
+    }
+
+    /**
+     * Gets generic structures.
+     * 
+     * @returns {Array<GenericStructure<any>>|undefined} Generic structures or undefined.
+     */
+    public get genericStructures(): Array<GenericStructure<any>> | undefined
+    {
+        return this.propertyInternals.genericStructures;
+    }
+
+    /**
+     * Gets generic metadata resolvers.
+     * 
+     * @returns {Array<GenericMetadataResolver<any>>|undefined} Generic metadata resolvers or undefined.
+     */
+    public get genericMetadataResolvers(): Array<GenericMetadataResolver<any>> | undefined
+    {
+        return this.propertyInternals.genericMetadataResolvers;
     }
 
     /**
@@ -232,14 +266,15 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public get genericMetadatas(): Array<GenericMetadata<any>> | undefined
     {
-        const genericArguments = this.genericArguments;
+        const genericStructures = this.genericStructures;
+        const genericMetadataResolvers = this.genericMetadataResolvers;
 
-        if (isNil(genericArguments))
+        if (isNil(genericStructures) || isNil(genericMetadataResolvers))
         {
             return undefined;
         }
 
-        return this.defineGenericMetadatas(genericArguments);
+        return this.defineGenericMetadatas(genericStructures, genericMetadataResolvers);
     }
 
     /**
@@ -295,13 +330,23 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Gets type argument.
      * 
-     * @returns {TypeArgument|undefined} Type argument or undefined.
+     * @returns {TypeArgument} Type argument.
      */
-    public get typeArgument(): TypeArgument<TType> | undefined
+    public get typeArgument(): TypeArgument<TType>
     {
         return this.propertyOptions.typeArgument;
     }
 
+    /**
+     * Gets type metadata resolver.
+     * 
+     * @returns {TypeMetadataResolver<TType>} Type metadata resolver.
+     */
+    public get typeMetadataResolver(): TypeMetadataResolver<TType>
+    {
+        return this.propertyInternals.typeMetadataResolver;
+    }
+    
     /**
      * Gets type metadata.
      * 
@@ -309,14 +354,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public get typeMetadata(): TypeMetadata<TType>
     {
-        const typeArgument = this.typeArgument ?? this.reflectTypeFn;
-
-        if (isNil(typeArgument))
-        {
-            throw new Error(`${this.declaringTypeMetadata.typeName}.${this.propertyName}: cannot resolve property type metadata. This is usually caused by invalid configuration.`);
-        }
-
-        return this.defineTypeMetadata(typeArgument);
+        return this.typeMetadataResolver(this.typeArgument);
     }
 
     /**
@@ -347,6 +385,34 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     public get useImplicitConversion(): boolean
     {
         return this.propertyOptions.useImplicitConversion ?? this.typeMetadata.useImplicitConversion;
+    }
+
+    /**
+     * Constructs initial property options by extending passed options 
+     * with default values if they are not overriden. All references are kept.
+     * 
+     * @param {PropertyOptions<TType>} propertyOptions Type options.
+     * 
+     * @returns {PropertyOptions<TType>} Constructed property options.
+     */
+    private constructPropertyOptions(propertyOptions: PropertyOptions<TType>): PropertyOptions<TType>
+    {
+        propertyOptions.typeArgument = propertyOptions.typeArgument ?? this.reflectTypeFn;
+
+        return propertyOptions;
+    }
+
+    /**
+     * Constructs property internals.
+     * 
+     * @returns {PropertyInternals<TType>} Property internals.
+     */
+    private constructPropertyInternals(): PropertyInternals<TType>
+    {
+        const typeMetadataResolver = this.defineTypeMetadataResolver(this.propertyOptions.typeArgument);
+        const propertyInternals = { typeMetadataResolver: typeMetadataResolver };
+
+        return propertyInternals;
     }
 
     /**
@@ -458,6 +524,19 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     {
         this.propertyOptions.genericArguments = genericArguments;
 
+        if (isNil(genericArguments))
+        {
+            this.propertyInternals.genericStructures = undefined;
+            this.propertyInternals.genericMetadataResolvers = undefined;
+
+            return this;
+        }
+
+        const genericStructures = this.defineGenericStructures(genericArguments);
+
+        this.propertyInternals.genericStructures = genericStructures;
+        this.propertyInternals.genericMetadataResolvers = this.defineGenericMetadataResolvers(genericStructures);
+
         return this;
     }
 
@@ -512,7 +591,8 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public hasTypeArgument(typeArgument: TypeArgument<TType> | undefined): PropertyMetadata<TDeclaringType, TType>
     {
-        this.propertyOptions.typeArgument = typeArgument;
+        this.propertyOptions.typeArgument = typeArgument ?? this.reflectTypeFn;
+        this.propertyInternals.typeMetadataResolver = this.defineTypeMetadataResolver(this.propertyOptions.typeArgument);
 
         return this;
     }
