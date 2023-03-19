@@ -95,7 +95,7 @@ export class SerializerContext<TType> extends Metadata
             serializerContextOptions.typeMetadata.typeMetadataExtractor, 
             serializerContextOptions.typeMetadata.typeFnMap
         );
-        
+
         this.$ = $;
         this.referenceMap = referenceMap,
         this.referenceCallbackMap = referenceCallbackMap;
@@ -804,7 +804,7 @@ export class SerializerContext<TType> extends Metadata
 
         return this;
     }
-
+    
     /**
      * Configures serializer context based on provided options.
      * 

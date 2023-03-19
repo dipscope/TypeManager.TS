@@ -191,7 +191,8 @@ export class TypeMetadata<TType> extends Metadata
     {
         if (this.useDefaultValue)
         {
-            const serializedDefaultValue = this.typeOptions.defaultValue ?? this.typeOptions.serializedDefaultValue;
+            const serializedDefaultValue = this.typeOptions.defaultValue 
+                ?? this.typeOptions.serializedDefaultValue;
 
             return isFunction(serializedDefaultValue) ? serializedDefaultValue() : serializedDefaultValue;
         }
@@ -223,7 +224,8 @@ export class TypeMetadata<TType> extends Metadata
     {
         if (this.useDefaultValue)
         {
-            const deserializedDefaultValue = this.typeOptions.defaultValue ?? this.typeOptions.deserializedDefaultValue;
+            const deserializedDefaultValue = this.typeOptions.defaultValue 
+                ?? this.typeOptions.deserializedDefaultValue;
 
             return isFunction(deserializedDefaultValue) ? deserializedDefaultValue() : deserializedDefaultValue;
         }
@@ -573,20 +575,12 @@ export class TypeMetadata<TType> extends Metadata
      * Configures custom data.
      * 
      * @param {CustomData|undefined} customData Custom data.
-     * @param {boolean} extend Extend existing custom data?
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public hasCustomData(customData: CustomData | undefined, extend: boolean = true): TypeMetadata<TType>
+    public hasCustomData(customData: CustomData | undefined): TypeMetadata<TType>
     {
-        if (extend) 
-        {
-            this.typeOptions.customData = merge(this.typeOptions.customData ?? {}, customData ?? {});
-
-            return this;
-        }
-
-        this.typeOptions.customData = customData;
+        this.typeOptions.customData = merge(this.typeOptions.customData ?? {}, customData ?? {});
 
         return this;
     }
@@ -646,7 +640,7 @@ export class TypeMetadata<TType> extends Metadata
 
         return this;
     }
-
+    
     /**
      * Configures discriminant.
      * 
@@ -876,21 +870,26 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @returns {PropertyMetadata<TType, TPropertyType>} Configured property metadata.
      */
-    public configurePropertyMetadata<TPropertyType>(propertyName: PropertyName, propertyOptions: PropertyOptions<TPropertyType> = {}): PropertyMetadata<TType, TPropertyType>
+    public configurePropertyMetadata<TPropertyType>(propertyName: PropertyName, propertyOptions?: PropertyOptions<TPropertyType>): PropertyMetadata<TType, TPropertyType>
     {
         let propertyMetadata = this.propertyMetadataMap.get(propertyName);
 
         if (isNil(propertyMetadata))
         {
-            propertyMetadata = new PropertyMetadata(this, propertyName, propertyOptions);
+            propertyMetadata = new PropertyMetadata(this, propertyName, propertyOptions ?? {});
 
             this.propertyMetadataMap.set(propertyName, propertyMetadata);
-            this.propertyOptionsMap.set(propertyName, propertyOptions);
+            this.propertyOptionsMap.set(propertyName, propertyMetadata.propertyOptions);
 
             return propertyMetadata;
         }
 
-        return propertyMetadata.configure(propertyOptions);
+        if (!isNil(propertyOptions))
+        {
+            propertyMetadata.configure(propertyOptions);
+        }
+
+        return propertyMetadata;
     }
 
     /**
@@ -901,21 +900,26 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @returns {InjectMetadata<TType, TInjectType>} Configured inject metadata.
      */
-    public configureInjectMetadata<TInjectType>(injectIndex: InjectIndex, injectOptions: InjectOptions<TInjectType> = {}): InjectMetadata<TType, TInjectType>
+    public configureInjectMetadata<TInjectType>(injectIndex: InjectIndex, injectOptions?: InjectOptions<TInjectType>): InjectMetadata<TType, TInjectType>
     {
         let injectMetadata = this.injectMetadataMap.get(injectIndex);
 
         if (isNil(injectMetadata))
         {
-            injectMetadata = new InjectMetadata(this, injectIndex, injectOptions);
+            injectMetadata = new InjectMetadata(this, injectIndex, injectOptions ?? {});
 
             this.injectMetadataMap.set(injectIndex, injectMetadata);
-            this.injectOptionsMap.set(injectIndex, injectOptions);
+            this.injectOptionsMap.set(injectIndex, injectMetadata.injectOptions);
             
             return injectMetadata;
         }
+        
+        if (!isNil(injectOptions))
+        {
+            injectMetadata.configure(injectOptions);
+        }
 
-        return injectMetadata.configure(injectOptions);
+        return injectMetadata;
     }
 
     /**

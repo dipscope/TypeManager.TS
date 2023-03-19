@@ -9,7 +9,7 @@ import { SingletonInjector } from './injectors/singleton-injector';
 import { Log } from './log';
 import { LogLevel } from './log-level';
 import { ReferenceCallback } from './reference-callback';
-import { DefaultReferenceHandler } from './reference-handlers/default-reference-handler';
+import { CircularReferenceHandler } from './reference-handlers/circular-reference-handler';
 import { ReferenceKey } from './reference-key';
 import { ReferenceValue } from './reference-value';
 import { SerializerContext } from './serializer-context';
@@ -50,14 +50,6 @@ import { TypeOptionsBase } from './type-options-base';
 export class TypeManager
 {
     /**
-     * Static type manager instance which is used for decorator based configurations and
-     * static declarative based configurations.
-     *
-     * @type {TypeManager}
-     */
-    public static readonly staticTypeManager: TypeManager = new TypeManager();
-
-    /**
      * Static shared options of any type which applied to any instance of type manager
      * by default.
      * 
@@ -69,7 +61,7 @@ export class TypeManager
         injector: new SingletonInjector(),
         log: new Log(LogLevel.Error),
         preserveDiscriminator: false,
-        referenceHandler: new DefaultReferenceHandler(),
+        referenceHandler: new CircularReferenceHandler(),
         serializer: new TypeSerializer(),
         preserveNull: true,
         useDefaultValue: false,
@@ -105,6 +97,14 @@ export class TypeManager
         [Uint16Array, { serializer: new Uint16ArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
         [Uint32Array, { serializer: new Uint32ArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }]
     ]);
+
+    /**
+     * Static type manager instance which is used for decorator based configurations and
+     * static declarative based configurations.
+     *
+     * @type {TypeManager}
+     */
+    public static readonly staticTypeManager: TypeManager = new TypeManager();
 
     /**
      * Type function map for types with aliases.
@@ -144,6 +144,36 @@ export class TypeManager
         this.configure(typeManagerOptions);
 
         return;
+    }
+
+    /**
+     * Gets type function map in static context.
+     * 
+     * @returns {Map<Alias, TypeFn<any>>} Type function map.
+     */
+    public static get typeFnMap(): Map<Alias, TypeFn<any>>
+    {
+        return this.staticTypeManager.typeFnMap;
+    }
+
+    /**
+     * Gets symbol in static context.
+     * 
+     * @returns {symbol} Type manager symbol.
+     */
+    public static get symbol(): symbol
+    {
+        return this.staticTypeManager.symbol;
+    }
+
+    /**
+     * Gets type manager options in static context.
+     * 
+     * @returns {TypeManagerOptions} Type manager options.
+     */
+    public static get typeManagerOptions(): TypeManagerOptions
+    {
+        return this.staticTypeManager.typeManagerOptions;
     }
 
     /**
@@ -405,13 +435,25 @@ export class TypeManager
     }
 
     /**
+     * Extracts type metadata from provided type function in static context.
+     * 
+     * @param {TypeFn<TType>} typeFn Type function.
+     * 
+     * @returns {TypeMetadata<TType>} Type metadata for provided type function.
+     */
+    public static extractTypeMetadata<TType>(typeFn: TypeFn<TType>): TypeMetadata<TType>
+    {
+        return this.staticTypeManager.extractTypeMetadata(typeFn);
+    }
+
+    /**
      * Extracts type metadata from provided type function.
      * 
      * @param {TypeFn<TType>} typeFn Type function.
      * 
      * @returns {TypeMetadata<TType>} Type metadata for provided type function.
      */
-    private extractTypeMetadata<TType>(typeFn: TypeFn<TType>): TypeMetadata<TType>
+    public extractTypeMetadata<TType>(typeFn: TypeFn<TType>): TypeMetadata<TType>
     {
         const symbol = this.symbol;
         const prototype = typeFn.prototype;
@@ -632,7 +674,7 @@ export class TypeManager
         const typeMetadata = this.extractTypeMetadata(typeFn);
         const genericStructures = isNil(genericArguments) ? undefined : typeMetadata.defineGenericStructures(genericArguments);
         const genericMetadataResolvers = isNil(genericStructures) ? undefined : typeMetadata.defineGenericMetadataResolvers(genericStructures);
-        
+
         return new SerializerContext(x, new Map<ReferenceKey, ReferenceValue>(), new Map<ReferenceKey, Array<ReferenceCallback>>(), 
         {
             jsonPathKey: '$',
@@ -673,7 +715,7 @@ export class TypeManager
     public serialize<TType>(typeFn: TypeFn<TType>, x: TType): any;
     public serialize<TType>(typeFn: TypeFn<TType>, x: TypeLike<TType | Array<TType>>): TypeLike<any>
     {
-        const arrayFn = Array as TypeFn<Array<any>>;
+        const arrayFn = Array as TypeFn<any>;
 
         if (isArray(x) && typeFn !== arrayFn)
         {
@@ -714,7 +756,7 @@ export class TypeManager
     public deserialize<TType>(typeFn: TypeFn<TType>, x: any): TType;
     public deserialize<TType>(typeFn: TypeFn<TType>, x: TypeLike<any>): TypeLike<TType | Array<TType>>
     {
-        const arrayFn = Array as TypeFn<Array<any>>;
+        const arrayFn = Array as TypeFn<any>;
 
         if (isArray(x) && typeFn !== arrayFn)
         {

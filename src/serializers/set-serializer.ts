@@ -37,7 +37,10 @@ export class SetSerializer implements Serializer<Set<any>>
                 const set = x;
                 const array = new Array<any>();
                 const genericSerializerContext = serializerContext.defineGenericSerializerContext(0);
-                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({ jsonPathKey: genericSerializerContext.jsonPathKey });
+
+                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({ 
+                    jsonPathKey: genericSerializerContext.jsonPathKey 
+                });
 
                 let i = -1;
                 
@@ -90,7 +93,10 @@ export class SetSerializer implements Serializer<Set<any>>
                 const array = x;
                 const set = new Set<any>();
                 const genericSerializerContext = serializerContext.defineGenericSerializerContext(0);
-                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({ jsonPathKey: genericSerializerContext.jsonPathKey });
+                
+                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({ 
+                    jsonPathKey: genericSerializerContext.jsonPathKey 
+                });
                 
                 for (let i = 0; i < array.length; i++)
                 {

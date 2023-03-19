@@ -37,8 +37,15 @@ export class TypeSerializer implements Serializer<Record<string, any>>
             return serializerContext.defineReference(x, () =>
             {
                 const type = x as Record<string, any>;
-                const typeSerializerContext = serializerContext.polymorphic ? serializerContext.definePolymorphicSerializerContext(x.constructor) : serializerContext;
-                const propertySerializerContext = typeSerializerContext.defineChildSerializerContext({ jsonPathKey: typeSerializerContext.jsonPathKey });
+
+                const typeSerializerContext = serializerContext.polymorphic 
+                    ? serializerContext.definePolymorphicSerializerContext(x.constructor) 
+                    : serializerContext;
+
+                const propertySerializerContext = typeSerializerContext.defineChildSerializerContext({ 
+                    jsonPathKey: typeSerializerContext.jsonPathKey 
+                });
+
                 const typeMetadata = typeSerializerContext.typeMetadata;
                 const object = {} as Record<string, any>;
 
@@ -120,8 +127,15 @@ export class TypeSerializer implements Serializer<Record<string, any>>
             return serializerContext.restoreReference(x, () =>
             {
                 const object = x as Record<string, any>;
-                const typeSerializerContext = serializerContext.polymorphic ? serializerContext.definePolymorphicSerializerContext(x) : serializerContext;
-                const propertySerializerContext = typeSerializerContext.defineChildSerializerContext({ jsonPathKey: typeSerializerContext.jsonPath });
+
+                const typeSerializerContext = serializerContext.polymorphic 
+                    ? serializerContext.definePolymorphicSerializerContext(x) 
+                    : serializerContext;
+                    
+                const propertySerializerContext = typeSerializerContext.defineChildSerializerContext({ 
+                    jsonPathKey: typeSerializerContext.jsonPath 
+                });
+
                 const typeMetadata = typeSerializerContext.typeMetadata;
                 const typeContext = new TypeContext(typeMetadata);
 

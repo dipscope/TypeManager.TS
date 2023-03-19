@@ -6,12 +6,12 @@ import { ReferenceValueGetter } from '../reference-value-getter';
 import { SerializerContext } from '../serializer-context';
 
 /**
- * Undefined reference handler preserves references except circular. If circular reference is detected the it will 
+ * Plain reference handler preserves references except circular. If circular reference is detected the it will 
  * be setted to undefined so only first occurance is handled.
  * 
- * @type {UndefinedReferenceHandler}
+ * @type {PlainReferenceHandler}
  */
-export class UndefinedReferenceHandler implements ReferenceHandler
+export class PlainReferenceHandler implements ReferenceHandler
 {
     /**
      * Defines reference. Called during serialization.

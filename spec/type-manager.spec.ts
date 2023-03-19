@@ -45,7 +45,7 @@ describe('Type manager', () =>
 {
     afterEach(() =>
     {
-        TypeManager.configureTypeOptionsBase({
+        TypeManager.applyTypeOptionsBase({
             preserveDiscriminator: false,
             useDefaultValue: false,
             useImplicitConversion: false,
@@ -55,12 +55,16 @@ describe('Type manager', () =>
 
     it('should deserialize type when object is provided and vice versa', () =>
     {
-        const messageManager = new TypeManager(Message);
+        const messageManager = new TypeManager();
+
+        messageManager.applyTypeOptionsBase(TypeManager.typeOptionsBase);
+        messageManager.applyTypeOptionsMap(TypeManager.typeOptionsMap);
+
         const baseObject = { body: 'a', label: 'b', user: { username: 'a', email: 'b', description: null, about: 'g', device: 'h' }, groups: [{ title: 'a' }, { title: 'a' }] };
         const baseObjects = [baseObject, baseObject];
-        const entity = messageManager.deserialize(baseObject);
-        const entities = messageManager.deserialize(baseObjects);
-        const nullEntity = messageManager.deserialize(null);
+        const entity = messageManager.deserialize(Message, baseObject);
+        const entities = messageManager.deserialize(Message, baseObjects);
+        const nullEntity = messageManager.deserialize(Message, null);
 
         expect(entity).toBeInstanceOf(Message);
         expect(entity.body).toBe('aa');
@@ -106,9 +110,9 @@ describe('Type manager', () =>
         entities[0]!.user!.about = 'g';
         entities[1]!.user!.about = 'g';
 
-        const object = messageManager.serialize(entity);
-        const objects = messageManager.serialize(entities);
-        const nullObject = messageManager.serialize(null);
+        const object = messageManager.serialize(Message, entity);
+        const objects = messageManager.serialize(Message, entities);
+        const nullObject = messageManager.serialize(Message, null);
 
         expect(object).toBeInstanceOf(Object);
         expect(object.body).toBe('a');
@@ -153,9 +157,13 @@ describe('Type manager', () =>
 
     it('should use base type default value when it is enabled', () =>
     {
-        const groupManager = new TypeManager(Group);
+        const groupManager = new TypeManager();
+
+        groupManager.applyTypeOptionsBase(TypeManager.typeOptionsBase);
+        groupManager.applyTypeOptionsMap(TypeManager.typeOptionsMap);
+
         const baseObject = { title: 'a' };
-        const entity = groupManager.deserialize(baseObject);
+        const entity = groupManager.deserialize(Group, baseObject);
 
         expect(entity).toBeInstanceOf(Group);
         expect(entity.title).toBe('a');
@@ -163,7 +171,7 @@ describe('Type manager', () =>
 
         entity.user = undefined;
 
-        const object = groupManager.serialize(entity);
+        const object = groupManager.serialize(Group, entity);
 
         expect(object).toBeInstanceOf(Object);
         expect(object.title).toBe('a');
@@ -172,10 +180,14 @@ describe('Type manager', () =>
 
     it('should produce the same result for serialization functions', () =>
     {
-        const groupManager = new TypeManager(Group);
+        const groupManager = new TypeManager();
+
+        groupManager.applyTypeOptionsBase(TypeManager.typeOptionsBase);
+        groupManager.applyTypeOptionsMap(TypeManager.typeOptionsMap);
+
         const baseObject = { title: 'a' };
-        const entityA = groupManager.deserialize(baseObject);
-        const entityB = groupManager.parse(groupManager.stringify(baseObject)) as Group;
+        const entityA = groupManager.deserialize(Group, baseObject);
+        const entityB = groupManager.parse(Group, groupManager.stringify(Group, baseObject)) as Group;
         const entityC = TypeManager.deserialize(Group, baseObject);
         const entityD = TypeManager.parse(Group, TypeManager.stringify(Group, baseObject)) as Group;
 
@@ -195,8 +207,8 @@ describe('Type manager', () =>
         expect(entityD.title).toBe('a');
         expect(entityD.user).toBeInstanceOf(User);
 
-        const objectA = groupManager.serialize(entityA);
-        const objectB = groupManager.stringify(entityB);
+        const objectA = groupManager.serialize(Group, entityA);
+        const objectB = groupManager.stringify(Group, entityB);
         const objectC = TypeManager.serialize(Group, entityC);
         const objectD = TypeManager.stringify(Group, entityD);
 
@@ -217,19 +229,22 @@ describe('Type manager', () =>
 
     it('should preserve provided configuration', () =>
     {
-        const groupManager = new TypeManager(Group);
+        const groupManager = new TypeManager();
 
-        groupManager.configureTypeOptionsBase({
+        groupManager.applyTypeOptionsBase(TypeManager.typeOptionsBase);
+        groupManager.applyTypeOptionsMap(TypeManager.typeOptionsMap);
+
+        groupManager.applyTypeOptionsBase({
             preserveDiscriminator: true,
             useImplicitConversion: true,
             discriminator: '__typename__'
         });
 
-        groupManager.configureTypeOptions(Group, {
+        groupManager.applyTypeOptions(Group, {
             deserializedDefaultValue: () => new Group()
         });
 
-        TypeManager.configureTypeOptionsBase({
+        TypeManager.applyTypeOptionsBase({
             preserveDiscriminator: true,
             discriminator: '__typestatic__'
         });
@@ -238,7 +253,7 @@ describe('Type manager', () =>
 
         group.title = 'a';
 
-        const objectA = groupManager.serialize(group);
+        const objectA = groupManager.serialize(Group, group);
         const objectB = TypeManager.serialize(Group, group);
 
         expect(objectA).toBeInstanceOf(Object);
@@ -252,23 +267,28 @@ describe('Type manager', () =>
 
     it('should not override static configuration', () =>
     {
-        const groupManager = new TypeManager(Group);
-        const groupMetadata = TypeManager.extractTypeMetadata(Group);
+        const groupManager = new TypeManager();
 
-        groupManager.configureTypeOptionsBase({
+        groupManager.applyTypeOptionsBase(TypeManager.typeOptionsBase);
+        groupManager.applyTypeOptionsMap(TypeManager.typeOptionsMap);
+
+        const groupMetadata = TypeManager.extractTypeMetadata(Group);
+        const instanceGroupMetadata = groupManager.extractTypeMetadata(Group);
+
+        groupManager.applyTypeOptionsBase({
             preserveDiscriminator: true,
             useImplicitConversion: true,
             discriminator: '__typename__'
         });
 
-        groupManager.configureTypeOptions(Group, {
+        groupManager.applyTypeOptions(Group, {
             deserializedDefaultValue: () => new Group()
         });
 
-        expect(groupManager.typeMetadata.typeOptionsBase.preserveDiscriminator).toBeTrue();
-        expect(groupManager.typeMetadata.typeOptionsBase.useImplicitConversion).toBeTrue();
-        expect(groupManager.typeMetadata.typeOptionsBase.discriminator).toBe('__typename__');
-        expect(groupManager.typeMetadata.typeOptions.deserializedDefaultValue).toBeDefined();
+        expect(instanceGroupMetadata.typeOptionsBase.preserveDiscriminator).toBeTrue();
+        expect(instanceGroupMetadata.typeOptionsBase.useImplicitConversion).toBeTrue();
+        expect(instanceGroupMetadata.typeOptionsBase.discriminator).toBe('__typename__');
+        expect(instanceGroupMetadata.typeOptions.deserializedDefaultValue).toBeDefined();
 
         expect(groupMetadata.typeOptionsBase.preserveDiscriminator).toBeFalse();
         expect(groupMetadata.typeOptionsBase.useImplicitConversion).toBeFalse();

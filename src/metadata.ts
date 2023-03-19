@@ -56,11 +56,11 @@ export class Metadata
     /**
      * Defines type metadata resolver for provided type argument.
      * 
-     * @param {TypeArgument<any>|undefined} typeArgument Type argument.
+     * @param {TypeArgument<any>} typeArgument Type argument.
      * 
      * @returns {TypeMetadataResolver<any>} Defined type metadata resolver.
      */
-    public defineTypeMetadataResolver(typeArgument: TypeArgument<any> | undefined): TypeMetadataResolver<any>
+    public defineTypeMetadataResolver(typeArgument: TypeArgument<any>): TypeMetadataResolver<any>
     {
         if (isNil(typeArgument))
         {

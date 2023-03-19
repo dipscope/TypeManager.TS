@@ -1,4 +1,5 @@
-import { SingletonInjector, Type, TypeFactory, TypeManager, TypeSerializer } from '../src';
+import { AscInjectSorter, DescPropertySorter, SingletonInjector, Type } from '../src';
+import { TypeFactory, TypeManager, TypeSerializer } from '../src';
 
 @Type({
     alias: 'User:Type',
@@ -14,7 +15,9 @@ import { SingletonInjector, Type, TypeFactory, TypeManager, TypeSerializer } fro
     serializer: new TypeSerializer(),
     discriminator: 'UserDiscriminator',
     discriminant: 'UserDiscriminant',
-    preserveDiscriminator: true
+    preserveDiscriminator: true,
+    propertySorter: new DescPropertySorter(),
+    injectSorter: new AscInjectSorter()
 })
 class User
 {
@@ -45,7 +48,9 @@ describe('Type decorator', () =>
         expect(userMetadata.typeOptions.discriminator).toBe('UserDiscriminator');
         expect(userMetadata.typeOptions.discriminant).toBe('UserDiscriminant');
         expect(userMetadata.typeOptions.preserveDiscriminator).toBeTrue();
-
+        expect(userMetadata.typeOptions.propertySorter).toBeInstanceOf(DescPropertySorter);
+        expect(userMetadata.typeOptions.injectSorter).toBeInstanceOf(AscInjectSorter);
+        
         expect(typeFn).toBeDefined();
         expect(typeFn).toBe(userMetadata.typeFn);
     });

@@ -4,7 +4,7 @@ describe('Date serializer', () =>
 {
     afterEach(() =>
     {
-        TypeManager.configureTypeOptionsBase({
+        TypeManager.applyTypeOptionsBase({
             useDefaultValue: false,
             useImplicitConversion: false
         });

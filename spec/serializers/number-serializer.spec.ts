@@ -4,7 +4,7 @@ describe('Number serializer', () =>
 {
     afterEach(() =>
     {
-        TypeManager.configureTypeOptionsBase({
+        TypeManager.applyTypeOptionsBase({
             useDefaultValue: false,
             useImplicitConversion: false
         });
@@ -80,7 +80,7 @@ describe('Number serializer', () =>
 
     it('should serialize suitable types to number when implicit conversion is enabled', () =>
     {
-        TypeManager.configureTypeOptionsBase({ 
+        TypeManager.applyTypeOptionsBase({ 
             useImplicitConversion: true 
         });
 
@@ -96,7 +96,7 @@ describe('Number serializer', () =>
 
     it('should deserialize suitable types to number when implicit conversion is enabled', () =>
     {
-        TypeManager.configureTypeOptionsBase({ 
+        TypeManager.applyTypeOptionsBase({ 
             useImplicitConversion: true 
         });
 

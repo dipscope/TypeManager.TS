@@ -38,8 +38,14 @@ export class MapSerializer implements Serializer<Map<any, any>>
                 const array = new Array<any>(x.keys.length);
                 const genericKeySerializerContext = serializerContext.defineGenericSerializerContext(0);
                 const genericValueSerializerContext = serializerContext.defineGenericSerializerContext(1);
-                const keyArraySerializerContext = genericKeySerializerContext.defineChildSerializerContext({ jsonPathKey: genericKeySerializerContext.jsonPathKey });
-                const valueArraySerializerContext = genericValueSerializerContext.defineChildSerializerContext({ jsonPathKey: genericValueSerializerContext.jsonPathKey });
+
+                const keyArraySerializerContext = genericKeySerializerContext.defineChildSerializerContext({ 
+                    jsonPathKey: genericKeySerializerContext.jsonPathKey 
+                });
+
+                const valueArraySerializerContext = genericValueSerializerContext.defineChildSerializerContext({ 
+                    jsonPathKey: genericValueSerializerContext.jsonPathKey 
+                });
 
                 const keySerializerContext = keyArraySerializerContext.defineChildSerializerContext({
                     jsonPathKey: 'key',
@@ -107,8 +113,14 @@ export class MapSerializer implements Serializer<Map<any, any>>
                 const map = new Map<any, any>();
                 const genericKeySerializerContext = serializerContext.defineGenericSerializerContext(0);
                 const genericValueSerializerContext = serializerContext.defineGenericSerializerContext(1);
-                const keyArraySerializerContext = genericKeySerializerContext.defineChildSerializerContext({ jsonPathKey: genericKeySerializerContext.jsonPathKey });
-                const valueArraySerializerContext = genericValueSerializerContext.defineChildSerializerContext({ jsonPathKey: genericValueSerializerContext.jsonPathKey });
+
+                const keyArraySerializerContext = genericKeySerializerContext.defineChildSerializerContext({ 
+                    jsonPathKey: genericKeySerializerContext.jsonPathKey 
+                });
+                
+                const valueArraySerializerContext = genericValueSerializerContext.defineChildSerializerContext({ 
+                    jsonPathKey: genericValueSerializerContext.jsonPathKey 
+                });
 
                 const keySerializerContext = keyArraySerializerContext.defineChildSerializerContext({
                     jsonPathKey: 'key',

@@ -147,7 +147,8 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     {
         if (this.useDefaultValue)
         {
-            const serializedDefaultValue = this.propertyOptions.defaultValue ?? this.propertyOptions.serializedDefaultValue 
+            const serializedDefaultValue = this.propertyOptions.defaultValue 
+                ?? this.propertyOptions.serializedDefaultValue 
                 ?? this.typeMetadata.serializedDefaultValue;
 
             return isFunction(serializedDefaultValue) ? serializedDefaultValue() : serializedDefaultValue;
@@ -180,7 +181,8 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     {
         if (this.useDefaultValue)
         {
-            const deserializedDefaultValue = this.propertyOptions.defaultValue ?? this.propertyOptions.deserializedDefaultValue 
+            const deserializedDefaultValue = this.propertyOptions.defaultValue 
+                ?? this.propertyOptions.deserializedDefaultValue 
                 ?? this.typeMetadata.deserializedDefaultValue;
 
             return isFunction(deserializedDefaultValue) ? deserializedDefaultValue() : deserializedDefaultValue;
@@ -346,7 +348,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     {
         return this.propertyInternals.typeMetadataResolver;
     }
-    
+
     /**
      * Gets type metadata.
      * 
@@ -438,7 +440,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public hasCustomData(customData: CustomData | undefined): PropertyMetadata<TDeclaringType, TType>
     {
-        this.propertyOptions.customData = merge(this.propertyOptions.customData ?? {}, customData);
+        this.propertyOptions.customData = merge(this.propertyOptions.customData ?? {}, customData ?? {});
 
         return this;
     }

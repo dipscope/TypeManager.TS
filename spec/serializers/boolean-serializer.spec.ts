@@ -4,7 +4,7 @@ describe('Boolean serializer', () =>
 {
     afterEach(() =>
     {
-        TypeManager.configureTypeOptionsBase({
+        TypeManager.applyTypeOptionsBase({
             useDefaultValue: false,
             useImplicitConversion: false
         });
@@ -80,7 +80,7 @@ describe('Boolean serializer', () =>
 
     it('should serialize suitable types to boolean when implicit conversion is enabled', () =>
     {
-        TypeManager.configureTypeOptionsBase({ 
+        TypeManager.applyTypeOptionsBase({ 
             useImplicitConversion: true 
         });
 
@@ -98,7 +98,7 @@ describe('Boolean serializer', () =>
 
     it('should deserialize suitable types to boolean when implicit conversion is enabled', () =>
     {
-        TypeManager.configureTypeOptionsBase({ 
+        TypeManager.applyTypeOptionsBase({ 
             useImplicitConversion: true 
         });
 

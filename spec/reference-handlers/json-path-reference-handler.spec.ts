@@ -1,7 +1,7 @@
-import { PathReferenceHandler, Property, Type, TypeManager } from '../../src';
+import { JsonPathReferenceHandler, Property, Type, TypeManager } from '../../src';
 
 @Type({
-    referenceHandler: new PathReferenceHandler()
+    referenceHandler: new JsonPathReferenceHandler()
 })
 class User
 {
@@ -10,7 +10,7 @@ class User
 }
 
 @Type({
-    referenceHandler: new PathReferenceHandler()
+    referenceHandler: new JsonPathReferenceHandler()
 })
 class Company
 {
@@ -19,7 +19,7 @@ class Company
 }
 
 @Type({
-    referenceHandler: new PathReferenceHandler()
+    referenceHandler: new JsonPathReferenceHandler()
 })
 class Message
 {
@@ -27,7 +27,7 @@ class Message
     @Property(() => Company) public company?: Company;
 }
 
-describe('Path reference handler', () =>
+describe('Json path reference handler', () =>
 {
     it('should map circular types to reference objects', () =>
     {

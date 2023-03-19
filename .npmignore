@@ -1,18 +1,17 @@
-# VS files
+.github
 .vs
 .vscode
-.editorconfig
-.gitattributes
-.gitignore
-.eslintignore
-.eslintrc
-
-# Project files
-dist
 node_modules
 spec
 src
+tsconfig
+.editorconfig
+.eslintignore
+.eslintrc
+.gitattributes
+.gitignore
+CODE_OF_CONDUCT.md
 jasmine.json
+package-lock.json
 tsconfig.json
-tsconfig.webpack.json
 webpack.config.js

@@ -1,5 +1,6 @@
 import { Property, Type, TypeManager } from '../../src';
-import { CamelCaseNamingConvention, SnakeCaseNamingConvention, SnakeUpperCaseNamingConvention } from '../../src';
+import { CamelCaseNamingConvention, SnakeCaseNamingConvention } from '../../src';
+import { SnakeUpperCaseNamingConvention } from '../../src';
 
 @Type({
     namingConvention: new SnakeCaseNamingConvention()

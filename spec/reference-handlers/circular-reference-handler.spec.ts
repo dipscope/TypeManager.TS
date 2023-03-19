@@ -1,7 +1,7 @@
-import { DirectReferenceHandler, Property, Type, TypeManager } from '../../src';
+import { CircularReferenceHandler, Property, Type, TypeManager } from '../../src';
 
 @Type({
-    referenceHandler: new DirectReferenceHandler()
+    referenceHandler: new CircularReferenceHandler()
 })
 class User
 {
@@ -9,7 +9,7 @@ class User
 }
 
 @Type({
-    referenceHandler: new DirectReferenceHandler()
+    referenceHandler: new CircularReferenceHandler()
 })
 class Company
 {
@@ -18,14 +18,14 @@ class Company
 }
 
 @Type({
-    referenceHandler: new DirectReferenceHandler()
+    referenceHandler: new CircularReferenceHandler()
 })
 class Message
 {
     @Property(() => User) public user?: User;
 }
 
-describe('Direct reference handler', () =>
+describe('Circular reference handler', () =>
 {
     it('should map circular types to circular objects', () =>
     {

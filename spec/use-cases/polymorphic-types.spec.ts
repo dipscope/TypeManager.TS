@@ -62,14 +62,14 @@ describe('Polymorphic types', () =>
 {
     afterEach(() =>
     {
-        TypeManager.configureTypeOptionsBase({ 
+        TypeManager.applyTypeOptionsBase({ 
             preserveDiscriminator: false 
         });
     });
 
     it('should be properly serialized', () =>
     {
-        TypeManager.configureTypeOptionsBase({ 
+        TypeManager.applyTypeOptionsBase({ 
             preserveDiscriminator: true 
         });
 
@@ -102,7 +102,7 @@ describe('Polymorphic types', () =>
 
     it('should be properly deserialized', () =>
     {
-        TypeManager.configureTypeOptionsBase({ 
+        TypeManager.applyTypeOptionsBase({ 
             preserveDiscriminator: true 
         });
 

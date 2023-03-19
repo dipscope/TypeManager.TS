@@ -1,7 +1,7 @@
-import { LeadReferenceHandler, Property, Type, TypeManager } from '../../src';
+import { PlainReferenceHandler, Property, Type, TypeManager } from '../../src';
 
 @Type({
-    referenceHandler: new LeadReferenceHandler()
+    referenceHandler: new PlainReferenceHandler()
 })
 class User
 {
@@ -9,7 +9,7 @@ class User
 }
 
 @Type({
-    referenceHandler: new LeadReferenceHandler()
+    referenceHandler: new PlainReferenceHandler()
 })
 class Company
 {
@@ -18,14 +18,14 @@ class Company
 }
 
 @Type({
-    referenceHandler: new LeadReferenceHandler()
+    referenceHandler: new PlainReferenceHandler()
 })
 class Message
 {
     @Property(() => User) public user?: User;
 }
 
-describe('Lead reference handler', () =>
+describe('Plain reference handler', () =>
 {
     it('should map circular types to undefined', () =>
     {

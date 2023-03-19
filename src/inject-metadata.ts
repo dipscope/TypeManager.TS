@@ -7,6 +7,7 @@ import { InjectOptions } from './inject-options';
 import { Metadata } from './metadata';
 import { TypeFn } from './type-fn';
 import { TypeMetadata } from './type-metadata';
+import { TypeMetadataResolver } from './type-metadata-resolver';
 
 /**
  * Main class used to describe an injection.
@@ -21,15 +22,6 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
      * @type {TypeMetadata<TDeclaringType>}
      */
     public readonly declaringTypeMetadata: TypeMetadata<TDeclaringType>;
-
-    /**
-     * Type function defined using reflect metadata.
-     * 
-     * Used as a fallback when type function is not defined.
-     * 
-     * @type {TypeFn<TType>}
-     */
-    public readonly reflectTypeFn: TypeFn<TType>;
 
     /**
      * Index of injection within a type constructor function.
@@ -51,6 +43,15 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
      * @type {InjectInternals<TType>}
      */
     public readonly injectInternals: InjectInternals<TType>;
+
+    /**
+     * Type function defined using reflect metadata.
+     * 
+     * Used as a fallback when type function is not defined.
+     * 
+     * @type {TypeFn<TType>}
+     */
+    public readonly reflectTypeFn?: TypeFn<TType>;
 
     /**
      * Constructor.
@@ -77,7 +78,7 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
 
         return;
     }
-    
+
     /**
      * Gets key.
      * 
@@ -99,13 +100,23 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
     }
 
     /**
+     * Gets type metadata resolver.
+     * 
+     * @returns {TypeMetadataResolver<TType>} Type metadata resolver.
+     */
+    public get typeMetadataResolver(): TypeMetadataResolver<TType>
+    {
+        return this.injectInternals.typeMetadataResolver;
+    }
+
+    /**
      * Gets inject type metadata.
      * 
      * @returns {TypeMetadata<TType>} Type metadata.
      */
     public get typeMetadata(): TypeMetadata<TType>
     {
-        const typeMetadata = this.injectInternals.typeMetadataResolver(this.typeFn);
+        const typeMetadata = this.typeMetadataResolver(this.typeFn);
         const anyFn = Any as TypeFn<any>;
 
         if (typeMetadata.typeFn === anyFn)
@@ -172,7 +183,7 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
         
         return this;
     }
-
+    
     /**
      * Configures inject metadata based on provided options.
      * 

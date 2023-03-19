@@ -6,11 +6,11 @@ import { ReferenceValueGetter } from '../reference-value-getter';
 import { SerializerContext } from '../serializer-context';
 
 /**
- * Default reference handler which preserves references as is.
+ * Circular reference handler which preserves references as is even if the circular is detected.
  * 
- * @type {DefaultReferenceHandler}
+ * @type {CircularReferenceHandler}
  */
-export class DefaultReferenceHandler implements ReferenceHandler
+export class CircularReferenceHandler implements ReferenceHandler
 {
     /**
      * Defines reference. Called during serialization.

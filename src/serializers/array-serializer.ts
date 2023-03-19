@@ -37,7 +37,10 @@ export class ArraySerializer implements Serializer<Array<any>>
                 const arrayInput = x;
                 const arrayOutput = new Array<any>(x.length);
                 const genericSerializerContext = serializerContext.defineGenericSerializerContext(0);
-                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({ jsonPathKey: genericSerializerContext.jsonPathKey });
+                
+                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({ 
+                    jsonPathKey: genericSerializerContext.jsonPathKey 
+                });
 
                 for (let i = 0; i < arrayInput.length; i++)
                 {
@@ -86,7 +89,10 @@ export class ArraySerializer implements Serializer<Array<any>>
                 const arrayInput = x;
                 const arrayOutput = new Array<any>(x.length);
                 const genericSerializerContext = serializerContext.defineGenericSerializerContext(0);
-                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({ jsonPathKey: genericSerializerContext.jsonPathKey });
+
+                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({ 
+                    jsonPathKey: genericSerializerContext.jsonPathKey 
+                });
                 
                 for (let i = 0; i < arrayInput.length; i++)
                 {
