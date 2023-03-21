@@ -52,7 +52,6 @@ If you are going to contribute make sure that all tests are passed by running `n
 ## Deployment
 
 This project representing a library and can be built by running `npm run build` command. All compiled production files will be available under `dist` folder.
-If you have rights to publish. Make sure you switched to `dist` folder before publishing the package.
 
 ## Notes
 

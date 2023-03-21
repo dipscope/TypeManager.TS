@@ -5,7 +5,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-<!-- 
 ## [6.0.0] - 2023-**-**
 
 ### Added
@@ -14,18 +13,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Property metadata sorters.
 - Inject metadata sorters.
 - Stable json stringify and parse functions.
-- Any type serializer.
+- Any and unknown type serializers.
+- Modules support.
 - Performance improvements.
-- JSON.NET reference handler.
 
 ### Changed
 
-- Allow serialization without spicify concrete type serializers.
+- If property type argument is not configured then no error will be thrown and property will be serialized as unknown.
+- Weak reference maps changed to regular maps to allow more extension points.
+- Reference handler names to be more self descriptive.
 
 ### Migrating from previous version
 
 - Replace old declarative configuration calls with newly introduced fluent api.
--->
+- You can still use raw declarative api through the options by adapting method calls.
 
 ## [5.0.0] - 2022-07-31
 

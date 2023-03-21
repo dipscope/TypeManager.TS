@@ -1,5 +1,4 @@
 import { isUndefined } from 'lodash';
-import { Any } from './any';
 import { getOwnReflectMetadata } from './functions/get-own-reflect-metadata';
 import { InjectIndex } from './inject-index';
 import { InjectInternals } from './inject-internals';
@@ -8,6 +7,7 @@ import { Metadata } from './metadata';
 import { TypeFn } from './type-fn';
 import { TypeMetadata } from './type-metadata';
 import { TypeMetadataResolver } from './type-metadata-resolver';
+import { Unknown } from './unknown';
 
 /**
  * Main class used to describe an injection.
@@ -117,9 +117,9 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
     public get typeMetadata(): TypeMetadata<TType>
     {
         const typeMetadata = this.typeMetadataResolver(this.typeFn);
-        const anyFn = Any as TypeFn<any>;
+        const unknownFn = Unknown as TypeFn<any>;
 
-        if (typeMetadata.typeFn === anyFn)
+        if (typeMetadata.typeFn === unknownFn)
         {
             throw new Error(`${this.declaringTypeMetadata.typeName}[${this.injectIndex}]: cannot resolve constructor injection type metadata. This is usually caused by invalid configuration.`);
         }

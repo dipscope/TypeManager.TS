@@ -63,3 +63,4 @@ export * from './type-options-base';
 export * from './type-options';
 export * from './type-resolver';
 export * from './type';
+export * from './unknown';

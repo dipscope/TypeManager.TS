@@ -33,6 +33,7 @@ import { Uint16ArraySerializer } from './serializers/uint-16-array-serializer';
 import { Uint32ArraySerializer } from './serializers/uint-32-array-serializer';
 import { Uint8ArraySerializer } from './serializers/uint-8-array-serializer';
 import { Uint8ClampedArraySerializer } from './serializers/uint-8-clamped-array-serializer';
+import { UnknownSerializer } from './serializers/unknown-serializer';
 import { TypeConfiguration } from './type-configuration';
 import { TypeFn } from './type-fn';
 import { TypeLike } from './type-like';
@@ -41,6 +42,7 @@ import { TypeMetadata } from './type-metadata';
 import { typeMetadataSymbol } from './type-metadata-symbol';
 import { TypeOptions } from './type-options';
 import { TypeOptionsBase } from './type-options-base';
+import { Unknown } from './unknown';
 
 /**
  * Type manager class.
@@ -95,7 +97,8 @@ export class TypeManager
         [Uint8Array, { serializer: new Uint8ArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
         [Uint8ClampedArray, { serializer: new Uint8ClampedArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
         [Uint16Array, { serializer: new Uint16ArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
-        [Uint32Array, { serializer: new Uint32ArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }]
+        [Uint32Array, { serializer: new Uint32ArraySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
+        [Unknown, { serializer: new UnknownSerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }]
     ]);
 
     /**

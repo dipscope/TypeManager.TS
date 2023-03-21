@@ -1,6 +1,5 @@
 import { isArray, isNil, isString } from 'lodash';
 import { Alias } from './alias';
-import { Any } from './any';
 import { isArrowFunction } from './functions/is-arrow-function';
 import { GenericArgument } from './generic-argument';
 import { GenericMetadata } from './generic-metadata';
@@ -12,6 +11,7 @@ import { TypeMetadata } from './type-metadata';
 import { TypeMetadataExtractor } from './type-metadata-extractor';
 import { TypeMetadataResolver } from './type-metadata-resolver';
 import { TypeResolver } from './type-resolver';
+import { Unknown } from './unknown';
 
 /**
  * Metadata class.
@@ -64,7 +64,7 @@ export class Metadata
     {
         if (isNil(typeArgument))
         {
-            return this.resolveTypeMetadataUsingAnyTypeFn.bind(this);
+            return this.resolveTypeMetadataUsingUnknownTypeFn.bind(this);
         }
 
         if (isString(typeArgument))
@@ -81,14 +81,14 @@ export class Metadata
     }
 
     /**
-     * Resolves type metadata using any type function.
+     * Resolves type metadata using unknown type function.
      * 
-     * @returns {TypeMetadata<any>} Type metadata resolved using any type function.
+     * @returns {TypeMetadata<any>} Type metadata resolved using unknown type function.
      */
-    private resolveTypeMetadataUsingAnyTypeFn(): TypeMetadata<any>
+    private resolveTypeMetadataUsingUnknownTypeFn(): TypeMetadata<any>
     {
-        const typeFn = Any as TypeFn<any>;
-
+        const typeFn = Unknown as TypeFn<any>;
+        
         return this.typeMetadataExtractor(typeFn);
     }
 

@@ -18,3 +18,4 @@ export * from './uint-8-array-serializer';
 export * from './uint-8-clamped-array-serializer';
 export * from './uint-16-array-serializer';
 export * from './uint-32-array-serializer';
+export * from './unknown-serializer';

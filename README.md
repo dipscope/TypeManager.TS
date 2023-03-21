@@ -207,7 +207,7 @@ Here we have a `User` class with `Type` and `Property` decorators assigned to it
 The same configuration can be rewritten using declarative style.
 
 ```typescript
-import { TypeManager, PropertyName, PropertyOptions } from '@dipscope/type-manager';
+import { TypeManager, TypeMetadata, TypeConfiguration } from '@dipscope/type-manager';
 
 export class User
 {
@@ -215,15 +215,24 @@ export class User
     public email: string;
 }
 
-TypeManager.configureTypeOptions(User, {
-    propertyOptionsMap: new Map<PropertyName, PropertyOptions<any>>([
-        ['name', { typeArgument: String }],
-        ['email', { typeArgument: String }],
-    ])
-});
+export class UserConfiguration implements TypeConfiguration<User>
+{
+    public configure(typeMetadata: TypeMetadata<User>): void 
+    {
+        typeMetadata.configurePropertyMetadata('name')
+            .hasTypeArgument(String);
+
+        typeMetadata.configurePropertyMetadata('email')
+            .hasTypeArgument(String);
+
+        return;    
+    }
+}
+
+TypeManager.applyTypeConfiguration(User, new UserConfiguration());
 ```
 
-As you can see now our `User` class defined without decorators. Instead you have to call `TypeManager` configure method and provide `TypeOptions` related to `User` type.
+As you can see now our `User` class defined without decorators. Instead you have to call `TypeManager` method and provide `TypeConfiguration` related to `User` type.
 
 No matter what style of configuration you have chosen the next step is to call serialize methods of `TypeManager` with providing a type and data you want to process.
 
@@ -254,14 +263,14 @@ Static functions are not the only way to work with a `TypeManager`. You can also
 ```typescript
 import { TypeManager } from '@dipscope/type-manager';
 
-const userManager = new TypeManager(User);
-const userObject = userManager.serialize(new User());
-const user = userManager.deserialize(userObject);
+const typeManager = new TypeManager();
+const userObject = userManager.serialize(User, new User());
+const user = userManager.deserialize(User, userObject);
 
 user instanceof User; // True.
 ```
 
-At first glance, it may seems that there is no difference but creating an instance of `TypeManager` preserves a configuration state. You can work with different configurations at the same time by providing type manager options as a second optional constructor argument. If it is not required then it is better to use static methods. They are not invoking state control which results in better performance.
+At first glance, it may seems that there is no difference but creating an instance of `TypeManager` preserves a configuration state. You can work with different configurations at the same time and have different serialization groups. By default all decorator based configurations and static calls are applied to the singleton type manager instance which is automatically created under the hood.
 
 ## Defining decorators
 
@@ -315,7 +324,7 @@ export class User
 }
 ```
 
-This will register a `name` property for a `User`. Each property has a type associated with it. In our case this is a `String`. By default if no configure options are provided decorator will try to resolve a property type using [reflect-metadata](https://github.com/rbuckton/reflect-metadata). If you are not using reflect metadata then such configuration will result a property type to be `unknown` and you will get an error during serialization. For such a case you have to explicitly define a property type.
+This will register a `name` property for a `User`. Each property has a type associated with it. In our case this is a `String`. By default if no configure options are provided decorator will try to resolve a property type using [reflect-metadata](https://github.com/rbuckton/reflect-metadata). If you are not using reflect metadata then such configuration will result a property type to be `unknown` and it will result in direct serialization. For such a case you have to explicitly define a property type.
 
 ```typescript
 import { Type, Property } from '@dipscope/type-manager';
@@ -438,7 +447,7 @@ export class UserStatus
 @Type()
 export class User
 {
-    @Property([UserStatus]) public userStatuses: UserStatus[];
+    @Property([UserStatus]) public userStatuses: Array<UserStatus>;
 }
 ```
 
@@ -474,7 +483,7 @@ export class UserStatus
 @Type()
 export class User
 {
-    @Property(Array, [UserStatus]) public userStatuses: UserStatus[];
+    @Property(Array, [UserStatus]) public userStatuses: Array<UserStatus>;
 }
 ```
 
@@ -706,7 +715,7 @@ This will affect both serialized and deserialized default value. This will fit p
 import { Type, Property } from '@dipscope/type-manager';
 
 @Type({
-    serializedDefaultValue: () => new User(),
+    serializedDefaultValue: () => {},
     deserializedDefaultValue: () => new User()
 })
 export class User
@@ -984,7 +993,7 @@ With this any value which can be converted to `String` will be converted properl
 
 ## Defining configuration manually
 
-There are circumstances when decorators cannot be used or you don't want to. For example you are using a 3rd party package and cannot decorate classes from it. Another use case when you want to configure some options globally. In such scenarios you can define the complete configuration through special static configure methods.
+There are circumstances when decorators cannot be used or you don't want to. For example you are using a 3rd party package and cannot decorate classes from it. Another use case when you want to configure some options globally. In such scenarios you can define the complete configuration through special configure methods.
 
 We have separate methods to configure each type manager option, so the provided examples can be simplified to avoid creating additional object. It is useful when you need to configure only one option. In our examples we are always use the main one to give you a general overview.
 
@@ -1010,33 +1019,44 @@ For the full list of available global options check `TypeOptionsBase` definition
 
 ### Configuring options per type
 
-Here is an example of declarative configuration which can be used for 3rd party or your own classes in addition to decorators.
+Here is an example of declarative configuration which can be used for 3rd party or your own classes. Basically you have exact same options as with decorators but configuration is done using method calls.
 
 ```typescript
 import { DateTime } from '@external-library';
-import { TypeManagerOptions, TypeFn, TypeOptions, PropertyName, PropertyOptions } from '@dipscope/type-manager';
+import { TypeConfiguration, TypeMetadata, TypeManager } from '@dipscope/type-manager';
 
-const dateTimeOptions: TypeOptions<DateTime> = {
-    alias: 'DateTime',
-    serializer: new DateTimeSerializer()
-};
+export class DateTimeConfiguration implements TypeConfiguration<DateTime>
+{
+    public configure(typeMetadata: TypeMetadata<DateTime>): void
+    {
+        typeMetadata.hasAlias('DateTime')
+            .hasSerializer(new DateTimeSerializer());
 
-const userOptions: TypeOptions<User> = {
-    alias: 'User',
-    propertyOptionsMap: new Map<PropertyName, PropertyOptions<any>>(
-        ['name', { typeArgument: String, serializable: true, alias: 'username' }],
-        ['createdAt', { typeArgument: DateTime }]
-    )
-};
+        return;
+    }
+}
 
-const typeManagerOptions: TypeManagerOptions = {
-    typeOptionsMap: new Map<TypeFn<any>, TypeOptions<any>>(
-        [DateTime, dateTimeOptions],
-        [User, userOptions]
-    )
-};
+export class UserConfiguration implements TypeConfiguration<User>
+{
+    public configure(typeMetadata: TypeMetadata<User>): void
+    {
+        typeMetadata.hasAlias('User')
+            .hasSerializer(new DateTimeSerializer());
 
-TypeManager.configure(typeManagerOptions);
+        typeMetadata.configurePropertyMetadata('name')
+            .isSerializable()
+            .hasAlias('username')
+            .hasTypeArgument(String);
+
+        typeMetadata.configurePropertyMetadata('createdAt')
+            .hasTypeArgument(DateTime);
+
+        return;
+    }
+}
+
+TypeManager.applyTypeConfiguration(DateTime, new DateTimeConfiguration())
+    applyTypeConfiguration(User, new UserConfiguration());
 ```
 
 There is a well defined order to how type options are applied when using configure methods on one type. One should remember this when combining and overriding options in different places.
@@ -1046,7 +1066,7 @@ There is a well defined order to how type options are applied when using configu
 3. Declarative type options are applied;
 4. Property type options are applied;
 
-Declarative configuration supports the same options as decorators. With such a configuration you can declare types like the following.
+With declarative configuration you can declare types like the following and keep metadata in another place.
 
 ```typescript
 export class User
@@ -1422,11 +1442,11 @@ Now all property names will be converted to snake case while reading them from J
 
 ### Configuring reference handler
 
-Reference handler defines how references to the same objects including a circular one should be treated. We have several reference handlers: direct, lead and path. Each of them can be used globally or per type.
+Reference handler defines how references to the same objects including a circular one should be treated. We have several reference handlers: circular, json path and plain. Each of them can be used globally or per type.
 
-* Direct reference handler preserves object references without making any special changes;
-* Path reference handler preserves object references using JSONPath notation;
-* Lead reference handler preserves object references excluding a circular one. When circular reference is detected it will be set to undefined;
+* Circular reference handler preserves object references without making any special changes;
+* Json path reference handler preserves object references using JSONPath notation;
+* Plain reference handler preserves object references excluding a circular one. When circular reference is detected it will be set to undefined;
 
 There is nothing better to show the difference than code. For example we have two classes which reference each other:
 
@@ -1463,23 +1483,23 @@ const result = TypeManager.serialize(User, user);
 Here are results returned by different reference handlers:
 
 ```typescript
-// Direct reference handler...
+// Circular reference handler...
 { company: { user: result } };
 
-// Path reference handler...
+// Json path reference handler...
 { company: { user: { $ref: '$' } } };
 
-// Lead reference handler...
+// Plain reference handler...
 { company: { user: undefined };
 ```
 
-As you can see `DirectReferenceHandler` does not make changes to your data and completely fine until you have to convert circular reference structure to a string. `JSON.stringify` method which we are using under the hood does not support such conversions so you will encounter an error. In this case you can select another reference handler. For example `PathReferenceHandler` which produces JSON string using JSONPath format for circular references supported by many libraries. Or you can simply ignore circular reference when it should be converted to a string and use `LeadReferenceHandler`. To change default reference handler you have to use `TypeManager` configure methods.
+As you can see `CircularReferenceHandler` does not make changes to your data and completely fine until you have to convert circular reference structure to a string. `JSON.stringify` method which we are using under the hood does not support such conversions so you will encounter an error. In this case you can select another reference handler. For example `JsonPathReferenceHandler` which produces JSON string using JSONPath format for circular references supported by many libraries. Or you can simply ignore circular reference when it should be converted to a string and use `PlainReferenceHandler`. To change default reference handler you have to use `TypeManager` configure methods.
 
 ```typescript
-import { TypeManagerOptions, TypeOptionsBase, PathReferenceHandler } from '@dipscope/type-manager';
+import { TypeManagerOptions, TypeOptionsBase, JsonPathReferenceHandler } from '@dipscope/type-manager';
 
 const typeOptionsBase: TypeOptionsBase<any> = {
-    referenceHandler: new PathReferenceHandler()
+    referenceHandler: new JsonPathReferenceHandler()
 };
 
 const typeManagerOptions: TypeManagerOptions = {
@@ -1612,12 +1632,20 @@ export class DateTime
 Or declarative configuration.
 
 ```typescript
-import { TypeManager } from '@dipscope/type-manager';
+import { TypeManager, TypeConfiguration, TypeMetadata } from '@dipscope/type-manager';
 
-TypeManager.configureTypeOptions(DateTime, {
-    alias: 'DateTime',
-    serializer: new DateTimeSerializer()
-});
+export class DateTimeConfiguration implements TypeConfiguration<DateTime>
+{
+    public configure(typeMetadata: TypeMetadata<DateTime>): void
+    {
+        typeMetadata.hasAlias('DateTime')
+            .hasSerializer(new DateTimeSerializer());
+
+        return;
+    }
+}
+
+TypeManager.applyTypeConfiguration(DateTime, new DateTimeConfiguration());
 ```
 
 With declarative configuration it is possible to override built in serializers if it's behaviour not suitable for your use cases. Also you can register serializers for types we not yet cover.
@@ -1656,7 +1684,7 @@ import { Injector as AngularInjector } from '@angular/core';
 
 const angularInjector: AngularInjector = ...; // Get framework injector in core module for example.
 
-TypeManager.configureTypeOptionsBase({
+TypeManager.applyTypeOptionsBase({
     injector: new CustomInjector(angularInjector)
 });
 ```
@@ -1713,13 +1741,13 @@ Or declarative configuration.
 import { TypeManager } from '@dipscope/type-manager';
 
 // Overriding only for user type.
-TypeManager.configureTypeOptions(User, {
+TypeManager.applyTypeOptions(User, {
     customData: { rank: 1 },
     factory: new CustomTypeFactory()
 });
 
 // Overriding for any type.
-TypeManager.configureTypeOptionsBase({
+TypeManager.applyTypeOptionsBase({
     factory: new CustomTypeFactory()
 });
 ```
@@ -1762,7 +1790,7 @@ Public `convert` method receives a property name as it declared in a class. You 
 ```typescript
 import { TypeManager } from '@dipscope/type-manager';
 
-TypeManager.configureTypeOptionsBase({
+TypeManager.applyTypeOptionsBase({
     namingConvention: new CamelCaseNamingConvention()
 });
 ```
@@ -1777,6 +1805,7 @@ This section describes certain use cases to separate them from the main document
 
 Here is a list of types with built in serializers. 
 
+* Any;
 * Array;
 * ArrayBuffer;
 * Boolean;
@@ -1795,6 +1824,7 @@ Here is a list of types with built in serializers.
 * Uint8ClampedArray;
 * Uint16Array;
 * Uint32Array;
+* Unknown;
 
 For these you don't have to do anything to make them work. You are free to [create a custom serializer](#defining-custom-serializer) or override built in one if it does not cover your use case.
 
