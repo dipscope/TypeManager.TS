@@ -1056,7 +1056,7 @@ export class UserConfiguration implements TypeConfiguration<User>
 }
 
 TypeManager.applyTypeConfiguration(DateTime, new DateTimeConfiguration())
-    applyTypeConfiguration(User, new UserConfiguration());
+    .applyTypeConfiguration(User, new UserConfiguration());
 ```
 
 There is a well defined order to how type options are applied when using configure methods on one type. One should remember this when combining and overriding options in different places.
@@ -1144,7 +1144,7 @@ import { Type, Property } from '@dipscope/type-manager';
 @Type()
 export class Plot
 {
-    @Property(Array, [Shape]) public shapes: Shape[];
+    @Property(Array, [Shape]) public shapes: Array<Shape>;
 }
 ```
 
