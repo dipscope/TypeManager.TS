@@ -910,14 +910,14 @@ By default null values are preserved. You can set it to `false` per type, proper
 This option can be used both on type and property to specify how references to the same objects should be handled during serialization and deserialization.
 
 ```typescript
-import { Type, Property, DirectReferenceHandler, LeadReferenceHandler } from '@dipscope/type-manager';
+import { Type, Property, CircularReferenceHandler, PlainReferenceHandler } from '@dipscope/type-manager';
 
 @Type({
-    referenceHandler: new DirectReferenceHandler()
+    referenceHandler: new CircularReferenceHandler()
 })
 export class User
 {
-    @Property(String, { referenceHandler: new LeadReferenceHandler() }) public name: string;
+    @Property(String, { referenceHandler: new PlainReferenceHandler() }) public name: string;
 }
 ```
 
