@@ -80,6 +80,16 @@ export class TypeContext<TType>
     }
     
     /**
+     * Gets iterable for keys inside the context.
+     * 
+     * @returns {IterableIterator<string>} Iterable for keys inside the context.
+     */
+    public keys(): IterableIterator<string>
+    {
+        return this.typeContextEntryMap.keys();
+    }
+
+    /**
      * Gets iterable for values inside the context.
      * 
      * @returns {IterableIterator<TypeContextEntry<TType, any>>} Iterable for values inside the context.
@@ -87,5 +97,15 @@ export class TypeContext<TType>
     public values(): IterableIterator<TypeContextEntry<TType, any>>
     {
         return this.typeContextEntryMap.values();
+    }
+
+    /**
+     * Gets iterable for entries inside the context.
+     * 
+     * @returns {IterableIterator<[string, TypeContextEntry<TType, any>]>} Iterable for entries inside the context.
+     */
+    public entries(): IterableIterator<[string, TypeContextEntry<TType, any>]>
+    {
+        return this.typeContextEntryMap.entries();
     }
 }

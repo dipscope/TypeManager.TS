@@ -1,5 +1,5 @@
 import { Alias } from './alias';
-import { CustomData } from './custom-data';
+import { CustomOptions } from './custom-options';
 import { DefaultValue } from './default-value';
 import { GenericArgument } from './generic-argument';
 import { NamingConvention } from './naming-convention';
@@ -24,11 +24,11 @@ export type PropertyOptions<TType> =
     alias?: Alias;
 
     /**
-     * Custom developer data.
+     * Custom options defined by developer.
      * 
-     * @type {CustomData}
+     * @type {CustomOptions}
      */
-    customData?: CustomData;
+    customOptions?: CustomOptions;
 
     /**
      * Default value for undefined ones.

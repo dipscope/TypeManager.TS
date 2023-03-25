@@ -1,6 +1,9 @@
-import { isFunction, isNil, isUndefined, merge } from 'lodash';
+import { isFunction, isNil, isUndefined } from 'lodash';
 import { Alias } from './alias';
-import { CustomData } from './custom-data';
+import { CustomContext } from './custom-context';
+import { CustomKey } from './custom-key';
+import { CustomOptions } from './custom-options';
+import { CustomValue } from './custom-value';
 import { DefaultValue } from './default-value';
 import { getReflectMetadata } from './functions/get-reflect-metadata';
 import { GenericArgument } from './generic-argument';
@@ -50,9 +53,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Property internals.
      * 
-     * @type {PropertyInternals<TType>}
+     * @type {PropertyInternals}
      */
-    public readonly propertyInternals: PropertyInternals<TType>;
+    public readonly propertyInternals: PropertyInternals;
 
     /**
      * Type function defined using reflect metadata.
@@ -72,18 +75,18 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public constructor(
         declaringTypeMetadata: TypeMetadata<TDeclaringType>, 
-        propertyName: PropertyName, 
+        propertyName: PropertyName,
         propertyOptions: PropertyOptions<TType>
     )
     {
-        super(declaringTypeMetadata.typeMetadataExtractor, declaringTypeMetadata.typeFnMap);
-        
+        super(declaringTypeMetadata.typeManager);
+
         this.declaringTypeMetadata = declaringTypeMetadata;
         this.propertyName = propertyName;
         this.reflectTypeFn = getReflectMetadata('design:type', declaringTypeMetadata.typeFn.prototype, propertyName);
         this.propertyOptions = this.constructPropertyOptions(propertyOptions);
         this.propertyInternals = this.constructPropertyInternals();
-
+        
         this.configure(propertyOptions);
 
         return;
@@ -100,27 +103,33 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     }
 
     /**
-     * Gets custom data.
+     * Gets custom options.
      * 
-     * @returns {CustomData} Custom data.
+     * @returns {CustomOptions} Custom options.
      */
-    public get customData(): CustomData
+    public get customOptions(): CustomOptions | undefined
     {
-        const customData = {};
-        const typeCustomData = this.typeMetadata.customData;
-        const propertyCustomData = this.propertyOptions.customData;
+        return this.propertyOptions.customOptions;
+    }
+    
+    /**
+     * Gets custom context.
+     * 
+     * @returns {CustomContext} Custom context.
+     */
+    public get customContext(): CustomContext
+    {
+        let customContext = this.propertyInternals.customContext;
 
-        if (!isNil(typeCustomData))
+        if (isNil(customContext))
         {
-            merge(customData, typeCustomData);
+            this.propertyOptions.customOptions = new Array<[CustomKey<any>, CustomValue]>();
+            this.propertyInternals.customContext = new CustomContext(this.propertyOptions.customOptions);
+
+            customContext = this.propertyInternals.customContext;
         }
 
-        if (!isNil(propertyCustomData))
-        {
-            merge(customData, propertyCustomData);
-        }
-
-        return customData;
+        return customContext;
     }
 
     /**
@@ -407,12 +416,14 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Constructs property internals.
      * 
-     * @returns {PropertyInternals<TType>} Property internals.
+     * @returns {PropertyInternals} Constructed property internals.
      */
-    private constructPropertyInternals(): PropertyInternals<TType>
+    private constructPropertyInternals(): PropertyInternals
     {
         const typeMetadataResolver = this.defineTypeMetadataResolver(this.propertyOptions.typeArgument);
-        const propertyInternals = { typeMetadataResolver: typeMetadataResolver };
+        const customOptions = this.propertyOptions.customOptions;
+        const customContext = isNil(customOptions) ? undefined : new CustomContext(customOptions);
+        const propertyInternals = { typeMetadataResolver: typeMetadataResolver, customContext: customContext };
 
         return propertyInternals;
     }
@@ -432,15 +443,18 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     }
 
     /**
-     * Configures custom data.
+     * Configures custom options.
      * 
-     * @param {CustomData|undefined} customData Custom data.
+     * @param {CustomOptions|undefined} customOptions Custom options.
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    public hasCustomData(customData: CustomData | undefined): PropertyMetadata<TDeclaringType, TType>
+    private hasCustomOptions(customOptions: CustomOptions | undefined): PropertyMetadata<TDeclaringType, TType>
     {
-        this.propertyOptions.customData = merge(this.propertyOptions.customData ?? {}, customData ?? {});
+        if (!isNil(customOptions))
+        {
+            this.customContext.configure(customOptions);
+        }
 
         return this;
     }
@@ -655,9 +669,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
             this.hasAlias(propertyOptions.alias);
         }
 
-        if (!isUndefined(propertyOptions.customData))
+        if (!isUndefined(propertyOptions.customOptions))
         {
-            this.hasCustomData(propertyOptions.customData);
+            this.hasCustomOptions(propertyOptions.customOptions);
         }
 
         if (!isUndefined(propertyOptions.defaultValue))

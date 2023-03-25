@@ -1,6 +1,9 @@
-import { isFunction, isNil, isUndefined, merge } from 'lodash';
+import { isFunction, isNil, isUndefined } from 'lodash';
 import { Alias } from './alias';
-import { CustomData } from './custom-data';
+import { CustomContext } from './custom-context';
+import { CustomKey } from './custom-key';
+import { CustomOptions } from './custom-options';
+import { CustomValue } from './custom-value';
 import { DefaultValue } from './default-value';
 import { Discriminant } from './discriminant';
 import { Discriminator } from './discriminator';
@@ -22,7 +25,8 @@ import { PropertySorter } from './property-sorter';
 import { ReferenceHandler } from './reference-handler';
 import { Serializer } from './serializer';
 import { TypeFn } from './type-fn';
-import { TypeMetadataExtractor } from './type-metadata-extractor';
+import { TypeInternals } from './type-internals';
+import { TypeManager } from './type-manager';
 import { TypeName } from './type-name';
 import { TypeOptions } from './type-options';
 import { TypeOptionsBase } from './type-options-base';
@@ -65,6 +69,13 @@ export class TypeMetadata<TType> extends Metadata
     public readonly typeOptions: TypeOptions<TType>;
 
     /**
+     * Type internals.
+     * 
+     * @type {TypeInternals}
+     */
+    public readonly typeInternals: TypeInternals;
+
+    /**
      * Children type metadata map.
      * 
      * @type {Map<TypeFn<TType>, TypeMetadata<any>>}
@@ -102,28 +113,25 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Constructor.
      * 
-     * @param {TypeMetadataExtractor<any>} typeMetadataExtractor Type metadata extractor.
-     * @param {Map<Alias, TypeFn<any>>} typeFnMap Type function map.
+     * @param {TypeManager} typeManager Type manager.
      * @param {TypeFn<any>} typeFn Type function.
-     * @param {TypeOptionsBase<TType>} typeOptionsBase Type options used by default.
      * @param {TypeOptions<TType>} typeOptions Type options.
      * @param {TypeMetadata<any>} parentTypeMetadata Parent type metadata.
      */
     public constructor(
-        typeMetadataExtractor: TypeMetadataExtractor<any>,
-        typeFnMap: Map<Alias, TypeFn<any>>,
+        typeManager: TypeManager,
         typeFn: TypeFn<TType>,
-        typeOptionsBase: TypeOptionsBase<TType>, 
-        typeOptions: TypeOptions<TType>, 
+        typeOptions: TypeOptions<TType>,
         parentTypeMetadata?: TypeMetadata<any>
     )
     {
-        super(typeMetadataExtractor, typeFnMap);
+        super(typeManager);
 
         this.typeName = nameOf(typeFn);
         this.typeFn = typeFn;
-        this.typeOptionsBase = typeOptionsBase;
+        this.typeOptionsBase = typeManager.typeOptionsBase;
         this.typeOptions = this.constructTypeOptions(typeOptions);
+        this.typeInternals = this.constructTypeInternals();
         this.parentTypeMetadata = parentTypeMetadata;
 
         this.deriveParentTypeMetadataProperties();
@@ -144,27 +152,33 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
-     * Gets custom data.
+     * Gets custom options.
      * 
-     * @returns {CustomData} Custom data.
+     * @returns {CustomOptions} Custom options.
      */
-    public get customData(): CustomData
+    public get customOptions(): CustomOptions | undefined
     {
-        const customData = {};
-        const typeBaseCustomData = this.typeOptionsBase.customData;
-        const typeCustomData = this.typeOptions.customData;
-        
-        if (!isNil(typeBaseCustomData))
+        return this.typeOptions.customOptions;
+    }
+    
+    /**
+     * Gets custom context.
+     * 
+     * @returns {CustomContext} Custom context.
+     */
+    public get customContext(): CustomContext
+    {
+        let customContext = this.typeInternals.customContext;
+
+        if (isNil(customContext))
         {
-            merge(customData, typeBaseCustomData);
+            this.typeOptions.customOptions = new Array<[CustomKey<any>, CustomValue]>();
+            this.typeInternals.customContext = new CustomContext(this.typeOptions.customOptions);
+
+            customContext = this.typeInternals.customContext;
         }
 
-        if (!isNil(typeCustomData))
-        {
-            merge(customData, typeCustomData);
-        }
-
-        return customData;
+        return customContext;
     }
 
     /**
@@ -485,6 +499,20 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
+     * Constructs type internals.
+     * 
+     * @returns {TypeInternals} Constructed type internals.
+     */
+    private constructTypeInternals(): TypeInternals
+    {
+        const customOptions = this.typeOptions.customOptions;
+        const customContext = isNil(customOptions) ? undefined : new CustomContext(customOptions);
+        const typeInternals = { customContext: customContext };
+
+        return typeInternals;
+    }
+
+    /**
      * Derives parent type metadata properties.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
@@ -572,15 +600,18 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
-     * Configures custom data.
+     * Configures custom options.
      * 
-     * @param {CustomData|undefined} customData Custom data.
+     * @param {CustomOptions|undefined} customOptions Custom options.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    public hasCustomData(customData: CustomData | undefined): TypeMetadata<TType>
+    private hasCustomOptions(customOptions: CustomOptions | undefined): TypeMetadata<TType>
     {
-        this.typeOptions.customData = merge(this.typeOptions.customData ?? {}, customData ?? {});
+        if (!isNil(customOptions))
+        {
+            this.customContext.configure(customOptions);
+        }
 
         return this;
     }
@@ -970,9 +1001,9 @@ export class TypeMetadata<TType> extends Metadata
             this.hasAlias(typeOptions.alias);
         }
 
-        if (!isUndefined(typeOptions.customData))
+        if (!isUndefined(typeOptions.customOptions))
         {
-            this.hasCustomData(typeOptions.customData);
+            this.hasCustomOptions(typeOptions.customOptions);
         }
 
         if (!isUndefined(typeOptions.defaultValue))

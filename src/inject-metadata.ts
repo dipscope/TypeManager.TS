@@ -40,9 +40,9 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Inject internals.
      * 
-     * @type {InjectInternals<TType>}
+     * @type {InjectInternals}
      */
-    public readonly injectInternals: InjectInternals<TType>;
+    public readonly injectInternals: InjectInternals;
 
     /**
      * Type function defined using reflect metadata.
@@ -66,7 +66,7 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
         injectOptions: InjectOptions<TType>
     )
     {
-        super(declaringTypeMetadata.typeMetadataExtractor, declaringTypeMetadata.typeFnMap);
+        super(declaringTypeMetadata.typeManager);
 
         this.declaringTypeMetadata = declaringTypeMetadata;
         this.reflectTypeFn = (getOwnReflectMetadata('design:paramtypes', declaringTypeMetadata.typeFn) ?? new Array<TypeFn<TType>>())[injectIndex];
@@ -145,9 +145,9 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Constructs inject internals.
      * 
-     * @returns {InjectInternals<TType>} Inject internals.
+     * @returns {InjectInternals} Constructed inject internals.
      */
-    private constructInjectInternals(): InjectInternals<TType>
+    private constructInjectInternals(): InjectInternals
     {
         const typeMetadataResolver = this.defineTypeMetadataResolver(this.injectOptions.typeFn);
         const injectInternals = { typeMetadataResolver: typeMetadataResolver };

@@ -1,3 +1,4 @@
+import { CustomContext } from './custom-context';
 import { GenericMetadataResolver } from './generic-metadata-resolver';
 import { GenericStructure } from './generic-structure';
 import { TypeMetadataResolver } from './type-metadata-resolver';
@@ -5,16 +6,16 @@ import { TypeMetadataResolver } from './type-metadata-resolver';
 /**
  * Property internals.
  * 
- * @type {PropertyInternals<TType>}
+ * @type {PropertyInternals}
  */
-export type PropertyInternals<TType> =
+export type PropertyInternals =
 {
     /**
      * Type metadata resolver.
      * 
-     * @type {TypeMetadataResolver<TType>}
+     * @type {TypeMetadataResolver<any>}
      */
-    typeMetadataResolver: TypeMetadataResolver<TType>;
+    typeMetadataResolver: TypeMetadataResolver<any>;
     
     /**
      * Generic structures.
@@ -29,4 +30,11 @@ export type PropertyInternals<TType> =
      * @type {Array<GenericMetadataResolver<any>>}
      */
     genericMetadataResolvers?: Array<GenericMetadataResolver<any>>;
+    
+    /**
+     * Custom context.
+     * 
+     * @type {CustomContext}
+     */
+    customContext?: CustomContext;
 }

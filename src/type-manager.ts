@@ -1,6 +1,9 @@
 import { isArray, isNil, isUndefined, merge } from 'lodash';
 import { Alias } from './alias';
 import { Any } from './any';
+import { CustomContext } from './custom-context';
+import { CustomKey } from './custom-key';
+import { CustomValue } from './custom-value';
 import { TypeFactory } from './factories/type-factory';
 import { jsonParse } from './functions/json-parse';
 import { jsonStringify } from './functions/json-stringify';
@@ -131,6 +134,13 @@ export class TypeManager
     public readonly typeManagerOptions: TypeManagerOptions;
 
     /**
+     * Custom context.
+     * 
+     * @type {CustomContext}
+     */
+    public readonly customContext: CustomContext;
+
+    /**
      * Constructor.
      * 
      * Creating an instance of type manager allows to have multiple configs. By default only static 
@@ -143,6 +153,7 @@ export class TypeManager
     {
         this.symbol = Symbol(typeMetadataSymbol.description);
         this.typeManagerOptions = this.constructTypeManagerOptions(typeManagerOptions);
+        this.customContext = this.constructCustomContext();
 
         this.configure(typeManagerOptions);
 
@@ -310,11 +321,26 @@ export class TypeManager
      */
     private constructTypeOptionsBase(typeOptionsBase: Partial<TypeOptionsBase<any>>): Partial<TypeOptionsBase<any>>
     {
-        const initialTypeOptionsBase = merge({}, TypeManager.defaultTypeOptionsBase, typeOptionsBase);
-
-        merge(typeOptionsBase, initialTypeOptionsBase);
+        const initialTypeOptionsBase = Object.assign({}, TypeManager.defaultTypeOptionsBase, typeOptionsBase);
+        
+        Object.assign(typeOptionsBase, initialTypeOptionsBase);
 
         return typeOptionsBase;
+    }
+
+    /**
+     * Constructs custom context.
+     * 
+     * @returns {CustomContext} Constructed custom context.
+     */
+    private constructCustomContext(): CustomContext
+    {
+        const customOptions = this.typeOptionsBase.customOptions ?? new Array<[CustomKey<any>, CustomValue]>();
+        const customContext = new CustomContext(customOptions);
+
+        this.typeOptionsBase.customOptions = customOptions;
+
+        return customContext;
     }
 
     /**
@@ -388,7 +414,7 @@ export class TypeManager
         const symbol = this.symbol;
         const prototype = typeFn.prototype;
         const typeMetadataDefined = prototype.hasOwnProperty(symbol);
-        const typeMetadata = typeMetadataDefined ? prototype[symbol] as TypeMetadata<TType> : this.declareTypeMetadata(typeFn);
+        const typeMetadata = typeMetadataDefined ? prototype[symbol] as TypeMetadata<TType> : this.declareTypeMetadata(typeFn, typeOptions);
 
         if (!typeMetadataDefined)
         {
@@ -399,8 +425,8 @@ export class TypeManager
                 value: typeMetadata
             });
         }
-
-        if (!isNil(typeOptions))
+        
+        if (typeMetadataDefined && !isNil(typeOptions))
         {
             typeMetadata.configure(typeOptions);
         }
@@ -412,27 +438,25 @@ export class TypeManager
      * Declares type metadata for provided type function based on general configuration.
      * 
      * @param {TypeFn<TType>} typeFn Type function.
+     * @param {TypeOptions<TType>} typeOptions Type options.
      * 
      * @returns {TypeMetadata<TType>} Type metadata.
      */
-    private declareTypeMetadata<TType>(typeFn: TypeFn<TType>): TypeMetadata<TType>
+    private declareTypeMetadata<TType>(typeFn: TypeFn<TType>, typeOptions?: TypeOptions<TType>): TypeMetadata<TType>
     {
-        let typeOptions = this.typeOptionsMap.get(typeFn);
+        let mapTypeOptions = this.typeOptionsMap.get(typeFn);
 
-        if (isNil(typeOptions))
+        if (isNil(mapTypeOptions))
         {
-            typeOptions = {};
+            mapTypeOptions = typeOptions ?? {};
 
-            this.typeOptionsMap.set(typeFn, typeOptions);
+            this.typeOptionsMap.set(typeFn, mapTypeOptions);
         }
 
         const symbol = this.symbol;
-        const typeMetadataExtractor = this.extractTypeMetadata.bind(this);
-        const typeFnMap = this.typeFnMap;
-        const typeOptionsBase = this.typeOptionsBase;
         const parentPrototype = Object.getPrototypeOf(typeFn.prototype) ?? {};
         const parentTypeMetadata = parentPrototype[symbol];
-        const typeMetadata = new TypeMetadata(typeMetadataExtractor, typeFnMap, typeFn, typeOptionsBase, typeOptions, parentTypeMetadata);
+        const typeMetadata = new TypeMetadata(this, typeFn, mapTypeOptions, parentTypeMetadata);
 
         return typeMetadata;
     }
@@ -487,7 +511,14 @@ export class TypeManager
      */
     public applyTypeOptionsBase<TType>(typeOptionsBase: Partial<TypeOptionsBase<TType>>): TypeManager
     {
-        merge(this.typeOptionsBase, typeOptionsBase);
+        const customOptions = this.typeOptionsBase.customOptions;
+
+        Object.assign(this.typeOptionsBase, typeOptionsBase, { customOptions: customOptions });
+
+        if (!isNil(typeOptionsBase.customOptions))
+        {
+            this.customContext.configure(typeOptionsBase.customOptions);
+        }
 
         return this;
     }

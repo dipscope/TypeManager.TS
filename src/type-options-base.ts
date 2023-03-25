@@ -1,4 +1,4 @@
-import { CustomData } from './custom-data';
+import { CustomOptions } from './custom-options';
 import { Discriminator } from './discriminator';
 import { Factory } from './factory';
 import { InjectSorter } from './inject-sorter';
@@ -17,11 +17,11 @@ import { Serializer } from './serializer';
 export type TypeOptionsBase<TType> =
 {
     /**
-     * Custom developer data.
+     * Custom options defined by developer.
      * 
-     * @type {CustomData}
+     * @type {CustomOptions}
      */
-    customData?: CustomData;
+    customOptions?: CustomOptions;
 
     /**
      * Discriminator.

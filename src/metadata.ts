@@ -7,8 +7,8 @@ import { GenericMetadataResolver } from './generic-metadata-resolver';
 import { GenericStructure } from './generic-structure';
 import { TypeArgument } from './type-argument';
 import { TypeFn } from './type-fn';
+import { TypeManager } from './type-manager';
 import { TypeMetadata } from './type-metadata';
-import { TypeMetadataExtractor } from './type-metadata-extractor';
 import { TypeMetadataResolver } from './type-metadata-resolver';
 import { TypeResolver } from './type-resolver';
 import { Unknown } from './unknown';
@@ -23,32 +23,28 @@ import { Unknown } from './unknown';
 export class Metadata
 {
     /**
-     * Type metadata extractor.
+     * Type manager.
      * 
-     * @type {TypeMetadataExtractor<any>}
+     * @type {TypeManager}
      */
-    public readonly typeMetadataExtractor: TypeMetadataExtractor<any>;
-    
+    public readonly typeManager: TypeManager;
+
     /**
      * Type function map for types with aliases.
      * 
      * @type {Map<Alias, TypeFn<any>>}
      */
     public readonly typeFnMap: Map<Alias, TypeFn<any>>;
-
+    
     /**
      * Constructor.
      * 
-     * @param {TypeMetadataExtractor<any>} typeMetadataExtractor Type metadata extractor.
-     * @param {Map<Alias, TypeFn<any>>} typeFnMap Type function map.
+     * @param {TypeManager} typeManager Type manager.
      */
-    public constructor(
-        typeMetadataExtractor: TypeMetadataExtractor<any>,
-        typeFnMap: Map<Alias, TypeFn<any>>
-    )
+    public constructor(typeManager: TypeManager)
     {
-        this.typeMetadataExtractor = typeMetadataExtractor;
-        this.typeFnMap = typeFnMap;
+        this.typeManager = typeManager;
+        this.typeFnMap = typeManager.typeFnMap;
 
         return;
     }
@@ -88,8 +84,8 @@ export class Metadata
     private resolveTypeMetadataUsingUnknownTypeFn(): TypeMetadata<any>
     {
         const typeFn = Unknown as TypeFn<any>;
-        
-        return this.typeMetadataExtractor(typeFn);
+
+        return this.typeManager.extractTypeMetadata(typeFn);
     }
 
     /**
@@ -109,7 +105,7 @@ export class Metadata
             throw new Error(`Cannot resolve type metadata for provided type alias: ${alias}. This is usually caused by invalid configuration.`);
         }
 
-        return this.typeMetadataExtractor(typeFn);
+        return this.typeManager.extractTypeMetadata(typeFn);
     }
 
     /**
@@ -123,7 +119,7 @@ export class Metadata
     {
         const typeFn = typeArgument as TypeFn<any>;
 
-        return this.typeMetadataExtractor(typeFn);
+        return this.typeManager.extractTypeMetadata(typeFn);
     }
 
     /**
@@ -137,7 +133,7 @@ export class Metadata
     {
         const typeResolver = typeArgument as TypeResolver<any>;
 
-        return this.typeMetadataExtractor(typeResolver());
+        return this.typeManager.extractTypeMetadata(typeResolver());
     }
 
     /**

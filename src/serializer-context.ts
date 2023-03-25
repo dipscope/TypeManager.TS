@@ -1,5 +1,4 @@
-import { isNil, isNumber, isUndefined, merge } from 'lodash';
-import { CustomData } from './custom-data';
+import { isNil, isNumber, isUndefined } from 'lodash';
 import { Discriminant } from './discriminant';
 import { Discriminator } from './discriminator';
 import { Factory } from './factory';
@@ -91,10 +90,7 @@ export class SerializerContext<TType> extends Metadata
         parentSerializerContext?: SerializerContext<any>
     )
     {
-        super(
-            serializerContextOptions.typeMetadata.typeMetadataExtractor, 
-            serializerContextOptions.typeMetadata.typeFnMap
-        );
+        super(serializerContextOptions.typeMetadata.typeManager);
 
         this.$ = $;
         this.referenceMap = referenceMap,
@@ -123,30 +119,6 @@ export class SerializerContext<TType> extends Metadata
     public get referenceValueSetter(): ReferenceValueSetter | undefined
     {
         return this.serializerContextOptions.referenceValueSetter;
-    }
-
-    /**
-     * Gets custom data.
-     * 
-     * @returns {CustomData} Custom data.
-     */
-    public get customData(): CustomData
-    {
-        const customData = {};
-        const typeCustomData = this.typeMetadata.customData;
-        const propertyCustomData = this.propertyMetadata?.customData;
-
-        if (!isNil(typeCustomData))
-        {
-            merge(customData, typeCustomData);
-        }
-
-        if (!isNil(propertyCustomData))
-        {
-            merge(customData, propertyCustomData);
-        }
-
-        return customData;
     }
 
     /**
@@ -687,7 +659,7 @@ export class SerializerContext<TType> extends Metadata
             throw new Error(`${this.jsonPath}: cannot define discriminant of polymorphic type. This is usually caused by invalid configuration.`);
         }
 
-        const typeMetadata = this.typeMetadataExtractor(typeFn);
+        const typeMetadata = this.typeManager.extractTypeMetadata(typeFn);
         const serializerContextOptions = this.defineSerializerContextOptions(this.serializerContextOptions);
 
         serializerContextOptions.typeMetadata = typeMetadata;
@@ -706,7 +678,7 @@ export class SerializerContext<TType> extends Metadata
     {
         for (const [typeCtor, discriminant] of this.discriminantMap)
         {
-            const typeMetadata = this.typeMetadataExtractor(typeCtor);
+            const typeMetadata = this.typeManager.extractTypeMetadata(typeCtor);
 
             if (record[typeMetadata.discriminator] === discriminant)
             {

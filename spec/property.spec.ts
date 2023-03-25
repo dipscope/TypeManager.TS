@@ -7,7 +7,7 @@ class User
     @Property(() => String, { serializable: true }) public group?: string;
     @Property({ deserializable: true, preserveNull: false }) public rank?: number;
     @Property('Number', { deserializedDefaultValue: 10 }) public priority?: number;
-    @Property(() => Number, { useDefaultValue: true }) public loginCount?: number;
+    @Property(() => Number, { useDefaultValue: true, customOptions: [] }) public loginCount?: number;
     @Property({ useImplicitConversion: true, serializer: new TypeSerializer() }) public active?: boolean;
 }
 
@@ -97,6 +97,7 @@ describe('Property decorator', () =>
         expect(userLoginCountMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
         expect(userLoginCountMetadata?.propertyOptions.typeArgument).toBeDefined();
         expect(userLoginCountMetadata?.propertyOptions.serializer).toBeUndefined();
+        expect(userLoginCountMetadata?.propertyOptions.customOptions).toBeDefined();
 
         expect(userActiveMetadata).toBeDefined();
         expect(userActiveMetadata?.propertyName).toBe('active');

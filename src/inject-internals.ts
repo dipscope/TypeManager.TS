@@ -3,14 +3,14 @@ import { TypeMetadataResolver } from './type-metadata-resolver';
 /**
  * Inject internals.
  * 
- * @type {InjectInternals<TType>}
+ * @type {InjectInternals}
  */
-export type InjectInternals<TType> =
+export type InjectInternals =
 {
     /**
      * Type metadata resolver.
      * 
-     * @type {TypeMetadataResolver<TType>}
+     * @type {TypeMetadataResolver<any>}
      */
-    typeMetadataResolver: TypeMetadataResolver<TType>;
+    typeMetadataResolver: TypeMetadataResolver<any>;
 }

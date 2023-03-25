@@ -1,9 +1,11 @@
-import { AscInjectSorter, DescPropertySorter, SingletonInjector, Type } from '../src';
+import { AscInjectSorter, CustomKey, DescPropertySorter, SingletonInjector, Type } from '../src';
 import { TypeFactory, TypeManager, TypeSerializer } from '../src';
+
+const rankKey = new CustomKey<number>();
 
 @Type({
     alias: 'User:Type',
-    customData: { rank: 1 },
+    customOptions: [[rankKey, 1]],
     serializedDefaultValue: () => new User(),
     deserializedDefaultValue: () => new User(),
     preserveNull: false,
@@ -32,8 +34,8 @@ describe('Type decorator', () =>
         const typeFn = TypeManager.typeFnMap.get('User:Type');
 
         expect(userMetadata.typeOptions.alias).toBe('User:Type');
-        expect(userMetadata.typeOptions.customData).toBeDefined();
-        expect(userMetadata.typeOptions.customData?.rank).toBe(1);
+        expect(userMetadata.typeOptions.customOptions).toBeDefined();
+        expect(userMetadata.typeOptions.customOptions?.length).toBe(1);
         expect(userMetadata.typeOptions.serializedDefaultValue).toBeDefined();
         expect(userMetadata.typeOptions.serializedDefaultValue()).toBeInstanceOf(User);
         expect(userMetadata.typeOptions.deserializedDefaultValue).toBeDefined();
@@ -53,5 +55,8 @@ describe('Type decorator', () =>
         
         expect(typeFn).toBeDefined();
         expect(typeFn).toBe(userMetadata.typeFn);
+
+        expect(userMetadata.customContext.has(rankKey)).toBeTrue();
+        expect(userMetadata.customContext.get(rankKey)).toBe(1);
     });
 });
