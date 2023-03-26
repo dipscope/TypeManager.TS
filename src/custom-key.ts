@@ -1,4 +1,3 @@
-import { CustomKeyOptions } from './custom-key-options';
 import { CustomValueResolver } from './custom-value-resolver';
 
 /**
@@ -10,41 +9,30 @@ import { CustomValueResolver } from './custom-value-resolver';
 export class CustomKey<TCustomValue>
 {
     /**
-     * Custom key options.
+     * Description.
      * 
-     * @type {CustomKeyOptions<TCustomValue>}
+     * @type {string}
      */
-    public readonly customKeyOptions: CustomKeyOptions<TCustomValue>;
+    public readonly description: string;
 
+    /**
+     * Custom value resolver.
+     * 
+     * @type {CustomValueResolver<TCustomValue}
+     */
+    public readonly customValueResolver?: CustomValueResolver<TCustomValue>;
+    
     /**
      * Constructor.
      * 
-     * @param {CustomKeyOptions<TCustomValue>} customKeyOptions Custom key options.
+     * @param {string} description Description.
+     * @param {CustomValueResolver<TCustomValue>} customValueResolver Custom value resolver.
      */
-    public constructor(customKeyOptions: CustomKeyOptions<TCustomValue> = {})
+    public constructor(description: string, customValueResolver?: CustomValueResolver<TCustomValue>)
     {
-        this.customKeyOptions = customKeyOptions;
+        this.description = description;
+        this.customValueResolver = customValueResolver;
 
         return;
-    }
-    
-    /**
-     * Gets description.
-     * 
-     * @returns {string|undefined} Description or undefined.
-     */
-    public get description(): string | undefined
-    {
-        return this.customKeyOptions.description;
-    }
-
-    /**
-     * Gets custom value resolver.
-     * 
-     * @returns {CustomValueResolver<TCustomValue>|undefined} Custom value resolver or undefined.
-     */
-    public get customValueResolver(): CustomValueResolver<TCustomValue> | undefined
-    {
-        return this.customKeyOptions.customValueResolver;
     }
 }

@@ -2,7 +2,9 @@
 
 ![GitHub](https://img.shields.io/github/license/dipscope/TypeManager.TS) ![NPM](https://img.shields.io/npm/v/@dipscope/type-manager) ![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)
 
-Type manager is a parsing package for `TypeScript` which will help you to transform JSON strings or plain objects into `JavaScript` object instances. It supports [decorators](https://www.typescriptlang.org/docs/handbook/decorators.html) or declarative configuration and allows you to configure parsing of your or 3rd party classes easily.
+Type manager is a superb parsing package for `TypeScript` which will help you to transform JSON strings or plain objects directly into class instances. No more need for unsafe `JSON.parse` and `JSON.stringify` functions. Forget about manual mapping and limitations. We support data transformations, circular references, naming conventions, generic and polymorphic types. Parsing never was so fun and easy. 
+
+Configuration can be done using [decorators](https://www.typescriptlang.org/docs/handbook/decorators.html) or declarative configuration for your or 3rd party classes.
 
 We recommend to use our [official website](https://dipscope.com/type-manager/what-issues-it-solves) to navigate through available features. You can also use the latest documentation described below.
 
@@ -680,14 +682,20 @@ Alias defined for a property declares that property name differs from one specif
 This option can be used to provide any custom data for type or property.
 
 ```typescript
-import { Type, Property } from '@dipscope/type-manager';
+import { Type, Property, CustomKey } from '@dipscope/type-manager';
+
+const rankKey = new CustomKey<number>('rank');
+const orderKey = new CustomKey<number>('order');
 
 @Type({
-    customData: { rank: 1 }
+    customOptions: [
+        [rankKey, 1],
+        [orderKey, 2]
+    ]
 })
 export class User
 {
-    @Property(String, { customData: { order: 1 } }) public name: string;
+    @Property(String, { customOptions: [[orderKey, 3]]}) public name: string;
 }
 ```
 
@@ -1517,17 +1525,22 @@ Our goal is to cover as much use cases as possible without making you to write a
 
 ### Defining custom data
 
-You can attach you custom metadata to our decorators using `customData` option available on `Type` and `Property`. 
+You can attach you custom metadata to our decorators using `customOptions` option available on `Type` and `Property`. 
 
 ```typescript
-import { Type, Property } from '@dipscope/type-manager';
+import { Type, Property, CustomKey } from '@dipscope/type-manager';
+
+const rankKey = new CustomKey<number>('rank');
+const priorityKey = new CustomKey<number>('priority');
 
 @Type({
-    customData: { rank: 1 }
+    customOptions: [
+        [rankKey, 1]        
+    ]
 })
 class User
 {
-    @Property(String, { customData: { priority: 10 } }) public name: string;
+    @Property(String, { customOptions: [[priorityKey, 10]] }) public name: string;
 }
 ```
 
@@ -1537,13 +1550,15 @@ This allows you to get it later in serializers, factories, injectors or your cod
 import { TypeManager } from '@dipscope/type-manager';
 
 const userMetadata = TypeManager.extractTypeMetadata(User);
-const customData = userMetadata.customData;
+const typeCustomContext = userMetadata.customContext;
+const rank = customContext.get(rankKey);
 
 // Do something with type custom data...
 
 for (const propertyMetadata of userMetadata.propertyMetadataMap.values())
 {
-    const propertyCustomData = propertyMetadata.customData;
+    const propertyCustomContext = propertyMetadata.customContext;
+    const priority = propertyCustomContext.get(priorityKey);
 
     // Do something with property custom data...
 }
@@ -1707,13 +1722,12 @@ export class CustomTypeFactory extends TypeFactory
         
         // Resolve custom data.
         const typeMetadata = typeContext.typeMetadata;
-        const customData = typeMetadata.customData;
+        const customContext = typeMetadata.customContext;
 
-        // Process custom data.
-        for (const propertyName in customData)
-        {
-            type[propertyName] = customData[propertyName];
-        }
+        // Get rank based on key.
+        const rank = customContext.get(rankKey);
+
+        // Process custom data...
 
         return type;
     }
@@ -1726,7 +1740,7 @@ When you are finished with definitions there are two possible ways to register a
 import { Type, Factory } from '@dipscope/type-manager';
 
 @Type({
-    customData: { rank: 1 },
+    customOptions: [[rankKey, 1]]
     factory: new CustomTypeFactory()
 })
 export class User
@@ -1742,7 +1756,7 @@ import { TypeManager } from '@dipscope/type-manager';
 
 // Overriding only for user type.
 TypeManager.applyTypeOptions(User, {
-    customData: { rank: 1 },
+    customOptions: [[rankKey, 1]],
     factory: new CustomTypeFactory()
 });
 

@@ -1,9 +1,7 @@
 import { isFunction, isNil, isUndefined } from 'lodash';
 import { Alias } from './alias';
 import { CustomContext } from './custom-context';
-import { CustomKey } from './custom-key';
-import { CustomOptions } from './custom-options';
-import { CustomValue } from './custom-value';
+import { CustomOption } from './custom-option';
 import { DefaultValue } from './default-value';
 import { Discriminant } from './discriminant';
 import { Discriminator } from './discriminator';
@@ -154,9 +152,9 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Gets custom options.
      * 
-     * @returns {CustomOptions} Custom options.
+     * @returns {Array<CustomOption>} Custom options.
      */
-    public get customOptions(): CustomOptions | undefined
+    public get customOptions(): Array<CustomOption> | undefined
     {
         return this.typeOptions.customOptions;
     }
@@ -172,7 +170,7 @@ export class TypeMetadata<TType> extends Metadata
 
         if (isNil(customContext))
         {
-            this.typeOptions.customOptions = new Array<[CustomKey<any>, CustomValue]>();
+            this.typeOptions.customOptions = new Array<CustomOption>();
             this.typeInternals.customContext = new CustomContext(this.typeOptions.customOptions);
 
             customContext = this.typeInternals.customContext;
@@ -208,7 +206,11 @@ export class TypeMetadata<TType> extends Metadata
             const serializedDefaultValue = this.typeOptions.defaultValue 
                 ?? this.typeOptions.serializedDefaultValue;
 
-            return isFunction(serializedDefaultValue) ? serializedDefaultValue() : serializedDefaultValue;
+            const defaultValue = isFunction(serializedDefaultValue) 
+                ? serializedDefaultValue() 
+                : serializedDefaultValue;
+
+            return defaultValue;
         }
         
         return undefined;
@@ -241,7 +243,11 @@ export class TypeMetadata<TType> extends Metadata
             const deserializedDefaultValue = this.typeOptions.defaultValue 
                 ?? this.typeOptions.deserializedDefaultValue;
 
-            return isFunction(deserializedDefaultValue) ? deserializedDefaultValue() : deserializedDefaultValue;
+            const defaultValue = isFunction(deserializedDefaultValue) 
+                ? deserializedDefaultValue() 
+                : deserializedDefaultValue;
+
+            return defaultValue;
         }
 
         return undefined;
@@ -602,11 +608,11 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures custom options.
      * 
-     * @param {CustomOptions|undefined} customOptions Custom options.
+     * @param {Array<CustomOption>|undefined} customOptions Custom options.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    private hasCustomOptions(customOptions: CustomOptions | undefined): TypeMetadata<TType>
+    private hasCustomOptions(customOptions: Array<CustomOption> | undefined): TypeMetadata<TType>
     {
         if (!isNil(customOptions))
         {

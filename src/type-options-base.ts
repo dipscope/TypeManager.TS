@@ -1,4 +1,4 @@
-import { CustomOptions } from './custom-options';
+import { CustomOption } from './custom-option';
 import { Discriminator } from './discriminator';
 import { Factory } from './factory';
 import { InjectSorter } from './inject-sorter';
@@ -19,9 +19,9 @@ export type TypeOptionsBase<TType> =
     /**
      * Custom options defined by developer.
      * 
-     * @type {CustomOptions}
+     * @type {Array<CustomOption>}
      */
-    customOptions?: CustomOptions;
+    customOptions?: Array<CustomOption>;
 
     /**
      * Discriminator.

@@ -1,5 +1,5 @@
 import { Alias } from './alias';
-import { CustomOptions } from './custom-options';
+import { CustomOption } from './custom-option';
 import { DefaultValue } from './default-value';
 import { GenericArgument } from './generic-argument';
 import { NamingConvention } from './naming-convention';
@@ -26,9 +26,9 @@ export type PropertyOptions<TType> =
     /**
      * Custom options defined by developer.
      * 
-     * @type {CustomOptions}
+     * @type {Array<CustomOption>}
      */
-    customOptions?: CustomOptions;
+    customOptions?: Array<CustomOption>;
 
     /**
      * Default value for undefined ones.

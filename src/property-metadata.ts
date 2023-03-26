@@ -1,9 +1,7 @@
 import { isFunction, isNil, isUndefined } from 'lodash';
 import { Alias } from './alias';
 import { CustomContext } from './custom-context';
-import { CustomKey } from './custom-key';
-import { CustomOptions } from './custom-options';
-import { CustomValue } from './custom-value';
+import { CustomOption } from './custom-option';
 import { DefaultValue } from './default-value';
 import { getReflectMetadata } from './functions/get-reflect-metadata';
 import { GenericArgument } from './generic-argument';
@@ -105,9 +103,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Gets custom options.
      * 
-     * @returns {CustomOptions} Custom options.
+     * @returns {Array<CustomOption>} Custom options.
      */
-    public get customOptions(): CustomOptions | undefined
+    public get customOptions(): Array<CustomOption> | undefined
     {
         return this.propertyOptions.customOptions;
     }
@@ -123,7 +121,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
 
         if (isNil(customContext))
         {
-            this.propertyOptions.customOptions = new Array<[CustomKey<any>, CustomValue]>();
+            this.propertyOptions.customOptions = new Array<CustomOption>();
             this.propertyInternals.customContext = new CustomContext(this.propertyOptions.customOptions);
 
             customContext = this.propertyInternals.customContext;
@@ -160,7 +158,11 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
                 ?? this.propertyOptions.serializedDefaultValue 
                 ?? this.typeMetadata.serializedDefaultValue;
 
-            return isFunction(serializedDefaultValue) ? serializedDefaultValue() : serializedDefaultValue;
+            const defaultValue = isFunction(serializedDefaultValue) 
+                ? serializedDefaultValue() 
+                : serializedDefaultValue;
+
+            return defaultValue;
         }
 
         return undefined;
@@ -194,7 +196,11 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
                 ?? this.propertyOptions.deserializedDefaultValue 
                 ?? this.typeMetadata.deserializedDefaultValue;
 
-            return isFunction(deserializedDefaultValue) ? deserializedDefaultValue() : deserializedDefaultValue;
+            const defaultValue = isFunction(deserializedDefaultValue) 
+                ? deserializedDefaultValue() 
+                : deserializedDefaultValue;
+
+            return defaultValue;
         }
 
         return undefined;
@@ -445,11 +451,11 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Configures custom options.
      * 
-     * @param {CustomOptions|undefined} customOptions Custom options.
+     * @param {Array<CustomOption>|undefined} customOptions Custom options.
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    private hasCustomOptions(customOptions: CustomOptions | undefined): PropertyMetadata<TDeclaringType, TType>
+    private hasCustomOptions(customOptions: Array<CustomOption> | undefined): PropertyMetadata<TDeclaringType, TType>
     {
         if (!isNil(customOptions))
         {

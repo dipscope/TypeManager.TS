@@ -1,6 +1,6 @@
 import { isNil, isUndefined } from 'lodash';
 import { CustomKey } from './custom-key';
-import { CustomOptions } from './custom-options';
+import { CustomOption } from './custom-option';
 import { CustomValue } from './custom-value';
 
 /**
@@ -13,9 +13,9 @@ export class CustomContext
     /**
      * Custom options.
      * 
-     * @type {CustomOptions}
+     * @type {Array<CustomOption>}
      */
-    public readonly customOptions: CustomOptions;
+    public readonly customOptions: Array<CustomOption>;
 
     /**
      * Custom value map.
@@ -27,9 +27,9 @@ export class CustomContext
     /**
      * Constructor.
      * 
-     * @param {CustomOptions} customOptions Custom options.
+     * @param {Array<CustomOption>} customOptions Custom options.
      */
-    public constructor(customOptions: CustomOptions = new Array<[CustomKey<any>, CustomValue]>())
+    public constructor(customOptions: Array<CustomOption> = new Array<CustomOption>())
     {
         this.customOptions = this.constructCustomOptions(customOptions);
 
@@ -42,11 +42,11 @@ export class CustomContext
      * Constructs initial custom options by removing duplicates. 
      * All references are kept.
      * 
-     * @param {CustomOptions} customOptions Custom options.
+     * @param {Array<CustomOption>} customOptions Custom options.
      * 
      * @returns {CustomOptions} Constructed custom options.
      */
-    private constructCustomOptions(customOptions: CustomOptions): CustomOptions
+    private constructCustomOptions(customOptions: Array<CustomOption>): Array<CustomOption>
     {
         const customValueMap = new Map<CustomKey<any>, CustomValue>();
 
@@ -154,15 +154,15 @@ export class CustomContext
     {
         return this.customValueMap.entries();
     }
-    
+
     /**
      * Configures custom context based on custom options.
      * 
-     * @param {CustomOptions} customOptions Custom options.
+     * @param {Array<CustomOption>} customOptions Custom options.
      * 
      * @returns {CustomContext} Custom context.
      */
-    public configure(customOptions: CustomOptions): CustomContext
+    public configure(customOptions: Array<CustomOption>): CustomContext
     {
         for (const [customKey, customValue] of customOptions)
         {

@@ -1,9 +1,8 @@
-import { isArray, isNil, isUndefined, merge } from 'lodash';
+import { assign, isArray, isNil, isUndefined } from 'lodash';
 import { Alias } from './alias';
 import { Any } from './any';
 import { CustomContext } from './custom-context';
-import { CustomKey } from './custom-key';
-import { CustomValue } from './custom-value';
+import { CustomOption } from './custom-option';
 import { TypeFactory } from './factories/type-factory';
 import { jsonParse } from './functions/json-parse';
 import { jsonStringify } from './functions/json-stringify';
@@ -70,9 +69,7 @@ export class TypeManager
         serializer: new TypeSerializer(),
         preserveNull: true,
         useDefaultValue: false,
-        useImplicitConversion: false,
-        propertySorter: undefined,
-        injectSorter: undefined
+        useImplicitConversion: false
     };
 
     /**
@@ -145,7 +142,9 @@ export class TypeManager
      * 
      * Creating an instance of type manager allows to have multiple configs. By default only static 
      * instance of type manager is created on the background and all decorator based and declarative based
-     * configurations are applied to it.
+     * configurations are applied to it. Note that all options which are passed to a constructor are
+     * mutated and all references are kept. This allow to have different managers with intersected data.
+     * If such behaviour is not required then use configure methods after creating instance of type manager.
      * 
      * @param {TypeManagerOptions} typeManagerOptions Type manager options.
      */
@@ -211,9 +210,9 @@ export class TypeManager
 
         if (isNil(typeOptionsBase))
         {
-            typeOptionsBase = merge({}, TypeManager.defaultTypeOptionsBase);
+            typeOptionsBase = {};
 
-            this.typeManagerOptions.typeOptionsBase = typeOptionsBase;
+            this.typeManagerOptions.typeOptionsBase = this.constructTypeOptionsBase(typeOptionsBase);
         }
 
         return typeOptionsBase as TypeOptionsBase<any>;
@@ -240,9 +239,9 @@ export class TypeManager
 
         if (isNil(typeOptionsMap))
         {
-            typeOptionsMap = new Map<TypeFn<any>, TypeOptions<any>>(TypeManager.defaultTypeOptionsMap.entries());
-            
-            this.typeManagerOptions.typeOptionsMap = typeOptionsMap;
+            typeOptionsMap = new Map<TypeFn<any>, TypeOptions<any>>();
+
+            this.typeManagerOptions.typeOptionsMap = this.constructTypeOptionsMap(typeOptionsMap);
         }
 
         return typeOptionsMap;
@@ -293,10 +292,8 @@ export class TypeManager
         {
             typeOptionsBase = {};
 
-            typeManagerOptions.typeOptionsBase = typeOptionsBase;
+            typeManagerOptions.typeOptionsBase = this.constructTypeOptionsBase(typeOptionsBase);
         }
-
-        this.constructTypeOptionsBase(typeOptionsBase);
 
         let typeOptionsMap = typeManagerOptions.typeOptionsMap;
 
@@ -304,10 +301,8 @@ export class TypeManager
         {
             typeOptionsMap = new Map<TypeFn<any>, TypeOptions<any>>();
 
-            typeManagerOptions.typeOptionsMap = typeOptionsMap;
+            typeManagerOptions.typeOptionsMap = this.constructTypeOptionsMap(typeOptionsMap);
         }
-
-        this.constructTypeOptionsMap(typeOptionsMap);
 
         return typeManagerOptions;
     }
@@ -321,26 +316,11 @@ export class TypeManager
      */
     private constructTypeOptionsBase(typeOptionsBase: Partial<TypeOptionsBase<any>>): Partial<TypeOptionsBase<any>>
     {
-        const initialTypeOptionsBase = Object.assign({}, TypeManager.defaultTypeOptionsBase, typeOptionsBase);
+        const initialTypeOptionsBase = assign({}, TypeManager.defaultTypeOptionsBase, typeOptionsBase);
         
-        Object.assign(typeOptionsBase, initialTypeOptionsBase);
+        assign(typeOptionsBase, initialTypeOptionsBase);
 
         return typeOptionsBase;
-    }
-
-    /**
-     * Constructs custom context.
-     * 
-     * @returns {CustomContext} Constructed custom context.
-     */
-    private constructCustomContext(): CustomContext
-    {
-        const customOptions = this.typeOptionsBase.customOptions ?? new Array<[CustomKey<any>, CustomValue]>();
-        const customContext = new CustomContext(customOptions);
-
-        this.typeOptionsBase.customOptions = customOptions;
-
-        return customContext;
     }
 
     /**
@@ -363,7 +343,7 @@ export class TypeManager
                 mapTypeOptions = {};
             }
 
-            initialTypeOptionsMap.set(typeFn, merge(mapTypeOptions, typeOptions));
+            initialTypeOptionsMap.set(typeFn, assign(mapTypeOptions, typeOptions));
         }
 
         for (const [typeFn, typeOptions] of typeOptionsMap)
@@ -375,7 +355,7 @@ export class TypeManager
                 mapTypeOptions = {};
             }
 
-            initialTypeOptionsMap.set(typeFn, merge(typeOptions, merge(mapTypeOptions, typeOptions)));
+            initialTypeOptionsMap.set(typeFn, assign(typeOptions, assign(mapTypeOptions, typeOptions)));
         }
 
         typeOptionsMap.clear();
@@ -386,6 +366,21 @@ export class TypeManager
         }
 
         return typeOptionsMap;
+    }
+    
+    /**
+     * Constructs custom context.
+     * 
+     * @returns {CustomContext} Constructed custom context.
+     */
+    private constructCustomContext(): CustomContext
+    {
+        const customOptions = this.typeOptionsBase.customOptions ?? new Array<CustomOption>();
+        const customContext = new CustomContext(customOptions);
+
+        this.typeOptionsBase.customOptions = customOptions;
+
+        return customContext;
     }
 
     /**
@@ -501,7 +496,7 @@ export class TypeManager
     {
         return this.staticTypeManager.applyTypeOptionsBase(typeOptionsBase);
     }
-
+    
     /**
      * Applies shared type options.
      * 
@@ -513,7 +508,7 @@ export class TypeManager
     {
         const customOptions = this.typeOptionsBase.customOptions;
 
-        Object.assign(this.typeOptionsBase, typeOptionsBase, { customOptions: customOptions });
+        assign(this.typeOptionsBase, typeOptionsBase, { customOptions: customOptions });
 
         if (!isNil(typeOptionsBase.customOptions))
         {

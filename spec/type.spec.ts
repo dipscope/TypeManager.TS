@@ -1,7 +1,7 @@
 import { AscInjectSorter, CustomKey, DescPropertySorter, SingletonInjector, Type } from '../src';
 import { TypeFactory, TypeManager, TypeSerializer } from '../src';
 
-const rankKey = new CustomKey<number>();
+const rankKey = new CustomKey<number>('rank');
 
 @Type({
     alias: 'User:Type',
