@@ -9,5 +9,5 @@ import { isFunction } from 'lodash';
  */
 export function isCtorFunction(x: any): x is new (...args: Array<any>) => any
 {
-    return isFunction(x) && x.prototype && x.prototype.constructor === x && x.name !== '';
+    return isFunction(x) && x.name !== '';
 }
