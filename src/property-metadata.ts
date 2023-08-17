@@ -1,6 +1,7 @@
 import { isFunction, isNil, isUndefined } from 'lodash';
 import { Alias } from './alias';
 import { CustomContext } from './custom-context';
+import { CustomKey } from './custom-key';
 import { CustomOption } from './custom-option';
 import { DefaultValue } from './default-value';
 import { getReflectMetadata } from './functions/get-reflect-metadata';
@@ -10,6 +11,9 @@ import { GenericMetadataResolver } from './generic-metadata-resolver';
 import { GenericStructure } from './generic-structure';
 import { Metadata } from './metadata';
 import { NamingConvention } from './naming-convention';
+import { PropertyExtensionMetadata } from './property-extension-metadata';
+import { PropertyExtensionMetadataCtor } from './property-extension-metadata-ctor';
+import { PropertyExtensionOptions } from './property-extension-options';
 import { PropertyInternals } from './property-internals';
 import { PropertyName } from './property-name';
 import { PropertyOptions } from './property-options';
@@ -449,13 +453,40 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     }
 
     /**
+     * Configures custom option.
+     * 
+     * @param {CustomKey<TCustomValue>} customKey Custom key.
+     * @param {TCustomValue} customValue Custom value.
+     * 
+     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     */
+    public hasCustomOption<TCustomValue>(customKey: CustomKey<TCustomValue>, customValue: TCustomValue): PropertyMetadata<TDeclaringType, TType>
+    {
+        this.customContext.set(customKey, customValue);
+
+        return this;
+    }
+    
+    /**
+     * Extracts custom option.
+     * 
+     * @param {CustomKey<TCustomValue>} customKey Custom key.
+     * 
+     * @returns {TCustomValue} Custom value.
+     */
+    public extractCustomOption<TCustomValue>(customKey: CustomKey<TCustomValue>): TCustomValue
+    {
+        return this.customContext.get(customKey);
+    }
+
+    /**
      * Configures custom options.
      * 
      * @param {Array<CustomOption>|undefined} customOptions Custom options.
      * 
      * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
      */
-    private hasCustomOptions(customOptions: Array<CustomOption> | undefined): PropertyMetadata<TDeclaringType, TType>
+    public hasCustomOptions(customOptions: Array<CustomOption> | undefined): PropertyMetadata<TDeclaringType, TType>
     {
         if (!isNil(customOptions))
         {
@@ -659,6 +690,42 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
         this.propertyOptions.useImplicitConversion = useImplicitConversion;
 
         return this;
+    }
+
+    /**
+     * Configures property extension metadata.
+     * 
+     * @param {PropertyExtensionMetadataCtor<TPropertyExtensionMetadata, TPropertyExtensionOptions, TDeclaringType, TType>} propertyExtensionMetadataCtor Property extension metadata constructor.
+     * @param {TPropertyExtensionOptions} propertyExtensionOptions Property extension options.
+     * 
+     * @returns {TPropertyExtensionMetadata} Property extension metadata
+     */
+    public configurePropertyExtensionMetadata<TPropertyExtensionMetadata extends PropertyExtensionMetadata<TDeclaringType, TType, TPropertyExtensionOptions>, TPropertyExtensionOptions extends PropertyExtensionOptions>(
+        propertyExtensionMetadataCtor: PropertyExtensionMetadataCtor<TPropertyExtensionMetadata, TPropertyExtensionOptions, TDeclaringType, TType>, 
+        propertyExtensionOptions?: TPropertyExtensionOptions
+    ): TPropertyExtensionMetadata
+    {
+        const initialPropertyExtensionOptions = propertyExtensionOptions ?? {} as TPropertyExtensionOptions;
+        const propertyExtensionMetadata = new propertyExtensionMetadataCtor(this, initialPropertyExtensionOptions);
+
+        return propertyExtensionMetadata;
+    }
+
+    /**
+     * Extracts property extension metadata.
+     * 
+     * @param {PropertyExtensionMetadataCtor<TPropertyExtensionMetadata, TPropertyExtensionOptions, TDeclaringType, TType>} propertyExtensionMetadataCtor Property extension metadata constructor.
+     * 
+     * @returns {TPropertyExtensionMetadata} Property extension metadata.
+     */
+    public extractPropertyExtensionMetadata<TPropertyExtensionMetadata extends PropertyExtensionMetadata<TDeclaringType, TType, TPropertyExtensionOptions>, TPropertyExtensionOptions extends PropertyExtensionOptions>(
+        propertyExtensionMetadataCtor: PropertyExtensionMetadataCtor<TPropertyExtensionMetadata, TPropertyExtensionOptions, TDeclaringType, TType>
+    ): TPropertyExtensionMetadata
+    {
+        const initialPropertyExtensionOptions = {} as TPropertyExtensionOptions;
+        const propertyExtensionMetadata = new propertyExtensionMetadataCtor(this, initialPropertyExtensionOptions);
+
+        return propertyExtensionMetadata;
     }
 
     /**

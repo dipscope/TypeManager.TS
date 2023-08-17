@@ -1,6 +1,7 @@
 import { isFunction, isNil, isUndefined } from 'lodash';
 import { Alias } from './alias';
 import { CustomContext } from './custom-context';
+import { CustomKey } from './custom-key';
 import { CustomOption } from './custom-option';
 import { DefaultValue } from './default-value';
 import { Discriminant } from './discriminant';
@@ -22,6 +23,9 @@ import { PropertyOptions } from './property-options';
 import { PropertySorter } from './property-sorter';
 import { ReferenceHandler } from './reference-handler';
 import { Serializer } from './serializer';
+import { TypeExtensionMetadata } from './type-extension-metadata';
+import { TypeExtensionMetadataCtor } from './type-extension-metadata-ctor';
+import { TypeExtensionOptions } from './type-extension-options';
 import { TypeFn } from './type-fn';
 import { TypeInternals } from './type-internals';
 import { TypeManager } from './type-manager';
@@ -606,13 +610,40 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
+     * Configures custom option.
+     * 
+     * @param {CustomKey<TCustomValue>} customKey Custom key.
+     * @param {TCustomValue} customValue Custom value.
+     * 
+     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     */
+    public hasCustomOption<TCustomValue>(customKey: CustomKey<TCustomValue>, customValue: TCustomValue): TypeMetadata<TType>
+    {
+        this.customContext.set(customKey, customValue);
+
+        return this;
+    }
+    
+    /**
+     * Extracts custom option.
+     * 
+     * @param {CustomKey<TCustomValue>} customKey Custom key.
+     * 
+     * @returns {TCustomValue} Custom value.
+     */
+    public extractCustomOption<TCustomValue>(customKey: CustomKey<TCustomValue>): TCustomValue
+    {
+        return this.customContext.get(customKey);
+    }
+
+    /**
      * Configures custom options.
      * 
      * @param {Array<CustomOption>|undefined} customOptions Custom options.
      * 
      * @returns {TypeMetadata<TType>} Current instance of type metadata.
      */
-    private hasCustomOptions(customOptions: Array<CustomOption> | undefined): TypeMetadata<TType>
+    public hasCustomOptions(customOptions: Array<CustomOption> | undefined): TypeMetadata<TType>
     {
         if (!isNil(customOptions))
         {
@@ -991,6 +1022,42 @@ export class TypeMetadata<TType> extends Metadata
         }
 
         return this;
+    }
+
+    /**
+     * Configures type extension metadata.
+     * 
+     * @param {TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TType>} typeExtensionMetadataCtor Type extension metadata constructor.
+     * @param {TTypeExtensionOptions} typeExtensionOptions Type extension options.
+     * 
+     * @returns {TTypeExtensionMetadata} Type extension metadata
+     */
+    public configureTypeExtensionMetadata<TTypeExtensionMetadata extends TypeExtensionMetadata<TType, TTypeExtensionOptions>, TTypeExtensionOptions extends TypeExtensionOptions>(
+        typeExtensionMetadataCtor: TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TType>, 
+        typeExtensionOptions?: TTypeExtensionOptions
+    ): TTypeExtensionMetadata
+    {
+        const initialTypeExtensionOptions = typeExtensionOptions ?? {} as TTypeExtensionOptions;
+        const typeExtensionMetadata = new typeExtensionMetadataCtor(this, initialTypeExtensionOptions);
+
+        return typeExtensionMetadata;
+    }
+    
+    /**
+     * Extracts type extension metadata.
+     * 
+     * @param {TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TType>} typeExtensionMetadataCtor Type extension metadata constructor.
+     * 
+     * @returns {TTypeExtensionMetadata} Type extension metadata.
+     */
+    public extractTypeExtensionMetadata<TTypeExtensionMetadata extends TypeExtensionMetadata<TType, TTypeExtensionOptions>, TTypeExtensionOptions extends TypeExtensionOptions>(
+        typeExtensionMetadataCtor: TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TType>
+    ): TTypeExtensionMetadata
+    {
+        const initialTypeExtensionOptions = {} as TTypeExtensionOptions;
+        const typeExtensionMetadata = new typeExtensionMetadataCtor(this, initialTypeExtensionOptions);
+
+        return typeExtensionMetadata;
     }
 
     /**

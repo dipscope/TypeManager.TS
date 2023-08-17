@@ -68,8 +68,8 @@ export class CustomContext
     /**
      * Sets value for a custom key.
      * 
-     * @param {CustomKey} customKey Custom key.
-     * @param {CustomValue} customValue Custom value.
+     * @param {CustomKey<TCustomValue>} customKey Custom key.
+     * @param {TCustomValue} customValue Custom value.
      *  
      * @returns {CustomContext} Custom context.
      */
@@ -97,9 +97,9 @@ export class CustomContext
     /**
      * Gets value by custom key.
      * 
-     * @param {CustomKey} customKey Custom key.
+     * @param {CustomKey<TCustomValue>} customKey Custom key.
      *  
-     * @returns {CustomValue} Custom value.
+     * @returns {TCustomValue} Custom value.
      */
     public get<TCustomValue>(customKey: CustomKey<TCustomValue>): TCustomValue
     {
@@ -116,7 +116,7 @@ export class CustomContext
     /**
      * Checks if type context has a custom key.
      * 
-     * @param {CustomKey} customKey Custom key.
+     * @param {CustomKey<TCustomValue>} customKey Custom key.
      *  
      * @returns {boolean} True when type context has a custom key. False otherwise.
      */
