@@ -50,6 +50,19 @@ class User
     }
 }
 
+@Type()
+class Company
+{
+    @Property(String) public name: string;
+
+    public constructor(@Inject('name') name: string)
+    {
+        this.name = name;
+
+        return;
+    }
+}
+
 describe('Type extension metadata', () =>
 {
     it('should register and extract custom options', () =>
@@ -58,8 +71,17 @@ describe('Type extension metadata', () =>
 
         userMetadata.configureTypeExtensionMetadata(CustomTypeMetadata).hasCustomProperty('test');
         
-        const customProperty = userMetadata.extractTypeExtensionMetadata(CustomTypeMetadata).customProperty;
+        const customTypeMetadata = userMetadata.extractTypeExtensionMetadata(CustomTypeMetadata);
 
-        expect(customProperty).toBe('test');
+        expect(customTypeMetadata).toBeDefined();
+        expect(customTypeMetadata?.customProperty).toBe('test');
+    });
+
+    it('should not extract custom options when they were not defined', () =>
+    {
+        const userMetadata = TypeManager.extractTypeMetadata(Company);
+        const customTypeMetadata = userMetadata.extractTypeExtensionMetadata(CustomTypeMetadata);
+
+        expect(customTypeMetadata).toBeUndefined();
     });
 });

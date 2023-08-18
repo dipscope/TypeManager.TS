@@ -4,6 +4,7 @@ import { nameOf } from './functions/name-of';
 import { GenericArgument } from './generic-argument';
 import { PropertyOptions } from './property-options';
 import { TypeArgument } from './type-argument';
+import { TypeFn } from './type-fn';
 import { TypeManager } from './type-manager';
 
 /**
@@ -70,7 +71,9 @@ export function Property<TType>(
             throw new Error(`${nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a method.`);
         }
 
-        TypeManager.configureTypeMetadata(target.constructor).configurePropertyMetadata(propertyName, propertyOptions);
+        const typeFn = target.constructor as TypeFn<any>;
+        
+        TypeManager.configureTypeMetadata(typeFn).configurePropertyMetadata(propertyName, propertyOptions);
 
         return;
     };

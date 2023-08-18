@@ -37,8 +37,10 @@ export function Inject<TType>(x: TypeFn<TType> | InjectOptions<TType> | string):
         {
             throw new Error(`${nameOf(target)}.${String(propertyName)}: inject decorator cannot be applied to a property.`);
         }
-
-        TypeManager.configureTypeMetadata(target).configureInjectMetadata(injectIndex, injectOptions);
+        
+        const typeFn = target as TypeFn<any>;
+        
+        TypeManager.configureTypeMetadata(typeFn).configureInjectMetadata(injectIndex, injectOptions);
 
         return;
     };

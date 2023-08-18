@@ -1,3 +1,4 @@
+import { TypeFn } from './type-fn';
 import { TypeManager } from './type-manager';
 import { TypeOptions } from './type-options';
 
@@ -12,7 +13,9 @@ export function Type<TType>(typeOptions?: TypeOptions<TType>): ClassDecorator
 {
     return function (target: any): any
     {
-        TypeManager.configureTypeMetadata(target, typeOptions).reflectInjectMetadata();
+        const typeFn = target as TypeFn<TType>;
+        
+        TypeManager.configureTypeMetadata(typeFn, typeOptions).reflectInjectMetadata();
 
         return target;
     };

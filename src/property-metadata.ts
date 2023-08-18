@@ -13,6 +13,7 @@ import { Metadata } from './metadata';
 import { NamingConvention } from './naming-convention';
 import { PropertyExtensionMetadata } from './property-extension-metadata';
 import { PropertyExtensionMetadataCtor } from './property-extension-metadata-ctor';
+import { propertyExtensionMetadataCtorSetKey } from './property-extension-metadata-ctor-set-key';
 import { PropertyExtensionOptions } from './property-extension-options';
 import { PropertyInternals } from './property-internals';
 import { PropertyName } from './property-name';
@@ -705,6 +706,13 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
         propertyExtensionOptions?: TPropertyExtensionOptions
     ): TPropertyExtensionMetadata
     {
+        const propertyExtensionMetadataCtorSet = this.extractCustomOption(propertyExtensionMetadataCtorSetKey);
+
+        if (!propertyExtensionMetadataCtorSet.has(propertyExtensionMetadataCtor))
+        {
+            propertyExtensionMetadataCtorSet.add(propertyExtensionMetadataCtor);
+        }
+
         const initialPropertyExtensionOptions = propertyExtensionOptions ?? {} as TPropertyExtensionOptions;
         const propertyExtensionMetadata = new propertyExtensionMetadataCtor(this, initialPropertyExtensionOptions);
 
@@ -720,8 +728,15 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public extractPropertyExtensionMetadata<TPropertyExtensionMetadata extends PropertyExtensionMetadata<TDeclaringType, TType, TPropertyExtensionOptions>, TPropertyExtensionOptions extends PropertyExtensionOptions>(
         propertyExtensionMetadataCtor: PropertyExtensionMetadataCtor<TPropertyExtensionMetadata, TPropertyExtensionOptions, TDeclaringType, TType>
-    ): TPropertyExtensionMetadata
+    ): TPropertyExtensionMetadata | undefined
     {
+        const propertyExtensionMetadataCtorSet = this.extractCustomOption(propertyExtensionMetadataCtorSetKey);
+        
+        if (!propertyExtensionMetadataCtorSet.has(propertyExtensionMetadataCtor))
+        {
+            return undefined;
+        }
+
         const initialPropertyExtensionOptions = {} as TPropertyExtensionOptions;
         const propertyExtensionMetadata = new propertyExtensionMetadataCtor(this, initialPropertyExtensionOptions);
 

@@ -25,6 +25,7 @@ import { ReferenceHandler } from './reference-handler';
 import { Serializer } from './serializer';
 import { TypeExtensionMetadata } from './type-extension-metadata';
 import { TypeExtensionMetadataCtor } from './type-extension-metadata-ctor';
+import { typeExtensionMetadataCtorSetKey } from './type-extension-metadata-ctor-set-key';
 import { TypeExtensionOptions } from './type-extension-options';
 import { TypeFn } from './type-fn';
 import { TypeInternals } from './type-internals';
@@ -1037,6 +1038,13 @@ export class TypeMetadata<TType> extends Metadata
         typeExtensionOptions?: TTypeExtensionOptions
     ): TTypeExtensionMetadata
     {
+        const typeExtensionMetadataCtorSet = this.extractCustomOption(typeExtensionMetadataCtorSetKey);
+
+        if (!typeExtensionMetadataCtorSet.has(typeExtensionMetadataCtor))
+        {
+            typeExtensionMetadataCtorSet.add(typeExtensionMetadataCtor);
+        }
+
         const initialTypeExtensionOptions = typeExtensionOptions ?? {} as TTypeExtensionOptions;
         const typeExtensionMetadata = new typeExtensionMetadataCtor(this, initialTypeExtensionOptions);
 
@@ -1048,12 +1056,19 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TType>} typeExtensionMetadataCtor Type extension metadata constructor.
      * 
-     * @returns {TTypeExtensionMetadata} Type extension metadata.
+     * @returns {TTypeExtensionMetadata|undefined} Type extension metadata or undefined.
      */
     public extractTypeExtensionMetadata<TTypeExtensionMetadata extends TypeExtensionMetadata<TType, TTypeExtensionOptions>, TTypeExtensionOptions extends TypeExtensionOptions>(
         typeExtensionMetadataCtor: TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TType>
-    ): TTypeExtensionMetadata
+    ): TTypeExtensionMetadata | undefined
     {
+        const typeExtensionMetadataCtorSet = this.extractCustomOption(typeExtensionMetadataCtorSetKey);
+
+        if (!typeExtensionMetadataCtorSet.has(typeExtensionMetadataCtor)) 
+        {
+            return undefined;
+        }
+        
         const initialTypeExtensionOptions = {} as TTypeExtensionOptions;
         const typeExtensionMetadata = new typeExtensionMetadataCtor(this, initialTypeExtensionOptions);
 

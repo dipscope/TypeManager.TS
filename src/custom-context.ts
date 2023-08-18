@@ -108,6 +108,8 @@ export class CustomContext
         if (isUndefined(customValue) && !isNil(customKey.customValueResolver))
         {
             customValue = customKey.customValueResolver();
+
+            this.set(customKey, customValue);
         }
 
         return customValue;

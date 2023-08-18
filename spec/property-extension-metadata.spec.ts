@@ -41,10 +41,12 @@ class CustomPropertyMetadata<TDeclaringType, TType> extends PropertyExtensionMet
 class User
 {
     @Property(String) public name: string;
+    @Property(String) public rank: string;
 
-    public constructor(@Inject('name') name: string)
+    public constructor(@Inject('name') name: string, @Inject('rank') rank: string)
     {
         this.name = name;
+        this.rank = rank;
 
         return;
     }
@@ -59,8 +61,18 @@ describe('Property extension metadata', () =>
 
         nameMetadata.configurePropertyExtensionMetadata(CustomPropertyMetadata).hasCustomProperty('test');
 
-        const customProperty = nameMetadata.extractPropertyExtensionMetadata(CustomPropertyMetadata).customProperty;
+        const customPropertyMetadata = nameMetadata.extractPropertyExtensionMetadata(CustomPropertyMetadata);
 
-        expect(customProperty).toBe('test');
+        expect(customPropertyMetadata).toBeDefined();
+        expect(customPropertyMetadata?.customProperty).toBe('test');
+    });
+
+    it('should not extract custom options when they were not defined', () =>
+    {
+        const userMetadata = TypeManager.extractTypeMetadata(User);
+        const nameMetadata = userMetadata.configurePropertyMetadata('rank');
+        const customPropertyMetadata = nameMetadata.extractPropertyExtensionMetadata(CustomPropertyMetadata);
+
+        expect(customPropertyMetadata).toBeUndefined();
     });
 });
