@@ -443,9 +443,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {Alias} alias Alias.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public hasAlias(alias: Alias | undefined): PropertyMetadata<TDeclaringType, TType>
+    public hasAlias(alias: Alias | undefined): this
     {
         this.propertyOptions.alias = alias;
 
@@ -458,9 +458,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * @param {CustomKey<TCustomValue>} customKey Custom key.
      * @param {TCustomValue} customValue Custom value.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public hasCustomOption<TCustomValue>(customKey: CustomKey<TCustomValue>, customValue: TCustomValue): PropertyMetadata<TDeclaringType, TType>
+    public hasCustomOption<TCustomValue>(customKey: CustomKey<TCustomValue>, customValue: TCustomValue): this
     {
         this.customContext.set(customKey, customValue);
 
@@ -484,9 +484,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {Array<CustomOption>|undefined} customOptions Custom options.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public hasCustomOptions(customOptions: Array<CustomOption> | undefined): PropertyMetadata<TDeclaringType, TType>
+    public hasCustomOptions(customOptions: Array<CustomOption> | undefined): this
     {
         if (!isNil(customOptions))
         {
@@ -501,9 +501,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {DefaultValue} defaultValue Default value.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public hasDefaultValue(defaultValue: DefaultValue): PropertyMetadata<TDeclaringType, TType>
+    public hasDefaultValue(defaultValue: DefaultValue): this
     {
         this.propertyOptions.defaultValue = defaultValue;
 
@@ -515,9 +515,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {DefaultValue} serializedDefaultValue Serialized default value.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public hasSerializedDefaultValue(serializedDefaultValue: DefaultValue): PropertyMetadata<TDeclaringType, TType>
+    public hasSerializedDefaultValue(serializedDefaultValue: DefaultValue): this
     {
         this.propertyOptions.serializedDefaultValue = serializedDefaultValue;
 
@@ -529,9 +529,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {DefaultValue} deserializedDefaultValue Deserialized default value.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public hasDeserializedDefaultValue(deserializedDefaultValue: DefaultValue): PropertyMetadata<TDeclaringType, TType>
+    public hasDeserializedDefaultValue(deserializedDefaultValue: DefaultValue): this
     {
         this.propertyOptions.deserializedDefaultValue = deserializedDefaultValue;
 
@@ -543,9 +543,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {boolean} deserializable Deserializable.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public isDeserializable(deserializable: boolean = true): PropertyMetadata<TDeclaringType, TType>
+    public isDeserializable(deserializable: boolean = true): this
     {
         this.propertyOptions.deserializable = deserializable;
 
@@ -557,9 +557,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {boolean} serializable Serializable.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public isSerializable(serializable: boolean = true): PropertyMetadata<TDeclaringType, TType>
+    public isSerializable(serializable: boolean = true): this
     {
         this.propertyOptions.serializable = serializable;
 
@@ -571,9 +571,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {Array<GenericArgument<any>>|undefined} genericArguments Generic arguments.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public hasGenericArguments(genericArguments: Array<GenericArgument<any>> | undefined): PropertyMetadata<TDeclaringType, TType>
+    public hasGenericArguments(genericArguments: Array<GenericArgument<any>> | undefined): this
     {
         this.propertyOptions.genericArguments = genericArguments;
 
@@ -598,9 +598,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {NamingConvention|undefined} namingConvention Naming convention.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public hasNamingConvention(namingConvention: NamingConvention | undefined): PropertyMetadata<TDeclaringType, TType>
+    public hasNamingConvention(namingConvention: NamingConvention | undefined): this
     {
         this.propertyOptions.namingConvention = namingConvention;
 
@@ -612,9 +612,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {ReferenceHandler|undefined} referenceHandler Reference handler.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public hasReferenceHandler(referenceHandler: ReferenceHandler | undefined): PropertyMetadata<TDeclaringType, TType>
+    public hasReferenceHandler(referenceHandler: ReferenceHandler | undefined): this
     {
         this.propertyOptions.referenceHandler = referenceHandler;
 
@@ -626,9 +626,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {Serializer<TType>|undefined} serializer Serializer.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public hasSerializer(serializer: Serializer<TType> | undefined): PropertyMetadata<TDeclaringType, TType>
+    public hasSerializer(serializer: Serializer<TType> | undefined): this
     {
         this.propertyOptions.serializer = serializer;
 
@@ -640,9 +640,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {TypeArgument<TType>|undefined} typeArgument Type argument.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public hasTypeArgument(typeArgument: TypeArgument<TType> | undefined): PropertyMetadata<TDeclaringType, TType>
+    public hasTypeArgument(typeArgument: TypeArgument<TType> | undefined): this
     {
         this.propertyOptions.typeArgument = typeArgument ?? this.reflectTypeFn;
         this.propertyInternals.typeMetadataResolver = this.defineTypeMetadataResolver(this.propertyOptions.typeArgument);
@@ -655,9 +655,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {boolean} preserveNull Preserve null.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public shouldPreserveNull(preserveNull: boolean = true): PropertyMetadata<TDeclaringType, TType>
+    public shouldPreserveNull(preserveNull: boolean = true): this
     {
         this.propertyOptions.preserveNull = preserveNull;
 
@@ -669,9 +669,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {boolean} useDefaultValue Use default value.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public shouldUseDefaultValue(useDefaultValue: boolean = true): PropertyMetadata<TDeclaringType, TType>
+    public shouldUseDefaultValue(useDefaultValue: boolean = true): this
     {
         this.propertyOptions.useDefaultValue = useDefaultValue;
 
@@ -683,9 +683,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {boolean} useImplicitConversion Use implicit convertion.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public shouldUseImplicitConversion(useImplicitConversion: boolean = true): PropertyMetadata<TDeclaringType, TType>
+    public shouldUseImplicitConversion(useImplicitConversion: boolean = true): this
     {
         this.propertyOptions.useImplicitConversion = useImplicitConversion;
 
@@ -733,9 +733,9 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {PropertyOptions<TType>} propertyOptions Property options.
      * 
-     * @returns {PropertyMetadata<TDeclaringType, TType>} Current instance of property metadata.
+     * @returns {this} Current instance of property metadata.
      */
-    public configure(propertyOptions: PropertyOptions<TType>): PropertyMetadata<TDeclaringType, TType>
+    public configure(propertyOptions: PropertyOptions<TType>): this
     {
         if (!isUndefined(propertyOptions.alias))
         {

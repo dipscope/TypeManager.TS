@@ -41,9 +41,9 @@ export class TypeContext<TType>
      * @param {string} key Key.
      * @param {TypeContextEntry<TType, any>} value Value.
      *  
-     * @returns {TypeContext<TType>} Current type context.
+     * @returns {this} Current type context.
      */
-    public set(key: string, value: TypeContextEntry<TType, any>): TypeContext<TType>
+    public set(key: string, value: TypeContextEntry<TType, any>): this
     {
         const typeContextEntry = this.typeContextEntryMap.get(key);
 

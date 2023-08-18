@@ -160,9 +160,9 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {string|undefined} key Key.
      * 
-     * @returns {InjectMetadata<TDeclaringType, TType>} Current instance of inject metadata.
+     * @returns {this} Current instance of inject metadata.
      */
-    public hasKey(key: string | undefined): InjectMetadata<TDeclaringType, TType>
+    public hasKey(key: string | undefined): this
     {
         this.injectOptions.key = key;
 
@@ -174,9 +174,9 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {TypeFn<TType>|undefined} typeFn Type function.
      * 
-     * @returns {InjectMetadata<TDeclaringType, TType>} Current instance of inject metadata.
+     * @returns {this} Current instance of inject metadata.
      */
-    public hasTypeFn(typeFn: TypeFn<TType> | undefined): InjectMetadata<TDeclaringType, TType>
+    public hasTypeFn(typeFn: TypeFn<TType> | undefined): this
     {
         this.injectOptions.typeFn = typeFn ?? this.reflectTypeFn;
         this.injectInternals.typeMetadataResolver = this.defineTypeMetadataResolver(this.injectOptions.typeFn);
@@ -189,9 +189,9 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @param {InjectOptions<TType>} injectOptions Inject options.
      * 
-     * @returns {InjectMetadata<TDeclaringType, TType>} Current instance of inject metadata.
+     * @returns {this} Current instance of inject metadata.
      */
-    public configure(injectOptions: InjectOptions<TType>): InjectMetadata<TDeclaringType, TType>
+    public configure(injectOptions: InjectOptions<TType>): this
     {
         if (!isUndefined(injectOptions.key))
         {

@@ -502,9 +502,9 @@ export class TypeManager
      * 
      * @param {Partial<TypeOptionsBase<TType>>} typeOptionsBase Type options base.
      * 
-     * @returns {TypeManager} Instance of type manager.
+     * @returns {this} Instance of type manager.
      */
-    public applyTypeOptionsBase<TType>(typeOptionsBase: Partial<TypeOptionsBase<TType>>): TypeManager
+    public applyTypeOptionsBase<TType>(typeOptionsBase: Partial<TypeOptionsBase<TType>>): this
     {
         const customOptions = this.typeOptionsBase.customOptions;
 
@@ -535,9 +535,9 @@ export class TypeManager
      * 
      * @param {Map<TypeFn<TType>, TypeOptions<TType>>} typeOptionsMap Type options map.
      * 
-     * @returns {TypeManager} Instance of type manager.
+     * @returns {this} Instance of type manager.
      */
-    public applyTypeOptionsMap<TType>(typeOptionsMap: Map<TypeFn<TType>, TypeOptions<TType>>): TypeManager
+    public applyTypeOptionsMap<TType>(typeOptionsMap: Map<TypeFn<TType>, TypeOptions<TType>>): this
     {
         for (const [typeFn, typeOptions] of typeOptionsMap)
         {
@@ -566,9 +566,9 @@ export class TypeManager
      * @param {TypeFn<TType>} typeFn Type function.
      * @param {TypeOptions<TType>} typeOptions Type options.
      * 
-     * @returns {TypeManager} Instance of type manager.
+     * @returns {this} Instance of type manager.
      */
-    public applyTypeOptions<TType>(typeFn: TypeFn<TType>, typeOptions: TypeOptions<TType>): TypeManager
+    public applyTypeOptions<TType>(typeFn: TypeFn<TType>, typeOptions: TypeOptions<TType>): this
     {
         const typeMetadata = this.extractTypeMetadata(typeFn);
 
@@ -594,9 +594,9 @@ export class TypeManager
      * 
      * @param {Map<TypeFn<TType>, TypeConfiguration<TType>>} typeConfigurationMap Type configuration map.
      * 
-     * @returns {TypeManager} Instance of type manager.
+     * @returns {this} Instance of type manager.
      */
-    public applyTypeConfigurationMap<TType>(typeConfigurationMap: Map<TypeFn<TType>, TypeConfiguration<TType>>): TypeManager
+    public applyTypeConfigurationMap<TType>(typeConfigurationMap: Map<TypeFn<TType>, TypeConfiguration<TType>>): this
     {
         for (const [typeFn, typeConfiguration] of typeConfigurationMap)
         {
@@ -625,9 +625,9 @@ export class TypeManager
      * @param {TypeFn<TType>} typeFn Type function.
      * @param {TypeConfiguration<TType>} typeConfiguration Type configuration.
      * 
-     * @returns {TypeManager} Instance of type manager.
+     * @returns {this} Instance of type manager.
      */
-    public applyTypeConfiguration<TType>(typeFn: TypeFn<TType>, typeConfiguration: TypeConfiguration<TType>): TypeManager
+    public applyTypeConfiguration<TType>(typeFn: TypeFn<TType>, typeConfiguration: TypeConfiguration<TType>): this
     {
         const typeMetadata = this.extractTypeMetadata(typeFn);
 
@@ -653,9 +653,9 @@ export class TypeManager
      * 
      * @param {TypeManagerOptions} typeManagerOptions Type manager options.
      * 
-     * @returns {TypeManager} Instance of type manager.
+     * @returns {this} Instance of type manager.
      */
-    public configure(typeManagerOptions: TypeManagerOptions): TypeManager
+    public configure(typeManagerOptions: TypeManagerOptions): this
     {
         if (!isUndefined(typeManagerOptions.typeOptionsBase)) 
         {

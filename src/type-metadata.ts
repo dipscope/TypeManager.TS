@@ -525,9 +525,9 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Derives parent type metadata properties.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    private deriveParentTypeMetadataProperties(): TypeMetadata<TType>
+    private deriveParentTypeMetadataProperties(): this
     {
         if (isNil(this.parentTypeMetadata)) 
         {
@@ -549,9 +549,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * Used to configure inject metadata based on reflect metadata as inject decorators may be omitted.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public reflectInjectMetadata(): TypeMetadata<TType>
+    public reflectInjectMetadata(): this
     {
         if (this.typeFn.length === 0)
         {
@@ -576,9 +576,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {Alias|undefined} alias Alias.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasAlias(alias: Alias | undefined): TypeMetadata<TType>
+    public hasAlias(alias: Alias | undefined): this
     {
         this.releaseAlias();
 
@@ -595,9 +595,9 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Releases alias.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata. 
+     * @returns {this} Current instance of type metadata. 
      */
-    private releaseAlias(): TypeMetadata<TType>
+    private releaseAlias(): this
     {
         const alias = this.alias;
 
@@ -615,9 +615,9 @@ export class TypeMetadata<TType> extends Metadata
      * @param {CustomKey<TCustomValue>} customKey Custom key.
      * @param {TCustomValue} customValue Custom value.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasCustomOption<TCustomValue>(customKey: CustomKey<TCustomValue>, customValue: TCustomValue): TypeMetadata<TType>
+    public hasCustomOption<TCustomValue>(customKey: CustomKey<TCustomValue>, customValue: TCustomValue): this
     {
         this.customContext.set(customKey, customValue);
 
@@ -641,9 +641,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {Array<CustomOption>|undefined} customOptions Custom options.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasCustomOptions(customOptions: Array<CustomOption> | undefined): TypeMetadata<TType>
+    public hasCustomOptions(customOptions: Array<CustomOption> | undefined): this
     {
         if (!isNil(customOptions))
         {
@@ -658,9 +658,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {DefaultValue} defaultValue Default value.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasDefaultValue(defaultValue: DefaultValue): TypeMetadata<TType>
+    public hasDefaultValue(defaultValue: DefaultValue): this
     {
         this.typeOptions.defaultValue = defaultValue;
 
@@ -672,9 +672,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {DefaultValue} serializedDefaultValue Serialized default value.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasSerializedDefaultValue(serializedDefaultValue: DefaultValue): TypeMetadata<TType>
+    public hasSerializedDefaultValue(serializedDefaultValue: DefaultValue): this
     {
         this.typeOptions.serializedDefaultValue = serializedDefaultValue;
 
@@ -686,9 +686,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {DefaultValue} deserializedDefaultValue Deserialized default value.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasDeserializedDefaultValue(deserializedDefaultValue: DefaultValue): TypeMetadata<TType>
+    public hasDeserializedDefaultValue(deserializedDefaultValue: DefaultValue): this
     {
         this.typeOptions.deserializedDefaultValue = deserializedDefaultValue;
 
@@ -700,9 +700,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {Discriminator|undefined} discriminator Discriminator.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasDiscriminator(discriminator: Discriminator | undefined): TypeMetadata<TType>
+    public hasDiscriminator(discriminator: Discriminator | undefined): this
     {
         this.typeOptions.discriminator = discriminator;
 
@@ -714,9 +714,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {Discriminant|undefined} discriminant Discriminant.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasDiscriminant(discriminant: Discriminant | undefined): TypeMetadata<TType>
+    public hasDiscriminant(discriminant: Discriminant | undefined): this
     {
         this.typeOptions.discriminant = discriminant;
 
@@ -734,9 +734,9 @@ export class TypeMetadata<TType> extends Metadata
      * @param {TypeFn<any>} typeFn Type function.
      * @param {Discriminant} discriminant Discriminant.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    private provideDiscriminant(typeFn: TypeFn<any>, discriminant: Discriminant): TypeMetadata<TType>
+    private provideDiscriminant(typeFn: TypeFn<any>, discriminant: Discriminant): this
     {
         this.discriminantMap.set(typeFn, discriminant);
 
@@ -753,9 +753,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {Factory|undefined} factory Factory.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasFactory(factory: Factory | undefined): TypeMetadata<TType>
+    public hasFactory(factory: Factory | undefined): this
     {
         this.typeOptions.factory = factory;
 
@@ -767,9 +767,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {boolean} injectable Injectable.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public isInjectable(injectable: boolean = true): TypeMetadata<TType>
+    public isInjectable(injectable: boolean = true): this
     {
         this.typeOptions.injectable = injectable;
 
@@ -781,9 +781,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {Injector|undefined} injector Injector.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasInjector(injector: Injector | undefined): TypeMetadata<TType>
+    public hasInjector(injector: Injector | undefined): this
     {
         this.typeOptions.injector = injector;
 
@@ -795,9 +795,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {Log|undefined} log Log.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasLog(log: Log | undefined): TypeMetadata<TType>
+    public hasLog(log: Log | undefined): this
     {
         this.typeOptions.log = log;
 
@@ -809,9 +809,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {NamingConvention|undefined} namingConvention Naming convention.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasNamingConvention(namingConvention: NamingConvention | undefined): TypeMetadata<TType>
+    public hasNamingConvention(namingConvention: NamingConvention | undefined): this
     {
         this.typeOptions.namingConvention = namingConvention;
 
@@ -823,9 +823,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {boolean} preserveDiscriminator Preserve discriminator.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public shouldPreserveDiscriminator(preserveDiscriminator: boolean = true): TypeMetadata<TType>
+    public shouldPreserveDiscriminator(preserveDiscriminator: boolean = true): this
     {
         this.typeOptions.preserveDiscriminator = preserveDiscriminator;
 
@@ -837,9 +837,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {ReferenceHandler|undefined} referenceHandler Reference handler.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasReferenceHandler(referenceHandler: ReferenceHandler | undefined): TypeMetadata<TType>
+    public hasReferenceHandler(referenceHandler: ReferenceHandler | undefined): this
     {
         this.typeOptions.referenceHandler = referenceHandler;
 
@@ -851,9 +851,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {Serializer<TType>|undefined} serializer Serializer.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasSerializer(serializer: Serializer<TType> | undefined): TypeMetadata<TType>
+    public hasSerializer(serializer: Serializer<TType> | undefined): this
     {
         this.typeOptions.serializer = serializer;
 
@@ -865,9 +865,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {boolean} preserveNull Preserve null.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public shouldPreserveNull(preserveNull: boolean = true): TypeMetadata<TType>
+    public shouldPreserveNull(preserveNull: boolean = true): this
     {
         this.typeOptions.preserveNull = preserveNull;
 
@@ -879,9 +879,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {boolean} useDefaultValue Use default value.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public shouldUseDefaultValue(useDefaultValue: boolean = true): TypeMetadata<TType>
+    public shouldUseDefaultValue(useDefaultValue: boolean = true): this
     {
         this.typeOptions.useDefaultValue = useDefaultValue;
 
@@ -893,9 +893,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {boolean} useImplicitConversion Use implicit convertion.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public shouldUseImplicitConversion(useImplicitConversion: boolean = true): TypeMetadata<TType>
+    public shouldUseImplicitConversion(useImplicitConversion: boolean = true): this
     {
         this.typeOptions.useImplicitConversion = useImplicitConversion;
 
@@ -907,9 +907,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {PropertySorter|undefined} propertySorter Property sorter.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasPropertySorter(propertySorter: PropertySorter | undefined): TypeMetadata<TType>
+    public hasPropertySorter(propertySorter: PropertySorter | undefined): this
     {
         this.typeOptions.propertySorter = propertySorter;
 
@@ -921,9 +921,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {InjectSorter|undefined} injectSorter Inject sorter.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasInjectSorter(injectSorter: InjectSorter | undefined): TypeMetadata<TType>
+    public hasInjectSorter(injectSorter: InjectSorter | undefined): this
     {
         this.typeOptions.injectSorter = injectSorter;
 
@@ -995,9 +995,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {Map<PropertyName, PropertyOptions<TPropertyType>>} propertyOptionsMap Property options map.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasPropertyMetadataMap<TPropertyType>(propertyOptionsMap: Map<PropertyName, PropertyOptions<TPropertyType>>): TypeMetadata<TType>
+    public hasPropertyMetadataMap<TPropertyType>(propertyOptionsMap: Map<PropertyName, PropertyOptions<TPropertyType>>): this
     {
         for (const [propertyName, propertyOptions] of propertyOptionsMap)
         {
@@ -1012,9 +1012,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {Map<InjectIndex, InjectOptions<TInjectType>>} injectOptionsMap Inject options map.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public hasInjectMetadataMap<TInjectType>(injectOptionsMap: Map<InjectIndex, InjectOptions<TInjectType>>): TypeMetadata<TType>
+    public hasInjectMetadataMap<TInjectType>(injectOptionsMap: Map<InjectIndex, InjectOptions<TInjectType>>): this
     {
         for (const [injectIndex, injectOptions] of injectOptionsMap)
         {
@@ -1065,9 +1065,9 @@ export class TypeMetadata<TType> extends Metadata
      * 
      * @param {TypeOptions<TType>} typeOptions Type options.
      * 
-     * @returns {TypeMetadata<TType>} Current instance of type metadata.
+     * @returns {this} Current instance of type metadata.
      */
-    public configure(typeOptions: TypeOptions<TType>): TypeMetadata<TType>
+    public configure(typeOptions: TypeOptions<TType>): this
     {
         if (!isUndefined(typeOptions.alias)) 
         {

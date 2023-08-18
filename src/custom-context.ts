@@ -71,9 +71,9 @@ export class CustomContext
      * @param {CustomKey<TCustomValue>} customKey Custom key.
      * @param {TCustomValue} customValue Custom value.
      *  
-     * @returns {CustomContext} Custom context.
+     * @returns {this} Current custom context.
      */
-    public set<TCustomValue>(customKey: CustomKey<TCustomValue>, customValue: TCustomValue): CustomContext
+    public set<TCustomValue>(customKey: CustomKey<TCustomValue>, customValue: TCustomValue): this
     {
         const customOptions = this.customOptions;
 
@@ -160,9 +160,9 @@ export class CustomContext
      * 
      * @param {Array<CustomOption>} customOptions Custom options.
      * 
-     * @returns {CustomContext} Custom context.
+     * @returns {this} Current custom context.
      */
-    public configure(customOptions: Array<CustomOption>): CustomContext
+    public configure(customOptions: Array<CustomOption>): this
     {
         for (const [customKey, customValue] of customOptions)
         {

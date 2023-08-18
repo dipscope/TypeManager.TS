@@ -698,9 +698,9 @@ export class SerializerContext<TType> extends Metadata
      * 
      * @param {string|number} jsonPathKey Json path key.
      * 
-     * @returns {SerializerContext<TType>} Current instance of serializer context.
+     * @returns {this} Current instance of serializer context.
      */
-    public hasJsonPathKey(jsonPathKey: string | number): SerializerContext<TType>
+    public hasJsonPathKey(jsonPathKey: string | number): this
     {
         this.serializerContextOptions.jsonPathKey = jsonPathKey;
 
@@ -712,9 +712,9 @@ export class SerializerContext<TType> extends Metadata
      * 
      * @param {ReferenceValueSetter} referenceValueSetter Reference value setter.
      * 
-     * @returns {SerializerContext<TType>} Current instance of serializer context.
+     * @returns {this} Current instance of serializer context.
      */
-    public hasReferenceValueSetter(referenceValueSetter: ReferenceValueSetter): SerializerContext<TType>
+    public hasReferenceValueSetter(referenceValueSetter: ReferenceValueSetter): this
     {
         this.serializerContextOptions.referenceValueSetter = referenceValueSetter;
 
@@ -726,9 +726,9 @@ export class SerializerContext<TType> extends Metadata
      * 
      * @param {Array<GenericStructure<any>>|undefined} genericStructures Generic structures.
      * 
-     * @returns {SerializerContext<TType>} Current instance of serializer context.
+     * @returns {this} Current instance of serializer context.
      */
-    public hasGenericStructures(genericStructures: Array<GenericStructure<any>> | undefined): SerializerContext<TType>
+    public hasGenericStructures(genericStructures: Array<GenericStructure<any>> | undefined): this
     {
         this.serializerContextOptions.genericStructures = genericStructures;
 
@@ -740,9 +740,9 @@ export class SerializerContext<TType> extends Metadata
      * 
      * @param {Array<GenericMetadataResolver<any>>|undefined} genericMetadataResolvers Generic metadata resolvers.
      * 
-     * @returns {SerializerContext<TType>} Current instance of serializer context.
+     * @returns {this} Current instance of serializer context.
      */
-    public hasGenericMetadataResolvers(genericMetadataResolvers: Array<GenericMetadataResolver<any>> | undefined): SerializerContext<TType>
+    public hasGenericMetadataResolvers(genericMetadataResolvers: Array<GenericMetadataResolver<any>> | undefined): this
     {
         this.serializerContextOptions.genericMetadataResolvers = genericMetadataResolvers;
 
@@ -754,9 +754,9 @@ export class SerializerContext<TType> extends Metadata
      * 
      * @param {PropertyMetadata<any,TType>|undefined} propertyMetadata Property metadata.
      * 
-     * @returns {SerializerContext<TType>} Current instance of serializer context.
+     * @returns {this} Current instance of serializer context.
      */
-    public hasPropertyMetadata(propertyMetadata: PropertyMetadata<any, TType> | undefined): SerializerContext<TType>
+    public hasPropertyMetadata(propertyMetadata: PropertyMetadata<any, TType> | undefined): this
     {
         this.serializerContextOptions.propertyMetadata = propertyMetadata;
 
@@ -768,9 +768,9 @@ export class SerializerContext<TType> extends Metadata
      * 
      * @param {TypeMetadata<TType>} typeMetadata Type metadata.
      * 
-     * @returns {SerializerContext<TType>} Current instance of serializer context.
+     * @returns {this} Current instance of serializer context.
      */
-    public hasTypeMetadata(typeMetadata: TypeMetadata<TType>): SerializerContext<TType>
+    public hasTypeMetadata(typeMetadata: TypeMetadata<TType>): this
     {
         this.serializerContextOptions.typeMetadata = typeMetadata;
 
@@ -782,9 +782,9 @@ export class SerializerContext<TType> extends Metadata
      * 
      * @param {SerializerContextOptions<TType>} serializerContextOptions Serializer context options.
      * 
-     * @returns {SerializerContext<TType>} Current instance of serializer context.
+     * @returns {this} Current instance of serializer context.
      */
-    public configure(serializerContextOptions: SerializerContextOptions<TType>): SerializerContext<TType>
+    public configure(serializerContextOptions: SerializerContextOptions<TType>): this
     {
         if (!isUndefined(serializerContextOptions.jsonPathKey))
         {
