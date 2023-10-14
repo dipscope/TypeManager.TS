@@ -1,4 +1,4 @@
-import { isFunction, isNil, isUndefined } from 'lodash';
+import { first, isEmpty, isFunction, isNil, isUndefined } from 'lodash';
 import { Alias } from './alias';
 import { CustomContext } from './custom-context';
 import { CustomKey } from './custom-key';
@@ -107,11 +107,11 @@ export class TypeMetadata<TType> extends Metadata
     public readonly injectMetadataMap: Map<InjectIndex, InjectMetadata<TType, any>> = new Map<InjectIndex, InjectMetadata<TType, any>>();
 
     /**
-     * Parent type metadata.
+     * Parent type metadatas.
      * 
-     * @type {TypeMetadata<any>}
+     * @type {Array<TypeMetadata<any>>}
      */
-    public readonly parentTypeMetadata?: TypeMetadata<any>;
+    public readonly parentTypeMetadatas: Array<TypeMetadata<any>>;
 
     /**
      * Constructor.
@@ -119,13 +119,13 @@ export class TypeMetadata<TType> extends Metadata
      * @param {TypeManager} typeManager Type manager.
      * @param {TypeFn<any>} typeFn Type function.
      * @param {TypeOptions<TType>} typeOptions Type options.
-     * @param {TypeMetadata<any>} parentTypeMetadata Parent type metadata.
+     * @param {Array<TypeMetadata<any>>} parentTypeMetadatas Parent type metadatas.
      */
     public constructor(
         typeManager: TypeManager,
         typeFn: TypeFn<TType>,
         typeOptions: TypeOptions<TType>,
-        parentTypeMetadata?: TypeMetadata<any>
+        parentTypeMetadatas: Array<TypeMetadata<any>>
     )
     {
         super(typeManager);
@@ -135,13 +135,23 @@ export class TypeMetadata<TType> extends Metadata
         this.typeOptionsBase = typeManager.typeOptionsBase;
         this.typeOptions = this.constructTypeOptions(typeOptions);
         this.typeInternals = this.constructTypeInternals();
-        this.parentTypeMetadata = parentTypeMetadata;
+        this.parentTypeMetadatas = parentTypeMetadatas;
 
         this.deriveParentTypeMetadataProperties();
         this.hasDiscriminant(this.discriminant);
         this.configure(typeOptions);
 
         return;
+    }
+
+    /**
+     * Parent type metadata.
+     * 
+     * @type {TypeMetadata<any>}
+     */
+    public get parentTypeMetadata(): TypeMetadata<any> | undefined
+    {
+        return first(this.parentTypeMetadatas);
     }
 
     /**
@@ -497,6 +507,16 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
+     * Gets parent type fns value.
+     * 
+     * @returns {Array<TypeFn<any>>|undefined} Parent type fns or undefined.
+     */
+    public get parentTypeFns(): Array<TypeFn<any>> | undefined
+    {
+        return this.typeOptions.parentTypeFns;
+    }
+
+    /**
      * Constructs initial type options by extending passed options 
      * with default values if they are not overriden. All references are kept.
      * 
@@ -530,17 +550,23 @@ export class TypeMetadata<TType> extends Metadata
      */
     private deriveParentTypeMetadataProperties(): this
     {
-        if (isNil(this.parentTypeMetadata)) 
+        if (isEmpty(this.parentTypeMetadatas)) 
         {
             return this;
         }
 
-        for (const [propertyName, propertyMetadata] of this.parentTypeMetadata.propertyMetadataMap)
+        for (const parentTypeMetadata of this.parentTypeMetadatas)
         {
-            this.propertyMetadataMap.set(propertyName, propertyMetadata);
-        }
+            for (const [propertyName, propertyMetadata] of parentTypeMetadata.propertyMetadataMap)
+            {
+                if (!this.propertyMetadataMap.has(propertyName))
+                {
+                    this.propertyMetadataMap.set(propertyName, propertyMetadata);
+                }
+            }
 
-        this.parentTypeMetadata.childrenTypeMetadataMap.set(this.typeFn, this);
+            parentTypeMetadata.childrenTypeMetadataMap.set(this.typeFn, this);
+        }
 
         return this;
     }
@@ -741,9 +767,12 @@ export class TypeMetadata<TType> extends Metadata
     {
         this.discriminantMap.set(typeFn, discriminant);
 
-        if (!isNil(this.parentTypeMetadata))
+        if (!isEmpty(this.parentTypeMetadatas))
         {
-            this.parentTypeMetadata.provideDiscriminant(typeFn, discriminant);
+            for (const parentTypeMetadata of this.parentTypeMetadatas)
+            {
+                parentTypeMetadata.provideDiscriminant(typeFn, discriminant);
+            }
         }
 
         return this;
@@ -1076,6 +1105,34 @@ export class TypeMetadata<TType> extends Metadata
     }
 
     /**
+     * Configures parent type fns.
+     * 
+     * @param {Array<TypeFn<any>>} parentTypeFns Parent type fns.
+     * 
+     * @returns {this} Current instance of type metadata.
+     */
+    public hasParentTypeFns(parentTypeFns: Array<TypeFn<any>>): this
+    {
+        if (isNil(this.typeOptions.parentTypeFns))
+        {
+            this.typeOptions.parentTypeFns = new Array<TypeFn<any>>();
+        }
+
+        for (const parentTypeFn of parentTypeFns) 
+        {
+            const parentTypeMetadata = this.typeManager.extractTypeMetadata(parentTypeFn);
+            
+            this.parentTypeMetadatas.push(parentTypeMetadata);
+            this.typeOptions.parentTypeFns.push(parentTypeFn);
+        }
+
+        this.deriveParentTypeMetadataProperties();
+        this.hasDiscriminant(this.discriminant);
+
+        return this;
+    }
+
+    /**
      * Configures type metadata based on provided options.
      * 
      * @param {TypeOptions<TType>} typeOptions Type options.
@@ -1084,6 +1141,11 @@ export class TypeMetadata<TType> extends Metadata
      */
     public configure(typeOptions: TypeOptions<TType>): this
     {
+        if (!isUndefined(typeOptions.parentTypeFns))
+        {
+            this.hasParentTypeFns(typeOptions.parentTypeFns);
+        }
+
         if (!isUndefined(typeOptions.alias)) 
         {
             this.hasAlias(typeOptions.alias);

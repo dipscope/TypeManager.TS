@@ -451,7 +451,8 @@ export class TypeManager
         const symbol = this.symbol;
         const parentPrototype = Object.getPrototypeOf(typeFn.prototype) ?? {};
         const parentTypeMetadata = parentPrototype[symbol];
-        const typeMetadata = new TypeMetadata(this, typeFn, mapTypeOptions, parentTypeMetadata);
+        const parentTypeMetadatas = isNil(parentTypeMetadata) ? [] : [parentTypeMetadata];
+        const typeMetadata = new TypeMetadata(this, typeFn, mapTypeOptions, parentTypeMetadatas);
 
         return typeMetadata;
     }

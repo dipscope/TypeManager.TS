@@ -12,9 +12,12 @@ class DefaultActiveUserStatus extends UserStatus
     @Property(Boolean) public active?: boolean;
 }
 
-@Type()
-class DefaultInactiveUserStatus extends UserStatus
+@Type({
+    parentTypeFns: [UserStatus]
+})
+class DefaultInactiveUserStatus implements UserStatus
 {
+    @Property(String) public title?: string;
     @Property(Boolean) public inactive?: boolean;
 }
 

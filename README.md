@@ -39,6 +39,7 @@ If you like or are using this project please give it a star. Thanks!
     * [Serializer option](#serializer-option)
     * [Use default value option](#use-default-value-option)
     * [Use implicit conversion option](#use-implicit-conversion-option)
+    * [Parent type functions option](#parent-type-functions-option)
 * [Defining configuration manually](#defining-configuration-manually)
     * [Configuring global options](#configuring-global-options)
     * [Configuring options per type](#configuring-options-per-type)
@@ -998,6 +999,37 @@ export class User
 ```
 
 With this any value which can be converted to `String` will be converted properly. Such behaviour works for other built in serializers and supported for custom ones. By default implicit conversion is turned off. You can enable it using `useImplicitConversion` option per type and property or enable globally using `TypeManager` configure method.
+
+### Parent type functions option
+
+When type implements interfaces which represent other classes this information got lost during `TypeScript` compilation process and there is no way to extract it. This option can be used to provide such information for a `TypeManager` to be used during serialization and deserialization.
+
+```typescript
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type()
+export abstract class Entity
+{
+    @Property(String) public id?: string;
+}
+
+@Type()
+export abstract class UserStatus extends Entity
+{
+    @Property(String) public title?: string;
+}
+
+@Type({
+    parentTypeFns: [UserStatus]
+})
+export class ActiveUserStatus extends Entity implements UserStatus
+{
+    @Property(String) public title?: string;
+    @Property(Boolean) public active?: boolean;
+}
+```
+
+Note that usually only implemented classes should be specified as direct parents are already known to a `TypeManager`. However even if we specify both - it will work properly.
 
 ## Defining configuration manually
 
