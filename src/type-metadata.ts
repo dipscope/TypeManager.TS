@@ -1121,11 +1121,18 @@ export class TypeMetadata<TType> extends Metadata
         for (const parentTypeFn of parentTypeFns) 
         {
             const parentTypeMetadata = this.typeManager.extractTypeMetadata(parentTypeFn);
-            
-            this.parentTypeMetadatas.push(parentTypeMetadata);
-            this.typeOptions.parentTypeFns.push(parentTypeFn);
-        }
 
+            if (!this.parentTypeMetadatas.some(ptm => ptm === parentTypeMetadata))
+            {
+                this.parentTypeMetadatas.push(parentTypeMetadata);
+            }
+
+            if (!this.typeOptions.parentTypeFns.some(ptf => ptf === parentTypeFn))
+            {
+                this.typeOptions.parentTypeFns.push(parentTypeFn);
+            }
+        }
+        
         this.deriveParentTypeMetadataProperties();
         this.hasDiscriminant(this.discriminant);
 

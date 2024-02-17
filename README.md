@@ -183,6 +183,8 @@ TypeScript needs to run with the `experimentalDecorators` and `emitDecoratorMeta
 
 _If you want additional type-safety and reduced syntax you may wish to install [reflect-metadata](https://github.com/rbuckton/reflect-metadata). This step is on your choice and fully optional. When installed it must be available globally to work. This can usually be done with `import 'reflect-metadata';` in your main index file._
 
+Starting from TypeScript 5 we also support modern decorator syntax. However because parameter decorations with the modern syntax at the time of this writing are not supported - you will not be able to use `Inject` decorator provided by the library as well as `reflect-metadata` package when decide to use modern syntax. We are going to add support as soon as it will be provided to us by the TypeScript. If you need `Inject` decorator and enabling legacy decorators support is not an option - you can use declarative configuration.
+
 ## How it works?
 
 It defines configuration for each object which you are going to serialize or deserialize and uses this configuration to process data of your choice. There are two possible ways to define a configuration:

@@ -7,7 +7,7 @@ class Message
     @Property(() => Messageable) public reciever: Messageable
     @Property(String) public content: string
 
-    public constructor (content: string, sender: Messageable, reciever: Messageable) 
+    public constructor(content: string, sender: Messageable, reciever: Messageable) 
     {
         this.content = content;
         this.sender = sender;
@@ -22,7 +22,7 @@ class Status
 {
     @Property(String) status: string;
 
-    public constructor (status: string) 
+    public constructor(status: string) 
     {
         this.status = status;
 
@@ -31,6 +31,7 @@ class Status
     
 }
 
+@Type()
 abstract class Messageable
 {
     @Property(Array, [Message]) messages!: Message[];
@@ -56,7 +57,7 @@ class Chat extends Messageable implements HasTitle
 {
     @Property(String) title: string;
 
-    public constructor (title: string) 
+    public constructor(title: string) 
     {
         super();
 
@@ -75,7 +76,7 @@ class User extends Statusable implements Messageable, HasTitle
     @Property(String) title: string;
     @Property(Array, [Message]) messages!: Message[];
 
-    constructor (title: string) 
+    public constructor(title: string) 
     {
         super();
 

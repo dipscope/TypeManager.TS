@@ -1,5 +1,6 @@
-import { Property, TypeManager, TypeSerializer } from '../src';
+import { Property, Type, TypeManager, TypeSerializer } from '../src';
 
+@Type()
 class User
 {
     @Property() public name?: string;

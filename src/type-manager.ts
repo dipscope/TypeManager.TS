@@ -44,6 +44,7 @@ import { TypeMetadata } from './type-metadata';
 import { typeMetadataSymbol } from './type-metadata-symbol';
 import { TypeOptions } from './type-options';
 import { TypeOptionsBase } from './type-options-base';
+import { TypeScope } from './type-scope';
 import { Unknown } from './unknown';
 
 /**
@@ -109,6 +110,13 @@ export class TypeManager
      */
     public static readonly staticTypeManager: TypeManager = new TypeManager();
 
+    /**
+     * Type scope to work with registration in static context.
+     * 
+     * @type {TypeScope}
+     */
+    public static readonly typeScope: TypeScope = new TypeScope();
+    
     /**
      * Type function map for types with aliases.
      * 

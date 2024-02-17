@@ -1,7 +1,8 @@
-import { isArray, isFunction, isObject, isString, isSymbol, merge } from 'lodash';
+import { isArray, isFunction, isObject, isString, isSymbol, isUndefined, merge } from 'lodash';
 import { isCtorFunction } from './functions/is-ctor-function';
 import { nameOf } from './functions/name-of';
 import { GenericArgument } from './generic-argument';
+import { PropertyDecorator } from './property-decorator';
 import { PropertyOptions } from './property-options';
 import { TypeArgument } from './type-argument';
 import { TypeFn } from './type-fn';
@@ -54,27 +55,71 @@ export function Property<TType>(
         propertyOptions.typeArgument = x;
     }
 
-    return function (target: any, propertyName: string | symbol): void
+    return function (target: any, context: any): any
     {
-        if (isCtorFunction(target))
+        // Modern decorator has a dynamic target which is dependent from where decorator 
+        // is applied (target), context as a second parameter (context) and optional 
+        // resolver like return type.
+        if (isObject(context) && context.hasOwnProperty('kind'))
         {
-            throw new Error(`${nameOf(target)}.${String(propertyName)}: property decorator cannot be applied to a static member.`);
+            const decoratorContext = context as any;
+            const kind = decoratorContext.kind;
+            const propertyName = decoratorContext.name;
+
+            if (kind === 'method' || kind === 'class')
+            {
+                throw new Error(`${String(propertyName)}: property decorator cannot be applied to a method or a class.`);
+            }
+
+            if (isUndefined(propertyName))
+            {
+                throw new Error(`${String(propertyName)}: property decorator cannot be applied to undefined values.`);
+            }
+
+            if (isSymbol(propertyName))
+            {
+                throw new Error(`${String(propertyName)}: property decorator cannot be applied to a symbol.`);
+            }
+
+            TypeManager.typeScope.addPropertyOptions(propertyName, propertyOptions);
+
+            return;
         }
 
-        if (isSymbol(propertyName))
+        // Legacy decorator has class reference as a first parameter (target), property name 
+        // or symbol as a second parameter (context) and no return type.
+        if (isObject(target) && (isString(context) || isSymbol(context)))
         {
-            throw new Error(`${nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a symbol.`);
+            const legacyTarget = target as any;
+            const propertyName = context as string | symbol | undefined;
+
+            if (isCtorFunction(legacyTarget))
+            {
+                throw new Error(`${nameOf(legacyTarget)}.${String(propertyName)}: property decorator cannot be applied to a static member.`);
+            }
+
+            if (isUndefined(propertyName))
+            {
+                throw new Error(`${nameOf(legacyTarget)}.${String(propertyName)}: property decorator cannot be applied to undefined values.`);
+            }
+
+            if (isSymbol(propertyName))
+            {
+                throw new Error(`${nameOf(legacyTarget.constructor)}.${String(propertyName)}: property decorator cannot be applied to a symbol.`);
+            }
+    
+            if (isFunction(legacyTarget[propertyName]))
+            {
+                throw new Error(`${nameOf(legacyTarget.constructor)}.${String(propertyName)}: property decorator cannot be applied to a method.`);
+            }
+    
+            const typeFn = legacyTarget.constructor as TypeFn<any>;
+            
+            TypeManager.configureTypeMetadata(typeFn).configurePropertyMetadata(propertyName, propertyOptions);
+    
+            return;
         }
 
-        if (isFunction(target[propertyName]))
-        {
-            throw new Error(`${nameOf(target.constructor)}.${String(propertyName)}: property decorator cannot be applied to a method.`);
-        }
-
-        const typeFn = target.constructor as TypeFn<any>;
-        
-        TypeManager.configureTypeMetadata(typeFn).configurePropertyMetadata(propertyName, propertyOptions);
-
-        return;
+        throw new Error(`Property decorator was not able to detect correct resolver for the following target [${target}] and context [${context}].`);
     };
 }
