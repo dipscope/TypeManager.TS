@@ -1,173 +1,96 @@
 # TypeManager.TS
 
-![GitHub](https://img.shields.io/github/license/dipscope/TypeManager.TS) ![NPM](https://img.shields.io/npm/v/@dipscope/type-manager) ![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)
+![GitHub](https://img.shields.io/github/license/dipscope/TypeManager.TS) ![NPM]( https://img.shields.io/npm/v/@dipscope/type-manager) ![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)
 
-Type manager is a superb parsing package for `TypeScript` which will help you to transform JSON strings or plain objects directly into class instances. No more need for unsafe `JSON.parse` and `JSON.stringify` functions. Forget about manual mapping and limitations. We support data transformations, circular references, naming conventions, generic and polymorphic types. Parsing never was so fun and easy. 
+## What is TypeManager?
+TypeManager is a stable, highly-tested parsing package for `TypeScript` which handles everything you need to easily integrate classes into your workflow.  
+
+## What does it do?
+Most frontend developers are writing custom helpers and functions (in the form of React Hooks and Vue Composables) to solve a problem that, in the backend world, was solved elegantly decades ago by the use of Classes.
+
+Imagine handling a "User" object that contains a first name, last name, and nickname. You need to intelligently display the "best" name for that user in multiple places.
+```ts
+// Hi! I'm some user data from the server!
+const user = fetchUserData();
+```
+
+In the world of TypeScript, it has become common to see something like this, _repeated in every single file_ that needs this functionality:
+```ts
+import { useFormattingFunctions } from '@/hooks/useFormattingFunctions';
+const { nameFormatter } = useFormattingFunctions();
+// A user in the form of JS object
+const preferredName = nameFormatter(user); // ...finally got what I needed!
+```
+
+But in the backend world, this sort of problem was solved decades ago:
+
+```ts
+// A user in the form of `new MyUserClass()`
+const preferredName = user.getPreferredName(); // Whew! That was quick! 
+```
+
+The problem is that, when you're used to working with plain-old JavaScript objects, you're used to having data (only!) and no business logic. But ask yourself: which one is simpler? Which one is easier to read?
+
+## TypeManager to the rescue
+TypeManager will help you to transform JSON strings or plain objects directly into class instances. No more need for unsafe `JSON.parse` and `JSON.stringify` functions. Forget about manual mapping and limitations. We support data transformations, circular references, naming conventions, generic and polymorphic types. Parsing was never so fun and easy. 
 
 Configuration can be done using [decorators](https://www.typescriptlang.org/docs/handbook/decorators.html) or declarative configuration for your or 3rd party classes.
 
-We recommend to use our [official website](https://dipscope.com/type-manager/what-issues-it-solves) to navigate through available features. You can also use the latest documentation described below.
-
-## Give a star :star:
-
-If you like or are using this project please give it a star. Thanks!
-
-## Table of contents
-
-* [What issues it solves?](#what-issues-it-solves)
-* [Installation](#installation)
-* [How it works?](#how-it-works)
-* [Defining decorators](#defining-decorators)
-    * [Type decorator](#type-decorator)
-    * [Property decorator](#property-decorator)
-    * [Inject decorator](#inject-decorator)
-* [Defining decorator options](#defining-decorator-options)
-    * [Alias option](#alias-option)
-    * [Custom data option](#custom-data-option)
-    * [Default value option](#default-value-option)
-    * [Deserializable option](#deserializable-option)
-    * [Discriminant option](#discriminant-option)
-    * [Discriminator option](#discriminator-option)
-    * [Factory option](#factory-option)
-    * [Injectable option](#injectable-option)
-    * [Injector option](#injector-option)
-    * [Naming convention option](#naming-convention-option)
-    * [Preserve discriminator option](#preserve-discriminator-option)
-    * [Preserve null option](#preserve-null-option)
-    * [Reference handler option](#reference-handler-option)
-    * [Serializable option](#serializable-option)
-    * [Serializer option](#serializer-option)
-    * [Use default value option](#use-default-value-option)
-    * [Use implicit conversion option](#use-implicit-conversion-option)
-    * [Parent type functions option](#parent-type-functions-option)
-* [Defining configuration manually](#defining-configuration-manually)
-    * [Configuring global options](#configuring-global-options)
-    * [Configuring options per type](#configuring-options-per-type)
-    * [Configuring usage of polymorphic types](#configuring-usage-of-polymorphic-types)
-    * [Configuring naming convention](#configuring-naming-convention)
-    * [Configuring reference handler](#configuring-reference-handler)
-* [Advanced usage](#advanced-usage)
-    * [Defining custom data](#defining-custom-data)
-    * [Defining custom serializer](#defining-custom-serializer)
-    * [Defining custom injector](#defining-custom-injector)
-    * [Defining custom factory](#defining-custom-factory)
-    * [Defining custom naming convention](#defining-custom-naming-convention)
-* [Use cases](#use-cases)
-    * [Built in serializers](#built-in-serializers)
-    * [Circular object references](#circular-object-references)
-    * [Dependency injection and immutable types](#dependency-injection-and-immutable-types)
-    * [Different case usage in class and JSON](#different-case-usage-in-class-and-json)
-    * [Enum types](#enum-types)
-    * [Generic types](#generic-types)
-    * [Integration with Angular](#integration-with-angular)
-    * [Polymorphic types](#polymorphic-types)
-* [Versioning](#versioning)
-* [Contributing](#contributing)
-* [Authors](#authors)
-* [Notes](#notes)
-* [License](#license)
-
-## What issues it solves?
-
-In `JavaScript` there are two types of objects:
-
-* Plain objects which are created using `{}` notation;
-* Constructor based objects which are created using `new Class()` notation.
-
-Sometimes we want to transform plain objects to the classes we have. Let's assume we are loading a users JSON data from our backend API or the other datasource:
-
-```json
-[
-    {
-        "id": 1,
-        "name": "Dmitry",
-        "deletedAt": "2021-02-22T20:15:00.000Z"
-    },
-    {
-        "id": 2,
-        "name": "Alex",
-        "deletedAt": null
-    },
-    {
-        "id": 3,
-        "name": "Anna",
-        "deletedAt": null
-    }
-]
+## What do I do?
+It almost couldn't be easier. Instead of making a file like this:
+```ts
+// The old way...
+export interface User
+{
+    name: string;
+    email: string;
+}
 ```
 
-We have a `User` class:
-
+Just add a few extra keywords:
 ```typescript
+// The new way!
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type()
 export class User
 {
-    public id: number;
-    public name: string;
-    public deletedAt: Date;
-
-    public constructor(id: number, name: string)
-    {
-        this.id = id;
-        this.name = name;
-
-        return;
-    }
-
-    public isDeleted(): boolean
-    {
-        return this.deletedAt !== null;
-    }
+    @Property(String) public name: string;
+    @Property(String) public email: string;
 }
 ```
 
-Somewhere in code we are checking if user is deleted before performing some action.
-
-```typescript
-const users: User[] = JSON.parse(usersJson);
-
-for (const user of users)
-{
-    if (user.isDeleted())
-    {
-        // Do some action...
-    }
-}
+Then, in the place where you used to get your data:
+```ts
+// The old way...
+const users = await fetchUsers();
 ```
 
-Do you see the problem in this piece of code? 
-
-`JSON.parse` function returns plain objects and we actually lied to compiler when said that it is a `User` class array. In this code we can successfully use `user.id` or `user.name`. However we cannot use `user.isDeleted()` because user is not an instance of a `User` class. 
-
-So what to do? How to get `User` array from our JSON? 
-
-Solution is to create new instances of `User` class from plain objects returned by `JSON.parse` function. But things may go wrong once you have a more complex object hierarchy. Besides `deletedAt` property is represented as `String` in JSON but `User` class declares it as a `Date` so we also have to perform appropriate conversion when assigning this property.
-
-There exists much more simple way. Let's use our `TypeManager` for getting instances of `User` class from JSON:
-
-```typescript
+...You instead _parse_ them instead, using TypeManager's `deserialize()` method:
+```ts
+// The new way!
 import { TypeManager } from '@dipscope/type-manager';
-
-const users: User[] = TypeManager.parse(User, usersJson);
-
-for (const user of users)
-{
-    if (user.isDeleted())
-    {
-        // Do some action...
-    }
-}
+const users = TypeManager.deserialize(User, await fetchUsers());
 ```
 
-Now we can use all power provided by `JavaScript` class instances. 
+And if you need to send them back to the server, you can just go the other direction using `serialize()`:
+```ts
+import { TypeManager } from '@dipscope/type-manager';
+const rawUserData = TypeManager.serialize(User, user);
+const response = http.put('/users/123', rawUserData)
+```
+
+## Wow! It's that easy?
+You're darn right it's that easy! Now we can use all the power provided by `JavaScript` class instances without worriyng about the annoying stuff.
 
 Furthermore `TypeManager.TS` provides you:
 
-* Reflection abilities at runtime;
-* Support for generic types;
-* Handling of cyclic object references and different ways of serialization when they appear;
-* Ability to configure serialization of 3rd party classes;
-* Support for polymorphic types;
-* Great alternative for similar packages like [class-transformer](https://github.com/typestack/class-transformer), [TypedJSON](https://github.com/JohnWeisz/TypedJSON) and [jackson-js](https://github.com/pichillilorenzo/jackson-js);
+* Reflection abilities at runtime.
+* Support for generic types.
+* Support for inheritance and polymorphic types.
+* Handling of circular object references and different ways of serialization.
+* The ability to configure custom serialization of -party classes.
+* A great alternative to similar packages like [class-transformer](https://github.com/typestack/class-transformer), [TypedJSON](https://github.com/JohnWeisz/TypedJSON) and [jackson-js](https://github.com/pichillilorenzo/jackson-js).
 
 Want to know more? Let's dive into the details.
 
@@ -179,22 +102,21 @@ Want to know more? Let's dive into the details.
 npm i @dipscope/type-manager
 ```
 
-TypeScript needs to run with the `experimentalDecorators` and `emitDecoratorMetadata` options enabled when using decorator annotations. So make sure you have properly configured your `tsconfig.json` file.
+TypeScript needs to run with the `experimentalDecorators` and `emitDecoratorMetadata` options enabled when using decorator annotations. So make sure you have them properly enabled in your `tsconfig.json` file.
 
-_If you want additional type-safety and reduced syntax you may wish to install [reflect-metadata](https://github.com/rbuckton/reflect-metadata). This step is on your choice and fully optional. When installed it must be available globally to work. This can usually be done with `import 'reflect-metadata';` in your main index file._
+_If you want additional type-safety and reduced syntax you may wish to install [reflect-metadata](https://github.com/rbuckton/reflect-metadata). This step is your choice and fully optional. All you have to do is make sure it's available globally to work -- this can usually be done with `import 'reflect-metadata';` in your main index file._
 
-Starting from TypeScript 5 we also support modern decorator syntax. However because parameter decorations with the modern syntax at the time of this writing are not supported - you will not be able to use `Inject` decorator provided by the library as well as `reflect-metadata` package when decide to use modern syntax. We are going to add support as soon as it will be provided to us by the TypeScript. If you need `Inject` decorator and enabling legacy decorators support is not an option - you can use declarative configuration.
+Starting from TypeScript 5 we will also support the modern decorator syntax. However, parameter decorations with this modern syntax are not supported - you will not be able to use the `Inject` decorator provided by the library as well as `reflect-metadata` package if you're using modern syntax. We will add support as soon as it's provided by TypeScript, however. In the meantime, if you need the `Inject` decorator and enabling legacy decorators support is not an option - you can simply use the declarative configuration style.
 
-## How it works?
+## Give us a star :star:
 
-It defines configuration for each object which you are going to serialize or deserialize and uses this configuration to process data of your choice. There are two possible ways to define a configuration:
+If you like or are using this project, please give it a star. Thanks!
 
-* Using decorator annotations;
-* Using declarative style;
+-------
 
-The first one is the easiest and can be used for any class you control. If you want to configure serialization of 3rd party classes, global options or you don't like decorators it is better to go with the second. There are no restrictions to use one or another. You can combine two ways of configuration depending on which one fits better.
-
-Let's have a look at the most simple example of configuration using decorators.
+# Detailed Documentation
+## Understanding TypeManager.TS
+Let's have a look at that simple example of configuration using decorators from above.
 
 ```typescript
 import { Type, Property } from '@dipscope/type-manager';
@@ -207,9 +129,9 @@ export class User
 }
 ```
 
-Here we have a `User` class with `Type` and `Property` decorators assigned to it. `Type` decorator declares a type. `Property` decorator describes available properties for that type. 
+Here we have a `User` class with `Type` and `Property` decorators assigned to it. `Type` decorator declares a type. `Property` decorator describes available properties for that type.
 
-The same configuration can be rewritten using declarative style.
+You can write the same configuration can using our "declarative style".
 
 ```typescript
 import { TypeManager, TypeMetadata, TypeConfiguration } from '@dipscope/type-manager';
@@ -237,9 +159,9 @@ export class UserConfiguration implements TypeConfiguration<User>
 TypeManager.applyTypeConfiguration(User, new UserConfiguration());
 ```
 
-As you can see now our `User` class defined without decorators. Instead you have to call `TypeManager` method and provide `TypeConfiguration` related to `User` type.
+As you can see now our `User` class has been defined without decorators. Instead, you call the `TypeManager` method and provide `TypeConfiguration` related to the `User` type.
 
-No matter what style of configuration you have chosen the next step is to call serialize methods of `TypeManager` with providing a type and data you want to process.
+No matter what style of configuration you have chosen, the next step is to call the serialize and deserialize methods of `TypeManager`, providing a type and the data you want to process.
 
 ```typescript
 import { TypeManager } from '@dipscope/type-manager';
@@ -250,7 +172,8 @@ const user = TypeManager.deserialize(User, userObject);
 user instanceof User; // True.
 ```
 
-Calling serialize creates a plain object and deserialize creates an instance of `User` class. During deserialize you can provide any object. It's not nesassary that object was produced by `TypeManager`. If object is an `Array` you will get array of types in return. Objects are parsed based on general type configuration defined by developer. It is also possible to stringify and parse JSON.
+Calling `serialize()` creates a plain object, while deserialize creates an instance of the `User` class. During the deserialization process, you can provide any object. It's not necessary that the object was produced by `TypeManager`.
+If the object is an `Array`, you will get array of types in return. Objects are parsed based on general type configuration defined by the developer. It is also possible to stringify and parse JSON.
 
 ```typescript
 import { TypeManager } from '@dipscope/type-manager';
@@ -261,25 +184,27 @@ const user = TypeManager.parse(User, userJson);
 user instanceof User; // True.
 ```
 
-Stringify and parse functions are wrappers over native JSON class functions. In addition they add serialize and deserialize support under the hood. 
+The `stringify()` and `parse()` functions are wrappers over native JSON class functions. In addition, they add serialize and deserialize support under the hood.
 
-Static functions are not the only way to work with a `TypeManager`. You can also work on instance based manner.
+Static functions are not the only way to work with a `TypeManager`. You can also work in an instance-based manner.
 
 ```typescript
 import { TypeManager } from '@dipscope/type-manager';
 
-const typeManager = new TypeManager();
+const userManager = new TypeManager();
 const userObject = userManager.serialize(User, new User());
 const user = userManager.deserialize(User, userObject);
 
 user instanceof User; // True.
 ```
 
-At first glance, it may seems that there is no difference but creating an instance of `TypeManager` preserves a configuration state. You can work with different configurations at the same time and have different serialization groups. By default all decorator based configurations and static calls are applied to the singleton type manager instance which is automatically created under the hood.
+At first glance, it may seem that there is no difference; however, creating an instance of `TypeManager` preserves a configuration state.
+You can work with different configurations at the same time and have different serialization groups. By default, all decorator-based configurations and static calls are applied
+to the singleton TypeManager instance which is automatically created under the hood.
 
 ## Defining decorators
 
-There are few decorators which controls the main flow. This are `Type`, `Property` and `Inject` decorators. Let's go through each of them.
+There are few decorators which control the main flow. These are the `Type`, `Property` and `Inject` decorators. Let's go through each of them.
 
 ### Type decorator
 
@@ -1559,7 +1484,7 @@ Our goal is to cover as much use cases as possible without making you to write a
 
 ### Defining custom data
 
-You can attach you custom metadata to our decorators using `customOptions` option available on `Type` and `Property`. 
+You can attach you custom metadata to our decorators using `customOptions` option available on `Type` and `Property`.
 
 ```typescript
 import { Type, Property, CustomKey } from '@dipscope/type-manager';
@@ -1660,7 +1585,7 @@ export class DateTimeSerializer implements Serializer<DateTime>
 }
 ```
 
-This example follows internal conventions and gives you a picture of how real serializer may look like. `TypeManager` does not perform any checks and just passes values directly to serializer. Thats why input values can be undefined, null or others depending from what is stored inside certain property. `TypeLike` is an internal type to declare this behaviour. 
+This example follows internal conventions and gives you a picture of how real serializer may look like. `TypeManager` does not perform any checks and just passes values directly to serializer. Thats why input values can be undefined, null or others depending from what is stored inside certain property. `TypeLike` is an internal type to declare this behaviour.
 
 Serializer implementation is fully responsible for return result. You can get default values, custom data and other options specified in configuration from current serializer context and react accordingly. For example you can check if implicit conversion is enabled and convert any value to the target one.
 
@@ -1851,7 +1776,7 @@ This section describes certain use cases to separate them from the main document
 
 ### Built in serializers
 
-Here is a list of types with built in serializers. 
+Here is a list of types with built in serializers.
 
 * Any;
 * Array;
