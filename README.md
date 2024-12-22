@@ -3,42 +3,52 @@
 ![GitHub](https://img.shields.io/github/license/dipscope/TypeManager.TS) ![NPM]( https://img.shields.io/npm/v/@dipscope/type-manager) ![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)
 
 ## What is TypeManager?
+
 TypeManager is a stable, highly-tested parsing package for `TypeScript` which handles everything you need to easily integrate classes into your workflow.  
 
 ## What does it do?
+
 Most frontend developers are writing custom helpers and functions (in the form of React Hooks and Vue Composables) to solve a problem that, in the backend world, was solved elegantly decades ago by the use of Classes.
 
-Imagine handling a "User" object that contains a first name, last name, and nickname. You need to intelligently display the "best" name for that user in multiple places.
-```ts
+Imagine handling a `User` object that contains a first name, last name, and nickname. You need to intelligently display the `best` name for that user in multiple places.
+
+```typescript
 // Hi! I'm some user data from the server!
 const user = fetchUserData();
 ```
 
 In the world of TypeScript, it has become common to see something like this, _repeated in every single file_ that needs this functionality:
-```ts
+
+```typescript
 import { useFormattingFunctions } from '@/hooks/useFormattingFunctions';
+
+// Get name formatting function.
 const { nameFormatter } = useFormattingFunctions();
-// A user in the form of JS object
+
+// A user in the form of JS object.
 const preferredName = nameFormatter(user); // ...finally got what I needed!
 ```
 
 But in the backend world, this sort of problem was solved decades ago:
 
-```ts
-// A user in the form of `new MyUserClass()`
+```typescript
+// A user in the form of `new MyUserClass()`.
 const preferredName = user.getPreferredName(); // Whew! That was quick! 
 ```
 
 The problem is that, when you're used to working with plain-old JavaScript objects, you're used to having data (only!) and no business logic. But ask yourself: which one is simpler? Which one is easier to read?
 
 ## TypeManager to the rescue
+
 TypeManager will help you to transform JSON strings or plain objects directly into class instances. No more need for unsafe `JSON.parse` and `JSON.stringify` functions. Forget about manual mapping and limitations. We support data transformations, circular references, naming conventions, generic and polymorphic types. Parsing was never so fun and easy. 
 
 Configuration can be done using [decorators](https://www.typescriptlang.org/docs/handbook/decorators.html) or declarative configuration for your or 3rd party classes.
 
 ## What do I do?
+
 It almost couldn't be easier. Instead of making a file like this:
-```ts
+
+```typescript
 // The old way...
 export interface User
 {
@@ -48,6 +58,7 @@ export interface User
 ```
 
 Just add a few extra keywords:
+
 ```typescript
 // The new way!
 import { Type, Property } from '@dipscope/type-manager';
@@ -61,26 +72,33 @@ export class User
 ```
 
 Then, in the place where you used to get your data:
-```ts
+
+```typescript
 // The old way...
 const users = await fetchUsers();
 ```
 
-...You instead _parse_ them instead, using TypeManager's `deserialize()` method:
-```ts
+...You _parse_ them instead, using TypeManager's `deserialize()` method:
+
+```typescript
 // The new way!
 import { TypeManager } from '@dipscope/type-manager';
+
 const users = TypeManager.deserialize(User, await fetchUsers());
 ```
 
 And if you need to send them back to the server, you can just go the other direction using `serialize()`:
-```ts
+
+```typescript
+// The new way!
 import { TypeManager } from '@dipscope/type-manager';
+
 const rawUserData = TypeManager.serialize(User, user);
 const response = http.put('/users/123', rawUserData)
 ```
 
 ## Wow! It's that easy?
+
 You're darn right it's that easy! Now we can use all the power provided by `JavaScript` class instances without worriyng about the annoying stuff.
 
 Furthermore `TypeManager.TS` provides you:
@@ -112,10 +130,61 @@ Starting from TypeScript 5 we will also support the modern decorator syntax. How
 
 If you like or are using this project, please give it a star. Thanks!
 
--------
-
 # Detailed Documentation
-## Understanding TypeManager.TS
+
+* [Understanding TypeManager](#understanding-typemanager)
+* [Defining decorators](#defining-decorators)
+    * [Type decorator](#type-decorator)
+    * [Property decorator](#property-decorator)
+    * [Inject decorator](#inject-decorator)
+* [Defining decorator options](#defining-decorator-options)
+    * [Alias option](#alias-option)
+    * [Custom data option](#custom-data-option)
+    * [Default value option](#default-value-option)
+    * [Deserializable option](#deserializable-option)
+    * [Discriminant option](#discriminant-option)
+    * [Discriminator option](#discriminator-option)
+    * [Factory option](#factory-option)
+    * [Injectable option](#injectable-option)
+    * [Injector option](#injector-option)
+    * [Naming convention option](#naming-convention-option)
+    * [Preserve discriminator option](#preserve-discriminator-option)
+    * [Preserve null option](#preserve-null-option)
+    * [Reference handler option](#reference-handler-option)
+    * [Serializable option](#serializable-option)
+    * [Serializer option](#serializer-option)
+    * [Use default value option](#use-default-value-option)
+    * [Use implicit conversion option](#use-implicit-conversion-option)
+    * [Parent type functions option](#parent-type-functions-option)
+* [Defining configuration manually](#defining-configuration-manually)
+    * [Configuring global options](#configuring-global-options)
+    * [Configuring options per type](#configuring-options-per-type)
+    * [Configuring usage of polymorphic types](#configuring-usage-of-polymorphic-types)
+    * [Configuring naming convention](#configuring-naming-convention)
+    * [Configuring reference handler](#configuring-reference-handler)
+* [Advanced usage](#advanced-usage)
+    * [Defining custom data](#defining-custom-data)
+    * [Defining custom serializer](#defining-custom-serializer)
+    * [Defining custom injector](#defining-custom-injector)
+    * [Defining custom factory](#defining-custom-factory)
+    * [Defining custom naming convention](#defining-custom-naming-convention)
+* [Use cases](#use-cases)
+    * [Built in serializers](#built-in-serializers)
+    * [Circular object references](#circular-object-references)
+    * [Dependency injection and immutable types](#dependency-injection-and-immutable-types)
+    * [Different case usage in class and JSON](#different-case-usage-in-class-and-json)
+    * [Enum types](#enum-types)
+    * [Generic types](#generic-types)
+    * [Integration with Angular](#integration-with-angular)
+    * [Polymorphic types](#polymorphic-types)
+* [Versioning](#versioning)
+* [Contributing](#contributing)
+* [Authors](#authors)
+* [Notes](#notes)
+* [License](#license)
+
+## Understanding TypeManager
+
 Let's have a look at that simple example of configuration using decorators from above.
 
 ```typescript
