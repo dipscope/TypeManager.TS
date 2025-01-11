@@ -942,6 +942,8 @@ export class TypeMetadata<TObject> extends Metadata
         for (const childTypeMetadata of typeMetadata.currentChildTypeMetadataMap.values())
         {
             this.resolveChildTypeMetadataSet(childTypeMetadata, childTypeMetadataSet);
+
+            childTypeMetadata.unresolveTypeState();
         }
 
         for (const setTypeMetadata of this.typeMetadataSet)
@@ -959,6 +961,8 @@ export class TypeMetadata<TObject> extends Metadata
                 if (parentTypeMetadatas[i] === typeMetadata)
                 {
                     this.resolveChildTypeMetadataSet(setTypeMetadata, childTypeMetadataSet);
+                    
+                    setTypeMetadata.unresolveTypeState();
 
                     break;
                 }
