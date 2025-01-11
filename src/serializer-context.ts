@@ -1,16 +1,12 @@
-import { isNil, isNumber, isUndefined } from 'lodash';
 import { Discriminant } from './discriminant';
 import { Discriminator } from './discriminator';
 import { Factory } from './factory';
-import { isCtorFunction } from './functions/is-ctor-function';
 import { GenericMetadata } from './generic-metadata';
-import { GenericMetadataResolver } from './generic-metadata-resolver';
-import { GenericStructure } from './generic-structure';
 import { Injector } from './injector';
-import { Log } from './log';
-import { Metadata } from './metadata';
-import { NamingConvention } from './naming-convention';
-import { PropertyMetadata } from './property-metadata';
+import { Logger } from './logger';
+import { Nullable } from './nullable';
+import { Optional } from './optional';
+import { PropertyState } from './property-state';
 import { ReferenceCallback } from './reference-callback';
 import { ReferenceHandler } from './reference-handler';
 import { ReferenceKey } from './reference-key';
@@ -18,17 +14,17 @@ import { ReferenceValue } from './reference-value';
 import { ReferenceValueGetter } from './reference-value-getter';
 import { ReferenceValueSetter } from './reference-value-setter';
 import { Serializer } from './serializer';
-import { SerializerContextOptions } from './serializer-context-options';
 import { TypeFn } from './type-fn';
 import { TypeLike } from './type-like';
 import { TypeMetadata } from './type-metadata';
+import { TypeState } from './type-state';
 
 /**
  * Serializer context of a certain type.
  * 
- * @type {SerializerContext<TType>}
+ * @type {SerializerContext<TObject>}
  */
-export class SerializerContext<TType> extends Metadata
+export class SerializerContext<TObject>
 {
     /**
      * Serializer context root.
@@ -47,7 +43,7 @@ export class SerializerContext<TType> extends Metadata
      * @type {Map<ReferenceKey, ReferenceValue>}
      */
     public readonly referenceMap: Map<ReferenceKey, ReferenceValue>;
- 
+
     /**
      * Reference callback map.
      * 
@@ -58,20 +54,48 @@ export class SerializerContext<TType> extends Metadata
     public readonly referenceCallbackMap: Map<ReferenceKey, Array<ReferenceCallback>>;
 
     /**
-     * Serializer context options.
-     * 
-     * @type {SerializerContext<TType>}
-     */
-    public readonly serializerContextOptions: SerializerContextOptions<TType>;
-
-    /**
      * Parent serializer context.
      * 
      * Present when any serializer defines child context.
      * 
-     * @type {SerializerContext<any>}
+     * @type {Optional<SerializerContext<any>>}
      */
-    public readonly parentSerializerContext?: SerializerContext<any>;
+    public readonly parentSerializerContext: Optional<SerializerContext<any>>;
+
+    /**
+     * Json path key.
+     * 
+     * @type {any}
+     */
+    public jsonPathKey: any;
+
+    /**
+     * Type state.
+     * 
+     * @type {TypeState<TObject>}
+     */
+    public typeState: TypeState<TObject>;
+
+    /**
+     * Property state.
+     * 
+     * @type {TypeState<TObject>}
+     */
+    public genericMetadatas: ReadonlyArray<GenericMetadata<any>>;
+
+    /**
+     * Property state.
+     * 
+     * @type {Optional<PropertyState<any, TObject>>}
+     */
+    public propertyState: Optional<PropertyState<any, TObject>>;
+
+    /**
+     * Reference value setter.
+     * 
+     * @type {Optional<ReferenceValueSetter>}
+     */
+    public referenceValueSetter: Optional<ReferenceValueSetter>;
 
     /**
      * Constructor.
@@ -79,106 +103,36 @@ export class SerializerContext<TType> extends Metadata
      * @param {any} $ Serializer context root.
      * @param {Map<ReferenceKey, ReferenceValue>} referenceMap Reference map.
      * @param {Map<ReferenceKey, Array<ReferenceCallback>>} referenceCallbackMap Reference callback map.
-     * @param {SerializerContextOptions<TType>} serializerContextOptions Serializer context options.
-     * @param {SerializerContext<any>} parentSerializerContext Parent serializer context.
+     * @param {Optional<SerializerContext<any>>} parentSerializerContext Parent serializer context.
+     * @param {any} jsonPathKey Json path key.
+     * @param {TypeState<TObject>} typeState Type state.
+     * @param {ReadonlyArray<GenericMetadata<any>>} genericMetadatas Generic metadatas.
+     * @param {Optional<PropertyState<any, TObject>>} propertyState Property state.
+     * @param {Optional<ReferenceValueSetter>} referenceValueSetter Reference value setter.
      */
     public constructor(
         $: any,
         referenceMap: Map<ReferenceKey, ReferenceValue>,
         referenceCallbackMap: Map<ReferenceKey, Array<ReferenceCallback>>,
-        serializerContextOptions: SerializerContextOptions<TType>, 
-        parentSerializerContext?: SerializerContext<any>
+        parentSerializerContext: Optional<SerializerContext<any>>,
+        jsonPathKey: any,
+        typeState: TypeState<TObject>,
+        genericMetadatas: ReadonlyArray<GenericMetadata<any>>,
+        propertyState: Optional<PropertyState<any, TObject>>,
+        referenceValueSetter: Optional<ReferenceValueSetter>
     )
     {
-        super(serializerContextOptions.typeMetadata.typeManager);
-
         this.$ = $;
         this.referenceMap = referenceMap,
         this.referenceCallbackMap = referenceCallbackMap;
-        this.serializerContextOptions = serializerContextOptions;
         this.parentSerializerContext = parentSerializerContext;
+        this.jsonPathKey = jsonPathKey;
+        this.typeState = typeState;
+        this.genericMetadatas = genericMetadatas;
+        this.propertyState = propertyState;
+        this.referenceValueSetter = referenceValueSetter;
 
         return;
-    }
-
-    /**
-     * Gets json path key.
-     * 
-     * @returns {string|number} Json path key.
-     */
-    public get jsonPathKey(): any
-    {
-        return this.serializerContextOptions.jsonPathKey;
-    }
-
-    /**
-     * Gets reference value setter.
-     * 
-     * @returns {ReferenceValueSetter|undefined} Reference value setter or undefined if not present.
-     */
-    public get referenceValueSetter(): ReferenceValueSetter | undefined
-    {
-        return this.serializerContextOptions.referenceValueSetter;
-    }
-
-    /**
-     * Gets serialized null value.
-     * 
-     * @returns {any|undefined} Resolved serialized null value or undefined.
-     */
-    public get serializedNullValue(): any | undefined
-    {
-        if (this.preserveNull)
-        {
-            return null;
-        }
-
-        return this.serializedDefaultValue;
-    }
-
-    /**
-     * Gets serialized default value.
-     * 
-     * @returns {any|undefined} Resolved serialized default value or undefined.
-     */
-    public get serializedDefaultValue(): any | undefined
-    {
-        if (this.useDefaultValue)
-        {
-            return this.propertyMetadata?.serializedDefaultValue ?? this.typeMetadata.serializedDefaultValue;
-        }
-
-        return undefined;
-    }
-    
-    /**
-     * Gets deserialized null value.
-     * 
-     * @returns {any|undefined} Resolved deserialized null value or undefined.
-     */
-    public get deserializedNullValue(): any | undefined
-    {
-        if (this.preserveNull)
-        {
-            return null;
-        }
-
-        return this.deserializedDefaultValue;
-    }
-
-    /**
-     * Gets deserialized default value.
-     * 
-     * @returns {any|undefined} Resolved deserialized default value or undefined.
-     */
-    public get deserializedDefaultValue(): any | undefined
-    {
-        if (this.useDefaultValue)
-        {
-            return this.propertyMetadata?.deserializedDefaultValue ?? this.typeMetadata.deserializedDefaultValue;
-        }
-        
-        return undefined;
     }
 
     /**
@@ -191,17 +145,77 @@ export class SerializerContext<TType> extends Metadata
         const jsonPathKey = this.jsonPathKey;
         const parentSerializerContext = this.parentSerializerContext;
 
-        if (isNil(parentSerializerContext))
+        if (parentSerializerContext === undefined)
         {
-            return jsonPathKey;
+            return `${jsonPathKey}`;
         }
 
-        if (isNumber(jsonPathKey))
+        if (typeof jsonPathKey === 'number')
         {
             return `${parentSerializerContext.jsonPath}[${jsonPathKey}]`;
         }
 
         return `${parentSerializerContext.jsonPath}['${jsonPathKey}']`;
+    }
+
+    /**
+     * Gets serialized null value.
+     * 
+     * @returns {Nullable<any>} Resolved serialized null value or undefined.
+     */
+    public get serializedNullValue(): Nullable<any>
+    {
+        if (this.preserveNull)
+        {
+            return null;
+        }
+
+        return this.serializedDefaultValue;
+    }
+
+    /**
+     * Gets serialized default value.
+     * 
+     * @returns {Optional<any>} Resolved serialized default value or undefined.
+     */
+    public get serializedDefaultValue(): Optional<any>
+    {
+        if (this.useDefaultValue)
+        {
+            return this.propertyState?.serializedDefaultValueResolver() ?? this.typeState.serializedDefaultValueResolver();
+        }
+
+        return undefined;
+    }
+    
+    /**
+     * Gets deserialized null value.
+     * 
+     * @returns {Nullable<any>} Resolved deserialized null value or undefined.
+     */
+    public get deserializedNullValue(): Nullable<any>
+    {
+        if (this.preserveNull)
+        {
+            return null;
+        }
+
+        return this.deserializedDefaultValue;
+    }
+
+    /**
+     * Gets deserialized default value.
+     * 
+     * @returns {Optional<any>} Resolved deserialized default value or undefined.
+     */
+    public get deserializedDefaultValue(): Optional<any>
+    {
+        if (this.useDefaultValue)
+        {
+            return this.propertyState?.deserializedDefaultValueResolver() ?? this.typeState.deserializedDefaultValueResolver();
+        }
+        
+        return undefined;
     }
 
     /**
@@ -211,17 +225,7 @@ export class SerializerContext<TType> extends Metadata
      */
     public get discriminant(): Discriminant
     {
-        return this.typeMetadata.discriminant;
-    }
-
-    /**
-     * Gets discriminant map.
-     * 
-     * @returns {Map<TypeFn<any>, Discriminant>} Discriminant map.
-     */
-    public get discriminantMap(): Map<TypeFn<any>, Discriminant>
-    {
-        return this.typeMetadata.discriminantMap;
+        return this.typeState.discriminant;
     }
 
     /**
@@ -231,7 +235,7 @@ export class SerializerContext<TType> extends Metadata
      */
     public get discriminator(): Discriminator
     {
-        return this.typeMetadata.discriminator;
+        return this.typeState.discriminator;
     }
 
     /**
@@ -241,45 +245,7 @@ export class SerializerContext<TType> extends Metadata
      */
     public get factory(): Factory
     {
-        return this.typeMetadata.factory;
-    }
-
-    /**
-     * Gets generic structures.
-     * 
-     * @returns {Array<GenericStructure<any>>|undefined} Generic structures or undefined.
-     */
-    public get genericStructures(): Array<GenericStructure<any>> | undefined
-    {
-        return this.serializerContextOptions.genericStructures;
-    }
-
-    /**
-     * Gets generic metadata resolvers.
-     * 
-     * @returns {Array<GenericMetadataResolver<any>>|undefined} Generic metadata resolvers or undefined.
-     */
-    public get genericMetadataResolvers(): Array<GenericMetadataResolver<any>> | undefined
-    {
-        return this.serializerContextOptions.genericMetadataResolvers;
-    }
-
-    /**
-     * Gets generic metadatas.
-     * 
-     * @returns {Array<GenericMetadata<any>>|undefined} Generic metadatas.
-     */
-    public get genericMetadatas(): Array<GenericMetadata<any>> | undefined
-    {
-        const genericStructures = this.genericStructures;
-        const genericMetadataResolvers = this.genericMetadataResolvers;
-
-        if (isNil(genericStructures) || isNil(genericMetadataResolvers))
-        {
-            return undefined;
-        }
-
-        return this.defineGenericMetadatas(genericStructures, genericMetadataResolvers);
+        return this.typeState.factory;
     }
 
     /**
@@ -289,42 +255,17 @@ export class SerializerContext<TType> extends Metadata
      */
     public get injector(): Injector
     {
-        return this.typeMetadata.injector;
+        return this.typeState.injector;
     }
 
     /**
-     * Gets log.
+     * Gets logger.
      * 
-     * @returns {Log} Log instance.
+     * @returns {Logger} Logger instance.
      */
-    public get log(): Log
+    public get logger(): Logger
     {
-        return this.typeMetadata.log;
-    }
-
-    /**
-     * Gets context name.
-     * 
-     * @returns {string} Context name.
-     */
-    public get name(): string
-    {
-        if (isNil(this.propertyMetadata))
-        {
-            return this.typeMetadata.typeName;
-        }
-
-        return `${this.propertyMetadata.declaringTypeMetadata.typeName}.${this.propertyMetadata.propertyName}`;
-    }
-
-    /**
-     * Gets naming convention.
-     * 
-     * @returns {NamingConvention|undefined} Naming convention or undefined.
-     */
-    public get namingConvention(): NamingConvention | undefined
-    {
-        return this.propertyMetadata?.namingConvention ?? this.typeMetadata.namingConvention;
+        return this.typeState.logger;
     }
 
     /**
@@ -334,17 +275,7 @@ export class SerializerContext<TType> extends Metadata
      */
     public get polymorphic(): boolean
     {
-        return this.typeMetadata.polymorphic;
-    }
-
-    /**
-     * Gets property metadata.
-     * 
-     * @returns {PropertyMetadata<any, TType>|undefined} Property metadata or undefined.
-     */
-    public get propertyMetadata(): PropertyMetadata<any, TType> | undefined
-    {
-        return this.serializerContextOptions.propertyMetadata;
+        return this.typeState.polymorphic;
     }
 
     /**
@@ -354,7 +285,7 @@ export class SerializerContext<TType> extends Metadata
      */
     public get preserveDiscriminator(): boolean 
     {
-        return this.typeMetadata.preserveDiscriminator;
+        return this.typeState.preserveDiscriminator;
     }
 
     /**
@@ -364,27 +295,27 @@ export class SerializerContext<TType> extends Metadata
      */
     public get referenceHandler(): ReferenceHandler
     {
-        return this.propertyMetadata?.referenceHandler ?? this.typeMetadata.referenceHandler;
+        return this.propertyState?.referenceHandler ?? this.typeState.referenceHandler;
     }
 
     /**
      * Gets serializer.
      * 
-     * @returns {Serializer<TType>} Serializer.
+     * @returns {Serializer<TObject>} Serializer.
      */
-    public get serializer(): Serializer<TType>
+    public get serializer(): Serializer<TObject>
     {
-        return this.propertyMetadata?.serializer ?? this.typeMetadata.serializer;
+        return this.propertyState?.serializer ?? this.typeState.serializer;
     }
 
     /**
      * Gets type metadata.
      * 
-     * @returns {TypeMetadata<TType>} Type metadata.
+     * @returns {TypeMetadata<TObject>} Type metadata.
      */
-    public get typeMetadata(): TypeMetadata<TType>
+    public get typeMetadata(): TypeMetadata<TObject>
     {
-        return this.serializerContextOptions.typeMetadata;
+        return this.typeState.typeMetadata;
     }
 
     /**
@@ -394,7 +325,7 @@ export class SerializerContext<TType> extends Metadata
      */
     public get preserveNull(): boolean
     {
-        return this.propertyMetadata?.preserveNull ?? this.typeMetadata.preserveNull;
+        return this.propertyState?.preserveNull ?? this.typeState.preserveNull;
     }
 
     /**
@@ -404,7 +335,7 @@ export class SerializerContext<TType> extends Metadata
      */
     public get useDefaultValue(): boolean
     {
-        return this.propertyMetadata?.useDefaultValue ?? this.typeMetadata.useDefaultValue;
+        return this.propertyState?.useDefaultValue ?? this.typeState.useDefaultValue;
     }
 
     /**
@@ -414,17 +345,17 @@ export class SerializerContext<TType> extends Metadata
      */
     public get useImplicitConversion(): boolean
     {
-        return this.propertyMetadata?.useImplicitConversion ?? this.typeMetadata.useImplicitConversion;
+        return this.propertyState?.useImplicitConversion ?? this.typeState.useImplicitConversion;
     }
 
     /**
      * Serializes provided value using context.
      * 
-     * @param {TypeLike<TType>} x Some value.
+     * @param {TypeLike<TObject>} x Some value.
      * 
      * @returns {TypeLike<any>} Value serialized by context.
      */
-    public serialize(x: TypeLike<TType>): TypeLike<any>
+    public serialize(x: TypeLike<TObject>): TypeLike<any>
     {
         return this.serializer.serialize(x, this);
     }
@@ -434,9 +365,9 @@ export class SerializerContext<TType> extends Metadata
      * 
      * @param {TypeLike<any>} x Some value.
      * 
-     * @returns {TypeLike<TType>} Value deserialized by context.
+     * @returns {TypeLike<TObject>} Value deserialized by context.
      */
-    public deserialize(x: TypeLike<any>): TypeLike<TType>
+    public deserialize(x: TypeLike<any>): TypeLike<TObject>
     {
         return this.serializer.deserialize(x, this);
     }
@@ -470,7 +401,7 @@ export class SerializerContext<TType> extends Metadata
     {
         return this.referenceHandler.restore(this, referenceKey, referenceValueGetter);
     }
-
+    
     /**
      * Registers callback for provided reference key.
      * 
@@ -484,16 +415,18 @@ export class SerializerContext<TType> extends Metadata
     {
         const referenceValueSetter = this.referenceValueSetter;
 
-        if (isNil(referenceValueSetter))
+        if (referenceValueSetter === undefined)
         {
             return;
         }
+
+        const jsonPathKey = this.jsonPathKey;
 
         this.pushReferenceCallback(referenceKey, () =>
         {
             const referenceValue = this.referenceMap.get(referenceKey);
 
-            referenceValueSetter(referenceValue);
+            referenceValueSetter(referenceValue, jsonPathKey);
         });
 
         return;
@@ -513,9 +446,9 @@ export class SerializerContext<TType> extends Metadata
     {
         let referenceCallbacks = this.referenceCallbackMap.get(referenceKey);
 
-        if (isNil(referenceCallbacks))
+        if (referenceCallbacks === undefined)
         {
-            referenceCallbacks = [];
+            referenceCallbacks = new Array<ReferenceCallback>();
 
             this.referenceCallbackMap.set(referenceKey, referenceCallbacks);
         }
@@ -538,36 +471,17 @@ export class SerializerContext<TType> extends Metadata
     {
         const referenceCallbacks = this.referenceCallbackMap.get(referenceKey);
 
-        if (isNil(referenceCallbacks))
+        if (referenceCallbacks === undefined)
         {
             return;
         }
-
-        for (const referenceCallback of referenceCallbacks)
+        
+        for (let i = 0; i < referenceCallbacks.length; i++)
         {
-            referenceCallback();
+            referenceCallbacks[i]();
         }
 
         return;
-    }
-
-    /**
-     * Defines serializer context options based on partial.
-     * 
-     * @param {Partial<SerializerContextOptions<any>>} serializerContextOptions Partial serializer context options.
-     * 
-     * @returns {SerializerContextOptions<any>} Complete serializer context options.
-     */
-    private defineSerializerContextOptions(serializerContextOptions: Partial<SerializerContextOptions<any>>): SerializerContextOptions<any>
-    {
-        return {
-            jsonPathKey: serializerContextOptions.jsonPathKey ?? this.serializerContextOptions.jsonPathKey,
-            typeMetadata: serializerContextOptions.typeMetadata ?? this.serializerContextOptions.typeMetadata,
-            genericStructures: serializerContextOptions.genericStructures ?? this.serializerContextOptions.genericStructures,
-            genericMetadataResolvers: serializerContextOptions.genericMetadataResolvers ?? this.serializerContextOptions.genericMetadataResolvers,
-            propertyMetadata: serializerContextOptions.propertyMetadata ?? this.serializerContextOptions.propertyMetadata,
-            referenceValueSetter: serializerContextOptions.referenceValueSetter ?? this.serializerContextOptions.referenceValueSetter
-        };
     }
 
     /**
@@ -575,16 +489,21 @@ export class SerializerContext<TType> extends Metadata
      * 
      * Called by serializers on drill down.
      * 
-     * @param {Partial<SerializerContextOptions<any>>} childSerializerContextOptions Child serializer context options.
-     * 
      * @returns {SerializerContext<any>} Child serializer context.
      */
-    public defineChildSerializerContext(childSerializerContextOptions: Partial<SerializerContextOptions<any>>): SerializerContext<any>
+    public defineChildSerializerContext(): SerializerContext<any>
     {
-        const parentSerializerContext = isNil(childSerializerContextOptions.jsonPathKey) ? this.parentSerializerContext : this;
-        const serializerContextOptions = this.defineSerializerContextOptions(childSerializerContextOptions);
-
-        return new SerializerContext(this.$, this.referenceMap, this.referenceCallbackMap, serializerContextOptions, parentSerializerContext);
+        return new SerializerContext(
+            this.$, 
+            this.referenceMap, 
+            this.referenceCallbackMap,
+            this,
+            this.jsonPathKey,
+            this.typeState,
+            this.genericMetadatas,
+            this.propertyState,
+            this.referenceValueSetter
+        );
     }
 
     /**
@@ -598,35 +517,27 @@ export class SerializerContext<TType> extends Metadata
      */
     public defineGenericSerializerContext(genericIndex: number): SerializerContext<any>
     {
-        const genericStructures = this.genericStructures;
-        const genericMetadataResolvers = this.genericMetadataResolvers;
+        const genericMetadata = this.genericMetadatas[genericIndex];
 
-        if (isNil(genericStructures) || isNil(genericMetadataResolvers))
+        if (genericMetadata === undefined)
         {
-            throw new Error(`${this.jsonPath}: cannot define generic arguments. This is usually caused by invalid configuration.`);
+            throw new Error(`${this.jsonPath}: cannot define generic metadata for index ${genericIndex}. This is usually caused by invalid configuration.`);
         }
 
-        const genericStructure = genericStructures[genericIndex];
-        const genericMetadataResolver = genericMetadataResolvers[genericIndex];
+        const typeMetadata = genericMetadata[0];
+        const genericMetadatas = genericMetadata[1];
 
-        if (isNil(genericStructure) || isNil(genericMetadataResolver))
-        {
-            throw new Error(`${this.jsonPath}: cannot define generic argument for index ${genericIndex}. This is usually caused by invalid configuration.`);
-        }
-
-        const genericTypeArgument = genericStructure[0];
-        const genericGenericStructures = genericStructure[1];
-        const genericTypeMetadataResolver = genericMetadataResolver[0];
-        const genericGenericMetadataResolvers = genericMetadataResolver[1];
-        const typeMetadata = genericTypeMetadataResolver(genericTypeArgument);
-        const serializerContextOptions = this.defineSerializerContextOptions(this.serializerContextOptions);
-
-        serializerContextOptions.typeMetadata = typeMetadata;
-        serializerContextOptions.genericStructures = genericGenericStructures;
-        serializerContextOptions.genericMetadataResolvers = genericGenericMetadataResolvers;
-        serializerContextOptions.propertyMetadata = undefined;
-
-        return new SerializerContext(this.$, this.referenceMap, this.referenceCallbackMap, serializerContextOptions, this.parentSerializerContext);
+        return new SerializerContext(
+            this.$, 
+            this.referenceMap, 
+            this.referenceCallbackMap, 
+            this.parentSerializerContext,
+            this.jsonPath,
+            typeMetadata.typeState,
+            genericMetadatas,
+            undefined,
+            this.referenceValueSetter
+        );
     }
 
     /**
@@ -640,182 +551,76 @@ export class SerializerContext<TType> extends Metadata
      */
     public definePolymorphicSerializerContext(x: TypeFn<any> | Record<string, any>): SerializerContext<any>
     {
-        return isCtorFunction(x) ? this.definePolymorphicSerializerContextByTypeFn(x) : this.definePolymorphicSerializerContextByDiscriminant(x);
+        if (typeof x === 'function')
+        {
+            return this.definePolymorphicSerializerContextByTypeFn(x);
+        }
+
+        return this.definePolymorphicSerializerContextByDiscriminant(x);
     }
 
     /**
      * Defines polymorphic serializer context by type function.
      * 
-     * @param {TypeFn<any>} typeFn Type function.
+     * @param {TypeFn<any>|Record<string, any>} x Type function or record.
      * 
      * @returns {SerializerContext<any>} Polymorphic serializer context.
      */
-    private definePolymorphicSerializerContextByTypeFn(typeFn: TypeFn<any>): SerializerContext<any>
+    private definePolymorphicSerializerContextByTypeFn(x: TypeFn<any> | Record<string, any>): SerializerContext<any>
     {
-        const discriminant = this.discriminantMap.get(typeFn);
+        const typeFn = x as TypeFn<any>;
+        const typeMetadata = this.typeState.typeMetadataMap.get(typeFn);
 
-        if (isNil(discriminant))
+        if (typeMetadata === undefined)
         {
             throw new Error(`${this.jsonPath}: cannot define discriminant of polymorphic type. This is usually caused by invalid configuration.`);
         }
 
-        const typeMetadata = this.typeManager.extractTypeMetadata(typeFn);
-        const serializerContextOptions = this.defineSerializerContextOptions(this.serializerContextOptions);
-
-        serializerContextOptions.typeMetadata = typeMetadata;
-
-        return new SerializerContext(this.$, this.referenceMap, this.referenceCallbackMap, serializerContextOptions, this.parentSerializerContext);
+        return new SerializerContext(
+            this.$, 
+            this.referenceMap, 
+            this.referenceCallbackMap,
+            this.parentSerializerContext,
+            this.jsonPathKey,
+            typeMetadata.typeState,
+            this.genericMetadatas,
+            this.propertyState,
+            this.referenceValueSetter
+        );
     }
 
     /**
      * Defines polymorphic serializer context by discriminant.
      * 
-     * @param {Record<string, any>} record Some record.
+     * @param {TypeFn<any>|Record<string, any>} x Type function or record.
      * 
      * @returns {SerializerContext<any>} Polymorphic serializer context.
      */
-    private definePolymorphicSerializerContextByDiscriminant(record: Record<string, any>): SerializerContext<any>
+    private definePolymorphicSerializerContextByDiscriminant(x: TypeFn<any> | Record<string, any>): SerializerContext<any>
     {
-        for (const [typeCtor, discriminant] of this.discriminantMap)
+        const record = x as Record<string, any>;
+        const childTypeMetadatas = this.typeState.childTypeMetadatas;
+
+        for (let i = 0; i < childTypeMetadatas.length; i++)
         {
-            const typeMetadata = this.typeManager.extractTypeMetadata(typeCtor);
+            const childTypeState = childTypeMetadatas[i].typeState;
 
-            if (record[typeMetadata.discriminator] === discriminant)
+            if (record[childTypeState.discriminator] === childTypeState.discriminant)
             {
-                const serializerContextOptions = this.defineSerializerContextOptions(this.serializerContextOptions);
-
-                serializerContextOptions.typeMetadata = typeMetadata;
-
-                return new SerializerContext(this.$, this.referenceMap, this.referenceCallbackMap, serializerContextOptions, this.parentSerializerContext);
+                return new SerializerContext(
+                    this.$, 
+                    this.referenceMap, 
+                    this.referenceCallbackMap,
+                    this.parentSerializerContext,
+                    this.jsonPathKey,
+                    childTypeState,
+                    this.genericMetadatas,
+                    this.propertyState,
+                    this.referenceValueSetter
+                );
             }
         }
 
         throw new Error(`${this.jsonPath}: cannot define discriminant of polymorphic type. This is usually caused by invalid configuration.`);
-    }
-
-    /**
-     * Configures json path key.
-     * 
-     * @param {string|number} jsonPathKey Json path key.
-     * 
-     * @returns {this} Current instance of serializer context.
-     */
-    public hasJsonPathKey(jsonPathKey: string | number): this
-    {
-        this.serializerContextOptions.jsonPathKey = jsonPathKey;
-
-        return this;
-    }
-    
-    /**
-     * Configures reference value setter.
-     * 
-     * @param {ReferenceValueSetter} referenceValueSetter Reference value setter.
-     * 
-     * @returns {this} Current instance of serializer context.
-     */
-    public hasReferenceValueSetter(referenceValueSetter: ReferenceValueSetter): this
-    {
-        this.serializerContextOptions.referenceValueSetter = referenceValueSetter;
-
-        return this;
-    }
-
-    /**
-     * Configures generic structures.
-     * 
-     * @param {Array<GenericStructure<any>>|undefined} genericStructures Generic structures.
-     * 
-     * @returns {this} Current instance of serializer context.
-     */
-    public hasGenericStructures(genericStructures: Array<GenericStructure<any>> | undefined): this
-    {
-        this.serializerContextOptions.genericStructures = genericStructures;
-
-        return this;
-    }
-
-    /**
-     * Configures generic metadata resolvers.
-     * 
-     * @param {Array<GenericMetadataResolver<any>>|undefined} genericMetadataResolvers Generic metadata resolvers.
-     * 
-     * @returns {this} Current instance of serializer context.
-     */
-    public hasGenericMetadataResolvers(genericMetadataResolvers: Array<GenericMetadataResolver<any>> | undefined): this
-    {
-        this.serializerContextOptions.genericMetadataResolvers = genericMetadataResolvers;
-
-        return this;
-    }
-
-    /**
-     * Configures property metadata
-     * 
-     * @param {PropertyMetadata<any,TType>|undefined} propertyMetadata Property metadata.
-     * 
-     * @returns {this} Current instance of serializer context.
-     */
-    public hasPropertyMetadata(propertyMetadata: PropertyMetadata<any, TType> | undefined): this
-    {
-        this.serializerContextOptions.propertyMetadata = propertyMetadata;
-
-        return this;
-    }
-
-    /**
-     * Configures type metadata
-     * 
-     * @param {TypeMetadata<TType>} typeMetadata Type metadata.
-     * 
-     * @returns {this} Current instance of serializer context.
-     */
-    public hasTypeMetadata(typeMetadata: TypeMetadata<TType>): this
-    {
-        this.serializerContextOptions.typeMetadata = typeMetadata;
-
-        return this;
-    }
-    
-    /**
-     * Configures serializer context based on provided options.
-     * 
-     * @param {SerializerContextOptions<TType>} serializerContextOptions Serializer context options.
-     * 
-     * @returns {this} Current instance of serializer context.
-     */
-    public configure(serializerContextOptions: SerializerContextOptions<TType>): this
-    {
-        if (!isUndefined(serializerContextOptions.jsonPathKey))
-        {
-            this.hasJsonPathKey(serializerContextOptions.jsonPathKey);
-        }
-
-        if (!isUndefined(serializerContextOptions.referenceValueSetter))
-        {
-            this.hasReferenceValueSetter(serializerContextOptions.referenceValueSetter);
-        }
-
-        if (!isUndefined(serializerContextOptions.genericStructures))
-        {
-            this.hasGenericStructures(serializerContextOptions.genericStructures);
-        }
-
-        if (!isUndefined(serializerContextOptions.genericMetadataResolvers))
-        {
-            this.hasGenericMetadataResolvers(serializerContextOptions.genericMetadataResolvers);
-        }
-
-        if (!isUndefined(serializerContextOptions.propertyMetadata))
-        {
-            this.hasPropertyMetadata(serializerContextOptions.propertyMetadata);
-        }
-
-        if (!isUndefined(serializerContextOptions.typeMetadata))
-        {
-            this.hasTypeMetadata(serializerContextOptions.typeMetadata);
-        }
-
-        return this;
     }
 }

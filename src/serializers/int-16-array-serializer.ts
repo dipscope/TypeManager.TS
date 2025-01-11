@@ -1,5 +1,3 @@
-import { isArray, isNull, isUndefined } from 'lodash';
-import { isInt16Array } from '../functions/is-int-16-array';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -21,25 +19,22 @@ export class Int16ArraySerializer implements Serializer<Int16Array>
      */
     public serialize(x: TypeLike<Int16Array>, serializerContext: SerializerContext<Int16Array>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.serializedNullValue;
         }
 
-        if (isInt16Array(x))
+        if (x instanceof Int16Array)
         {
             return Array.from(x);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as int 16 array.`, x);
-        }
+        serializerContext.logger.error('Int16ArraySerializer', `${serializerContext.jsonPath}: cannot serialize value as int 16 array.`, x);
 
         return undefined;
     }
@@ -54,25 +49,22 @@ export class Int16ArraySerializer implements Serializer<Int16Array>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Int16Array>): TypeLike<Int16Array>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.deserializedNullValue;
         }
 
-        if (isArray(x))
+        if (Array.isArray(x))
         {
             return Int16Array.from(x);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as int 16 array.`, x);
-        }
+        serializerContext.logger.error('Int16ArraySerializer', `${serializerContext.jsonPath}: cannot deserialize value as int 16 array.`, x);
 
         return undefined;
     }

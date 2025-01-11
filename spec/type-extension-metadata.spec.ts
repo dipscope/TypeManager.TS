@@ -1,13 +1,12 @@
-import { isUndefined } from 'lodash';
 import { CustomKey, Inject, Property, Type, TypeExtensionMetadata, TypeManager, TypeMetadata } from '../src';
 
 const customPropertyKey: CustomKey<string> = new CustomKey<string>('$customPropertyKey');
 
 type CustomTypeOptions = { customProperty?: string };
 
-class CustomTypeMetadata<TType> extends TypeExtensionMetadata<TType, CustomTypeOptions>
+class CustomTypeMetadata<TObject> extends TypeExtensionMetadata<TObject, CustomTypeOptions>
 {
-    public constructor(typeMetadata: TypeMetadata<TType>, customTypeOptions: CustomTypeOptions)
+    public constructor(typeMetadata: TypeMetadata<TObject>, customTypeOptions: CustomTypeOptions)
     {
         super(typeMetadata, customTypeOptions);
 
@@ -16,19 +15,19 @@ class CustomTypeMetadata<TType> extends TypeExtensionMetadata<TType, CustomTypeO
 
     public get customProperty(): string
     {
-        return this.typeMetadata.extractCustomOption(customPropertyKey);
+        return this.typeMetadata.extractCustomValue(customPropertyKey);
     }
 
     public hasCustomProperty(customProperty: string): this
     {
-        this.typeMetadata.hasCustomOption(customPropertyKey, customProperty);
+        this.typeMetadata.hasCustomValue(customPropertyKey, customProperty);
 
         return this;
     }
 
     public configure(customTypeOptions: CustomTypeOptions): this 
     {
-        if (!isUndefined(customTypeOptions.customProperty)) 
+        if (customTypeOptions.customProperty !== undefined) 
         {
             this.hasCustomProperty(customTypeOptions.customProperty);
         }

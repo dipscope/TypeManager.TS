@@ -1,4 +1,3 @@
-import { isBoolean, isNull, isNumber, isString, isUndefined } from 'lodash';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -20,17 +19,17 @@ export class BooleanSerializer implements Serializer<boolean>
      */
     public serialize(x: TypeLike<boolean>, serializerContext: SerializerContext<boolean>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.serializedNullValue;
         }
 
-        if (isBoolean(x))
+        if (typeof x === 'boolean')
         {
             return x;
         }
@@ -40,10 +39,7 @@ export class BooleanSerializer implements Serializer<boolean>
             return this.convert(x, serializerContext);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as boolean.`, x);
-        }
+        serializerContext.logger.error('BooleanSerializer', `${serializerContext.jsonPath}: cannot serialize value as boolean.`, x);
 
         return undefined;
     }
@@ -58,17 +54,17 @@ export class BooleanSerializer implements Serializer<boolean>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<boolean>): TypeLike<boolean>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.deserializedNullValue;
         }
 
-        if (isBoolean(x))
+        if (typeof x === 'boolean')
         {
             return x;
         }
@@ -78,10 +74,7 @@ export class BooleanSerializer implements Serializer<boolean>
             return this.convert(x, serializerContext);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as boolean.`, x);
-        }
+        serializerContext.logger.error('BooleanSerializer', `${serializerContext.jsonPath}: cannot deserialize value as boolean.`, x);
 
         return undefined;
     }
@@ -92,29 +85,26 @@ export class BooleanSerializer implements Serializer<boolean>
      * @param {any} x Some value.
      * @param {SerializerContext<boolean>} serializerContext Type serializer context.
      * 
-     * @returns {boolean|undefined} Converted value or undefined.
+     * @returns {TypeLike<boolean>} Converted value.
      */
-    private convert(x: any, serializerContext: SerializerContext<boolean>): boolean | undefined
+    private convert(x: any, serializerContext: SerializerContext<boolean>): TypeLike<boolean>
     {
-        if (isString(x) && (x === 'true' || x === 'false'))
+        if (typeof x === 'string' && (x === 'true' || x === 'false'))
         {
             return x === 'true';
         }
 
-        if (isString(x) && (x === '1' || x === '0'))
+        if (typeof x === 'string' && (x === '1' || x === '0'))
         {
             return x === '1';
         }
 
-        if (isNumber(x) && (x === 1 || x === 0))
+        if (typeof x === 'number' && (x === 1 || x === 0))
         {
             return x === 1;
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot convert value to boolean.`, x);
-        }
+        serializerContext.logger.error('BooleanSerializer', `${serializerContext.jsonPath}: cannot convert value to boolean.`, x);
 
         return undefined;
     }

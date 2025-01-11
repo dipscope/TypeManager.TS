@@ -1,8 +1,7 @@
-import { isNil, isNull, isObject, isUndefined } from 'lodash';
+import { PropertyName } from 'lodash';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
-import { TypeContext } from '../type-context';
-import { TypeContextEntry } from '../type-context-entry';
+import { TypeEntry } from '../type-entry';
 import { TypeLike } from '../type-like';
 
 /**
@@ -22,17 +21,17 @@ export class TypeSerializer implements Serializer<Record<string, any>>
      */
     public serialize(x: TypeLike<Record<string, any>>, serializerContext: SerializerContext<Record<string, any>>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.serializedNullValue;
         }
 
-        if (isObject(x))
+        if (typeof x === 'object')
         {
             return serializerContext.defineReference(x, () =>
             {
@@ -42,62 +41,59 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                     ? serializerContext.definePolymorphicSerializerContext(x.constructor) 
                     : serializerContext;
 
-                const propertySerializerContext = typeSerializerContext.defineChildSerializerContext({ 
-                    jsonPathKey: typeSerializerContext.jsonPathKey 
-                });
-
-                const typeMetadata = typeSerializerContext.typeMetadata;
+                const propertySerializerContext = typeSerializerContext.defineChildSerializerContext();
+                const typeState = typeSerializerContext.typeState;
                 const object = {} as Record<string, any>;
 
-                for (const propertyMetadata of typeMetadata.sortedPropertyMetadatas)
+                propertySerializerContext.referenceValueSetter = (v, k) => 
                 {
-                    if (propertyMetadata.serializationConfigured && !propertyMetadata.serializable)
+                    const declaringObject = propertySerializerContext.referenceMap.get(type);
+    
+                    if (declaringObject !== undefined)
+                    {
+                        declaringObject[k] = v;
+                    }
+                };
+
+                for (let i = 0; i < typeState.sortedPropertyMetadatas.length; i++)
+                {
+                    const propertyMetadata = typeState.sortedPropertyMetadatas[i];
+                    const propertyState = propertyMetadata.propertyState;
+
+                    if (!propertyState.serializable)
                     {
                         continue;
                     }
 
-                    const serializedPropertyName = propertyMetadata.serializedPropertyName;
-                    const deserializedPropertyName = propertyMetadata.deserializedPropertyName;
+                    const serializedPropertyName = propertyState.serializedPropertyName;
+                    const deserializedPropertyName = propertyState.deserializedPropertyName;
                     const propertyValue = type[deserializedPropertyName];
 
-                    propertySerializerContext.hasJsonPathKey(serializedPropertyName);
-                    propertySerializerContext.hasPropertyMetadata(propertyMetadata);
-                    propertySerializerContext.hasTypeMetadata(propertyMetadata.typeMetadata);
-                    propertySerializerContext.hasGenericStructures(propertyMetadata.genericStructures);
-                    propertySerializerContext.hasGenericMetadataResolvers(propertyMetadata.genericMetadataResolvers);
-                    
-                    propertySerializerContext.hasReferenceValueSetter(v => 
-                    {
-                        const declaringObject = propertySerializerContext.referenceMap.get(type);
-        
-                        if (!isNil(declaringObject))
-                        {
-                            declaringObject[serializedPropertyName] = v;
-                        }
-                    });
+                    propertySerializerContext.jsonPathKey = serializedPropertyName;
+                    propertySerializerContext.propertyState = propertyState;
+                    propertySerializerContext.typeState = propertyState.typeMetadata.typeState;
+                    propertySerializerContext.genericMetadatas = propertyState.genericMetadatas;
 
-                    const value = propertySerializerContext.serialize(propertyValue);
+                    const serializer = propertySerializerContext.serializer;
+                    const value = serializer.serialize(propertyValue, propertySerializerContext);
 
                     object[serializedPropertyName] = value;
                 }
 
-                if (typeSerializerContext.preserveDiscriminator)
+                if (typeState.preserveDiscriminator)
                 {
-                    object[typeSerializerContext.discriminator] = typeSerializerContext.discriminant;
+                    object[typeState.discriminator] = typeState.discriminant;
                 } 
-                else if (object.hasOwnProperty(typeSerializerContext.discriminator))
+                else if (object.hasOwnProperty(typeState.discriminator))
                 {
-                    delete object[typeSerializerContext.discriminator];
+                    delete object[typeState.discriminator];
                 }
 
                 return object;
             });
         }
 
-        if (serializerContext.log.errorEnabled)
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as type.`, x);
-        }
+        serializerContext.logger.error('TypeSerializer', `${serializerContext.jsonPath}: cannot serialize value as type.`, x);
 
         return undefined;
     }
@@ -112,17 +108,17 @@ export class TypeSerializer implements Serializer<Record<string, any>>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Record<string, any>>): TypeLike<Record<string, any>>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.deserializedNullValue;
         }
 
-        if (isObject(x))
+        if (typeof x === 'object')
         {
             return serializerContext.restoreReference(x, () =>
             {
@@ -131,76 +127,73 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                 const typeSerializerContext = serializerContext.polymorphic 
                     ? serializerContext.definePolymorphicSerializerContext(x) 
                     : serializerContext;
-                    
-                const propertySerializerContext = typeSerializerContext.defineChildSerializerContext({ 
-                    jsonPathKey: typeSerializerContext.jsonPath 
-                });
+                
+                const propertySerializerContext = typeSerializerContext.defineChildSerializerContext();
+                const typeState = typeSerializerContext.typeState;
+                const typeEntryMap = new Map<PropertyName, TypeEntry<any, any>>();
 
-                const typeMetadata = typeSerializerContext.typeMetadata;
-                const typeContext = new TypeContext(typeMetadata);
-
-                for (const propertyMetadata of typeMetadata.sortedPropertyMetadatas)
+                propertySerializerContext.referenceValueSetter = (v, k) => 
                 {
-                    if (propertyMetadata.serializationConfigured && !propertyMetadata.deserializable)
+                    const declaringType = propertySerializerContext.referenceMap.get(object);
+
+                    if (declaringType !== undefined)
+                    {
+                        declaringType[k] = v;
+                    }
+                };
+
+                for (let i = 0; i < typeState.sortedPropertyMetadatas.length; i++)
+                {
+                    const propertyMetadata = typeState.sortedPropertyMetadatas[i];
+                    const propertyState = propertyMetadata.propertyState;
+
+                    if (!propertyState.deserializable)
                     {
                         continue;
                     }
 
-                    const serializedPropertyName = propertyMetadata.serializedPropertyName;
-                    const deserializedPropertyName = propertyMetadata.deserializedPropertyName;
+                    const serializedPropertyName = propertyState.serializedPropertyName;
+                    const deserializedPropertyName = propertyState.deserializedPropertyName;
                     const propertyValue = object[serializedPropertyName];
 
-                    propertySerializerContext.hasJsonPathKey(deserializedPropertyName);
-                    propertySerializerContext.hasPropertyMetadata(propertyMetadata);
-                    propertySerializerContext.hasTypeMetadata(propertyMetadata.typeMetadata);
-                    propertySerializerContext.hasGenericStructures(propertyMetadata.genericStructures);
-                    propertySerializerContext.hasGenericMetadataResolvers(propertyMetadata.genericMetadataResolvers);
+                    propertySerializerContext.jsonPathKey = serializedPropertyName;
+                    propertySerializerContext.propertyState = propertyState;
+                    propertySerializerContext.typeState = propertyState.typeMetadata.typeState;
+                    propertySerializerContext.genericMetadatas = propertyState.genericMetadatas;
 
-                    propertySerializerContext.hasReferenceValueSetter(v => 
-                    {
-                        const declaringType = propertySerializerContext.referenceMap.get(object);
-    
-                        if (!isNil(declaringType))
-                        {
-                            declaringType[deserializedPropertyName] = v;
-                        }
-                    });
+                    const serializer = propertySerializerContext.serializer;
+                    const value = serializer.deserialize(propertyValue, propertySerializerContext);
 
-                    const value = propertySerializerContext.deserialize(propertyValue);
-
-                    typeContext.set(deserializedPropertyName, new TypeContextEntry(deserializedPropertyName, value, propertyMetadata));
-                    typeContext.set(serializedPropertyName, new TypeContextEntry(serializedPropertyName, value, propertyMetadata));
+                    typeEntryMap.set(deserializedPropertyName, { key: deserializedPropertyName, value: value, propertyMetadata: propertyMetadata });
+                    typeEntryMap.set(serializedPropertyName, { key: serializedPropertyName, value: value, propertyMetadata: propertyMetadata });
                 }
 
                 for (const propertyName in object)
                 {
-                    if (object.hasOwnProperty(propertyName))
+                    if (object.hasOwnProperty(propertyName) && !typeEntryMap.has(propertyName))
                     {
-                        typeContext.set(propertyName, new TypeContextEntry(propertyName, object[propertyName]));
+                        typeEntryMap.set(propertyName, { key: propertyName, value: object[propertyName] });
                     }
                 }
-                
-                const factory = typeSerializerContext.factory;
-                const injector = typeSerializerContext.injector;
-                const type = factory.build(typeContext, injector);
 
-                if (typeSerializerContext.preserveDiscriminator)
+                const factory = typeState.factory;
+                const injector = typeState.injector;
+                const type = factory.build(typeState.typeMetadata, typeEntryMap, injector);
+
+                if (typeState.preserveDiscriminator)
                 {
-                    type[typeSerializerContext.discriminator] = typeSerializerContext.discriminant;
+                    type[typeState.discriminator] = typeState.discriminant;
                 }
-                else if (type.hasOwnProperty(typeSerializerContext.discriminator))
+                else if (type.hasOwnProperty(typeState.discriminator))
                 {
-                    delete type[typeSerializerContext.discriminator];
+                    delete type[typeState.discriminator];
                 }
 
                 return type;
             });
         }
         
-        if (serializerContext.log.errorEnabled)
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as type.`, x);
-        }
+        serializerContext.logger.error('TypeSerializer', `${serializerContext.jsonPath}: cannot deserialize value as type.`, x);
 
         return undefined;
     }

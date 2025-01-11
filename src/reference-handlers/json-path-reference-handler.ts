@@ -1,4 +1,3 @@
-import { isNil, isObject, isString } from 'lodash';
 import { ReferenceHandler } from '../reference-handler';
 import { ReferenceKey } from '../reference-key';
 import { ReferenceValue } from '../reference-value';
@@ -33,7 +32,7 @@ export class JsonPathReferenceHandler implements ReferenceHandler
         const referenceMap = serializerContext.referenceMap;
         const referencePath = referenceMap.get(referenceKey);
 
-        if (isNil(referencePath))
+        if (referencePath === undefined)
         {
             referenceMap.set(referenceKey, serializerContext.jsonPath);
 
@@ -60,7 +59,7 @@ export class JsonPathReferenceHandler implements ReferenceHandler
         const referenceTarget = this.defineReferenceTarget(serializerContext, referenceKey);
         const referenceValue = referenceMap.get(referenceTarget);
 
-        if (isNil(referenceValue))
+        if (referenceValue === undefined)
         {
             referenceMap.set(referenceTarget, referenceTarget);
 
@@ -104,7 +103,7 @@ export class JsonPathReferenceHandler implements ReferenceHandler
         const $ = serializerContext.$;
         const referencePath = referenceKey.$ref;
 
-        if (!isString(referencePath) || !isObject($))
+        if (typeof referencePath !== 'string' || typeof $ !== 'object')
         {
             return referenceKey;
         }
@@ -140,12 +139,15 @@ export class JsonPathReferenceHandler implements ReferenceHandler
         const array = new Array<string>();
         const parts = referencePath.split('.');
 
-        for (const part of parts) 
+        for (let i = 0; i < parts.length; i++) 
         {
+            const part = parts[i];
             const keys = part.split(this.arrayKeyRegExp);
 
-            for (const key of keys)
+            for (let j = 0; j < keys.length; j++)
             {
+                const key = keys[j];
+
                 if (key.length > 0) 
                 {
                     array.push(key);

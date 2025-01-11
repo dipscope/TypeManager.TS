@@ -4,7 +4,7 @@
 
 ## What is TypeManager?
 
-TypeManager is a stable, highly-tested parsing package for `TypeScript` which handles everything you need to easily integrate classes into your workflow.  
+TypeManager is a stable, highly-tested, highly-performant parsing package for `TypeScript` which handles everything you need to easily integrate classes into your workflow.
 
 ## What does it do?
 
@@ -155,7 +155,7 @@ If you like or are using this project, please give it a star. Thanks!
     * [Serializer option](#serializer-option)
     * [Use default value option](#use-default-value-option)
     * [Use implicit conversion option](#use-implicit-conversion-option)
-    * [Parent type functions option](#parent-type-functions-option)
+    * [Parent type arguments option](#parent-type-arguments-option)
 * [Defining configuration manually](#defining-configuration-manually)
     * [Configuring global options](#configuring-global-options)
     * [Configuring options per type](#configuring-options-per-type)
@@ -364,7 +364,7 @@ export class User
 
 This option configures an alias so `username` property will be used instead of `name` when deserializing from object. There are plenty of configure options, so check `PropertyOptions` definition or section with [decorator options](#defining-decorator-options) below. For example you can make some properties serializable only or define custom property serialization.
 
-Now let's have a look at more complex definitions with generic types. This are `Array<TType>`, `Map<TKey, TValue>` and others. To declare one of this you have to use extra argument available for `Property` decorator. Generic arguments are always passed as array to exactly see them within a source code.
+Now let's have a look at more complex definitions with generic types. This are `Array<TObject>`, `Map<TKey, TValue>` and others. To declare one of this you have to use extra argument available for `Property` decorator. Generic arguments are always passed as array to exactly see them within a source code.
 
 If you are using [reflect-metadata](https://github.com/rbuckton/reflect-metadata) then provide generics as a first argument so configure options will become the second.
 
@@ -685,14 +685,14 @@ const rankKey = new CustomKey<number>('rank');
 const orderKey = new CustomKey<number>('order');
 
 @Type({
-    customOptions: [
+    customValueMap: new Map([
         [rankKey, 1],
         [orderKey, 2]
-    ]
+    ])
 })
 export class User
 {
-    @Property(String, { customOptions: [[orderKey, 3]]}) public name: string;
+    @Property(String, { customValueMap: new Map([[orderKey, 3]]) }) public name: string;
 }
 ```
 
@@ -996,7 +996,7 @@ export class User
 
 With this any value which can be converted to `String` will be converted properly. Such behaviour works for other built in serializers and supported for custom ones. By default implicit conversion is turned off. You can enable it using `useImplicitConversion` option per type and property or enable globally using `TypeManager` configure method.
 
-### Parent type functions option
+### Parent type arguments option
 
 When type implements interfaces which represent other classes this information got lost during `TypeScript` compilation process and there is no way to extract it. This option can be used to provide such information for a `TypeManager` to be used during serialization and deserialization.
 
@@ -1016,7 +1016,7 @@ export abstract class UserStatus extends Entity
 }
 
 @Type({
-    parentTypeFns: [UserStatus]
+    parentTypeArguments: [UserStatus]
 })
 export class ActiveUserStatus extends Entity implements UserStatus
 {
@@ -1553,7 +1553,7 @@ Our goal is to cover as much use cases as possible without making you to write a
 
 ### Defining custom data
 
-You can attach you custom metadata to our decorators using `customOptions` option available on `Type` and `Property`.
+You can attach you custom metadata to our decorators using `customValueMap` option available on `Type` and `Property`.
 
 ```typescript
 import { Type, Property, CustomKey } from '@dipscope/type-manager';
@@ -1562,13 +1562,13 @@ const rankKey = new CustomKey<number>('rank');
 const priorityKey = new CustomKey<number>('priority');
 
 @Type({
-    customOptions: [
+    customValueMap: new Map([
         [rankKey, 1]        
-    ]
+    ])
 })
 class User
 {
-    @Property(String, { customOptions: [[priorityKey, 10]] }) public name: string;
+    @Property(String, { customValueMap: new Map([[priorityKey, 10]]) }) public name: string;
 }
 ```
 
@@ -1578,15 +1578,13 @@ This allows you to get it later in serializers, factories, injectors or your cod
 import { TypeManager } from '@dipscope/type-manager';
 
 const userMetadata = TypeManager.extractTypeMetadata(User);
-const typeCustomContext = userMetadata.customContext;
-const rank = customContext.get(rankKey);
+const rank = userMetadata.extractCustomValue(rankKey);
 
 // Do something with type custom data...
 
 for (const propertyMetadata of userMetadata.propertyMetadataMap.values())
 {
-    const propertyCustomContext = propertyMetadata.customContext;
-    const priority = propertyCustomContext.get(priorityKey);
+    const priority = propertyMetadata.extractCustomValue(priorityKey);
 
     // Do something with property custom data...
 }
@@ -1712,7 +1710,7 @@ export class CustomInjector implements Injector
         return;
     }
 
-    public get<TType>(typeMetadata: TypeMetadata<TType>): TType | undefined
+    public get<TObject>(typeMetadata: TypeMetadata<TObject>): TObject | undefined
     {
         return this.angularInjector.get(typeMetadata.typeFn);
     }
@@ -1743,17 +1741,16 @@ import { TypeContext, Injector, TypeFactory } from '@dipscope/type-manager';
 
 export class CustomTypeFactory extends TypeFactory
 {
-    public build<TType>(typeContext: TypeContext<TType>, injector: Injector): TType
+    public build<TObject>(typeContext: TypeContext<TObject>, injector: Injector): TObject
     {
         // Build any type.
         const type = super.build(typeContext, injector) as any;
         
         // Resolve custom data.
         const typeMetadata = typeContext.typeMetadata;
-        const customContext = typeMetadata.customContext;
 
         // Get rank based on key.
-        const rank = customContext.get(rankKey);
+        const rank = typeMetadata.extractCustomValue(rankKey);
 
         // Process custom data...
 
@@ -1768,7 +1765,7 @@ When you are finished with definitions there are two possible ways to register a
 import { Type, Factory } from '@dipscope/type-manager';
 
 @Type({
-    customOptions: [[rankKey, 1]]
+    customValueMap: new Map([[rankKey, 1]]),
     factory: new CustomTypeFactory()
 })
 export class User
@@ -1784,7 +1781,7 @@ import { TypeManager } from '@dipscope/type-manager';
 
 // Overriding only for user type.
 TypeManager.applyTypeOptions(User, {
-    customOptions: [[rankKey, 1]],
+    customValueMap: new Map([[rankKey, 1]]),
     factory: new CustomTypeFactory()
 });
 

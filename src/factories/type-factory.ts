@@ -1,8 +1,9 @@
-import { isNil, isUndefined } from 'lodash';
 import { Factory } from '../factory';
-import { isCtorFunction } from '../functions/is-ctor-function';
 import { Injector } from '../injector';
-import { TypeContext } from '../type-context';
+import { PropertyName } from '../property-name';
+import { TypeCtor } from '../type-ctor';
+import { TypeEntry } from '../type-entry';
+import { TypeMetadata } from '../type-metadata';
 
 /**
  * Type factory.
@@ -12,55 +13,57 @@ import { TypeContext } from '../type-context';
 export class TypeFactory implements Factory
 {
     /**
-     * Builds type described by provided type metadata.
+     * Builds type described by provided type context.
      * 
-     * @param {TypeContext<TType>} typeContext Type context.
+     * @param {TypeMetadata<TObject>} typeMetadata Type metadata.
+     * @param {ReadonlyMap<PropertyName, TypeEntry<TObject, any>>} typeEntryMap Type entry map.
      * @param {Injector} injector Injector.
      * 
-     * @returns {Record<string, any>} Type instance described by provided type metadata.
+     * @returns {TObject} Object instance described by provided type context.
      */
-    public build<TType>(typeContext: TypeContext<TType>, injector: Injector): TType
+    public build<TObject>(typeMetadata: TypeMetadata<TObject>, typeEntryMap: ReadonlyMap<PropertyName, TypeEntry<TObject, any>>, injector: Injector): TObject
     {
-        const typeMetadata = typeContext.typeMetadata;
-        const typeCtor = isCtorFunction(typeMetadata.typeFn) ? typeMetadata.typeFn : undefined;
+        const typeCtor = typeMetadata.typeFn as TypeCtor<TObject>;
+        const typeState = typeMetadata.typeState;
+        const injectedKeys = new Set<string>();
+        const args = new Array<any>(typeCtor.length);
 
-        if (isNil(typeCtor))
+        for (let i = 0; i < typeState.sortedInjectMetadatas.length; i++)
         {
-            throw new Error(`${typeMetadata.typeName}: cannot build instance of abstract type.`);
-        }
-        
-        const injectedKeys = new Array<any>();
-        const args = new Array<any>(typeCtor.length).fill(undefined);
+            const injectMetadata = typeState.sortedInjectMetadatas[i];
+            const injectState = injectMetadata.injectState;
+            const argKey = injectState.key;
 
-        for (const injectMetadata of typeMetadata.sortedInjectMetadatas)
-        {
-            const argKey = injectMetadata.key;
-
-            if (!isNil(argKey))
+            if (argKey === undefined)
             {
-                args[injectMetadata.injectIndex] = typeContext.get(argKey)?.value;
-
-                injectedKeys.push(argKey);
+                args[injectMetadata.injectIndex] = injector.get(injectState.typeMetadata);
 
                 continue;
             }
 
-            args[injectMetadata.injectIndex] = injector.get(injectMetadata.typeMetadata);
-        }
+            const typeEntry = typeEntryMap.get(argKey);
 
+            if (typeEntry !== undefined)
+            {
+                args[injectMetadata.injectIndex] = typeEntry.value;
+            }
+
+            injectedKeys.add(argKey);
+        }
+        
         const type = new typeCtor(...args) as any;
 
-        for (const typeContextEntry of typeContext.values())
+        for (const typeEntry of typeEntryMap.values())
         {
-            const propertyMetadata = typeContextEntry.propertyMetadata;
+            const propertyMetadata = typeEntry.propertyMetadata;
 
             if (
-                !isNil(propertyMetadata)
-                && !isUndefined(typeContextEntry.value)
-                && !injectedKeys.includes(propertyMetadata.propertyName)
+                propertyMetadata !== undefined 
+                && typeEntry.value !== undefined 
+                && !injectedKeys.has(propertyMetadata.propertyName)
             )
             {
-                type[propertyMetadata.propertyName] = typeContextEntry.value;
+                type[propertyMetadata.propertyName] = typeEntry.value;
             }
         }
 

@@ -3,16 +3,16 @@ import { TypeMetadata } from './type-metadata';
 /**
  * Represents a type configuration when used without decorators.
  * 
- * @type {TypeConfiguration<TType>}
+ * @type {TypeConfiguration<TObject>}
  */
-export interface TypeConfiguration<TType>
+export interface TypeConfiguration<TObject>
 {
     /**
      * Configures a certain type.
      * 
-     * @param {TypeMetadata<TType>} typeMetadata Type metadata.
+     * @param {TypeMetadata<TObject>} typeMetadata Type metadata.
      * 
      * @returns {void}
      */
-    configure(typeMetadata: TypeMetadata<TType>): void;
+    configure(typeMetadata: TypeMetadata<TObject>): void;
 }

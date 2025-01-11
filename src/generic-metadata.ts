@@ -3,6 +3,6 @@ import { TypeMetadata } from './type-metadata';
 /**
  * Generic metadata used to describe a generic type.
  * 
- * @type {GenericMetadata<TType>}
+ * @type {GenericMetadata<TObject>}
  */
-export type GenericMetadata<TType> = [TypeMetadata<TType>, Array<GenericMetadata<any>>];
+export type GenericMetadata<TObject> = [TypeMetadata<TObject>, ReadonlyArray<GenericMetadata<any>>];

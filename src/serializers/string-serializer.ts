@@ -1,4 +1,3 @@
-import { isBoolean, isDate, isNull, isNumber, isObject, isString, isUndefined } from 'lodash';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -20,17 +19,17 @@ export class StringSerializer implements Serializer<string>
      */
     public serialize(x: TypeLike<string>, serializerContext: SerializerContext<string>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.serializedNullValue;
         }
 
-        if (isString(x))
+        if (typeof x === 'string')
         {
             return x;
         }
@@ -40,10 +39,7 @@ export class StringSerializer implements Serializer<string>
             return this.convert(x, serializerContext);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as string.`, x);
-        }
+        serializerContext.logger.error('StringSerializer', `${serializerContext.jsonPath}: cannot serialize value as string.`, x);
 
         return undefined;
     }
@@ -58,17 +54,17 @@ export class StringSerializer implements Serializer<string>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<string>): TypeLike<string>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.deserializedNullValue;
         }
 
-        if (isString(x))
+        if (typeof x === 'string')
         {
             return x;
         }
@@ -78,10 +74,7 @@ export class StringSerializer implements Serializer<string>
             return this.convert(x, serializerContext);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as string.`, x);
-        }
+        serializerContext.logger.error('StringSerializer', `${serializerContext.jsonPath}: cannot deserialize value as string.`, x);
 
         return undefined;
     }
@@ -92,29 +85,26 @@ export class StringSerializer implements Serializer<string>
      * @param {any} x Some value.
      * @param {SerializerContext<string>} serializerContext Type serializer context.
      * 
-     * @returns {string|undefined} Converted value or original value.
+     * @returns {TypeLike<string>} Converted value or original value.
      */
-    private convert(x: any, serializerContext: SerializerContext<string>): string | undefined
+    private convert(x: any, serializerContext: SerializerContext<string>): TypeLike<string>
     {
-        if (isNumber(x) || isBoolean(x)) 
+        if (typeof x === 'number' || typeof x === 'boolean') 
         {
             return String(x);
         }
 
-        if (isDate(x))
+        if (x instanceof Date)
         {
             return x.toISOString();
         }
 
-        if (isObject(x))
+        if (typeof x === 'object')
         {
             return JSON.stringify(x);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot convert value to string.`, x);
-        }
+        serializerContext.logger.error('StringSerializer', `${serializerContext.jsonPath}: cannot convert value to string.`, x);
         
         return undefined;
     }

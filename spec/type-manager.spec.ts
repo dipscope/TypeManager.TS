@@ -58,7 +58,7 @@ describe('Type manager', () =>
         const messageManager = new TypeManager();
 
         messageManager.applyTypeOptionsBase(TypeManager.typeOptionsBase);
-        messageManager.applyTypeOptionsMap(TypeManager.typeOptionsMap);
+        messageManager.applyTypeOptionsMap(new Map(Array.from(TypeManager.typeOptionsMap)));
 
         const baseObject = { body: 'a', label: 'b', user: { username: 'a', email: 'b', description: null, about: 'g', device: 'h' }, groups: [{ title: 'a' }, { title: 'a' }] };
         const baseObjects = [baseObject, baseObject];
@@ -160,7 +160,7 @@ describe('Type manager', () =>
         const groupManager = new TypeManager();
 
         groupManager.applyTypeOptionsBase(TypeManager.typeOptionsBase);
-        groupManager.applyTypeOptionsMap(TypeManager.typeOptionsMap);
+        groupManager.applyTypeOptionsMap(new Map(Array.from(TypeManager.typeOptionsMap)));
 
         const baseObject = { title: 'a' };
         const entity = groupManager.deserialize(Group, baseObject);
@@ -183,7 +183,7 @@ describe('Type manager', () =>
         const groupManager = new TypeManager();
 
         groupManager.applyTypeOptionsBase(TypeManager.typeOptionsBase);
-        groupManager.applyTypeOptionsMap(TypeManager.typeOptionsMap);
+        groupManager.applyTypeOptionsMap(new Map(Array.from(TypeManager.typeOptionsMap)));
 
         const baseObject = { title: 'a' };
         const entityA = groupManager.deserialize(Group, baseObject);
@@ -232,7 +232,7 @@ describe('Type manager', () =>
         const groupManager = new TypeManager();
 
         groupManager.applyTypeOptionsBase(TypeManager.typeOptionsBase);
-        groupManager.applyTypeOptionsMap(TypeManager.typeOptionsMap);
+        groupManager.applyTypeOptionsMap(new Map(Array.from(TypeManager.typeOptionsMap)));
 
         groupManager.applyTypeOptionsBase({
             preserveDiscriminator: true,
@@ -270,12 +270,13 @@ describe('Type manager', () =>
         const groupManager = new TypeManager();
 
         groupManager.applyTypeOptionsBase(TypeManager.typeOptionsBase);
-        groupManager.applyTypeOptionsMap(TypeManager.typeOptionsMap);
+        groupManager.applyTypeOptionsMap(new Map(Array.from(TypeManager.typeOptionsMap)));
 
         const groupMetadata = TypeManager.extractTypeMetadata(Group);
         const instanceGroupMetadata = groupManager.extractTypeMetadata(Group);
 
         groupManager.applyTypeOptionsBase({
+            useDefaultValue: true,
             preserveDiscriminator: true,
             useImplicitConversion: true,
             discriminator: '__typename__'
@@ -285,14 +286,14 @@ describe('Type manager', () =>
             deserializedDefaultValue: () => new Group()
         });
 
-        expect(instanceGroupMetadata.typeOptionsBase.preserveDiscriminator).toBeTrue();
-        expect(instanceGroupMetadata.typeOptionsBase.useImplicitConversion).toBeTrue();
-        expect(instanceGroupMetadata.typeOptionsBase.discriminator).toBe('__typename__');
-        expect(instanceGroupMetadata.typeOptions.deserializedDefaultValue).toBeDefined();
+        expect(groupManager.typeOptionsBase.preserveDiscriminator).toBeTrue();
+        expect(groupManager.typeOptionsBase.useImplicitConversion).toBeTrue();
+        expect(groupManager.typeOptionsBase.discriminator).toBe('__typename__');
+        expect(instanceGroupMetadata.deserializedDefaultValue).toBeDefined();
 
-        expect(groupMetadata.typeOptionsBase.preserveDiscriminator).toBeFalse();
-        expect(groupMetadata.typeOptionsBase.useImplicitConversion).toBeFalse();
-        expect(groupMetadata.typeOptionsBase.discriminator).toBe('$type');
-        expect(groupMetadata.typeOptions.deserializedDefaultValue).toBeUndefined();
+        expect(TypeManager.typeOptionsBase.preserveDiscriminator).toBeFalse();
+        expect(TypeManager.typeOptionsBase.useImplicitConversion).toBeFalse();
+        expect(TypeManager.typeOptionsBase.discriminator).toBe('$type');
+        expect(groupMetadata.deserializedDefaultValue).toBeUndefined();
     });
 });

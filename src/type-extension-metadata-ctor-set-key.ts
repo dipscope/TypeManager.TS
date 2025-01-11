@@ -6,7 +6,7 @@ import { TypeExtensionMetadataCtor } from './type-extension-metadata-ctor';
  * 
  * @type {CustomKey<Set<TypeExtensionMetadataCtor<any, any, any>>>}
  */
-export const typeExtensionMetadataCtorSetKey: CustomKey<Set<
+export const TYPE_EXTENSION_METADATA_CTOR_SET_KEY: CustomKey<Set<
     TypeExtensionMetadataCtor<any, any, any>
 >> = new CustomKey<Set<
     TypeExtensionMetadataCtor<any, any, any>

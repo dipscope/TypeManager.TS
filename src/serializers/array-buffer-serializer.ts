@@ -1,4 +1,3 @@
-import { isArrayBuffer, isNull, isString, isUndefined } from 'lodash';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -20,17 +19,17 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
      */
     public serialize(x: TypeLike<ArrayBuffer>, serializerContext: SerializerContext<ArrayBuffer>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.serializedNullValue;
         }
 
-        if (isArrayBuffer(x))
+        if (x instanceof ArrayBuffer)
         {
             const arrayBufferView = new Uint16Array(x);
             const charCodeArray = Array.from(arrayBufferView);
@@ -38,10 +37,7 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
             return charCodeArray.map(c => String.fromCharCode(c)).join('');
         }
 
-        if (serializerContext.log.errorEnabled)
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as array buffer.`, x);
-        }
+        serializerContext.logger.error('ArrayBufferSerializer', `${serializerContext.jsonPath}: cannot serialize value as array buffer.`, x);
 
         return undefined;
     }
@@ -56,17 +52,17 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<ArrayBuffer>): TypeLike<ArrayBuffer>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.deserializedNullValue;
         }
 
-        if (isString(x))
+        if (typeof x === 'string')
         {
             const arrayBuffer = new ArrayBuffer(x.length * 2);
             const arrayBufferView = new Uint16Array(arrayBuffer);
@@ -78,11 +74,8 @@ export class ArrayBufferSerializer implements Serializer<ArrayBuffer>
         
             return arrayBuffer;
         }
-        
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as array buffer.`, x);
-        }
+
+        serializerContext.logger.error('ArrayBufferSerializer', `${serializerContext.jsonPath}: cannot deserialize value as array buffer.`, x);
 
         return undefined;
     }

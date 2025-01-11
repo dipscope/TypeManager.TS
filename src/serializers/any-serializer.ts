@@ -1,4 +1,3 @@
-import { isNull, isUndefined } from 'lodash';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -20,19 +19,19 @@ export class AnySerializer implements Serializer<any>
      */
     public serialize(x: TypeLike<any>, serializerContext: SerializerContext<any>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.serializedNullValue;
         }
 
         return x;
     }
-
+    
     /**
      * Deserializes provided value.
      * 
@@ -43,12 +42,12 @@ export class AnySerializer implements Serializer<any>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<any>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.deserializedNullValue;
         }

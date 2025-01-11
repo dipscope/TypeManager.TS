@@ -1,5 +1,6 @@
 import { Alias } from './alias';
-import { CustomOption } from './custom-option';
+import { CustomKey } from './custom-key';
+import { CustomValue } from './custom-value';
 import { DefaultValue } from './default-value';
 import { GenericArgument } from './generic-argument';
 import { NamingConvention } from './naming-convention';
@@ -10,9 +11,9 @@ import { TypeArgument } from './type-argument';
 /**
  * Property options.
  * 
- * @type {PropertyOptions<TType>}
+ * @type {PropertyOptions<TObject>}
  */
-export type PropertyOptions<TType> =
+export type PropertyOptions<TObject> =
 {
     /**
      * Property alias.
@@ -24,11 +25,11 @@ export type PropertyOptions<TType> =
     alias?: Alias;
 
     /**
-     * Custom options defined by developer.
+     * Custom value map defined by developer.
      * 
-     * @type {Array<CustomOption>}
+     * @type {Map<CustomKey<any>, CustomValue>}
      */
-    customOptions?: Array<CustomOption>;
+    customValueMap?: Map<CustomKey<any>, CustomValue>;
 
     /**
      * Default value for undefined ones.
@@ -96,16 +97,16 @@ export type PropertyOptions<TType> =
     /**
      * Serializer used to serialize and deserialize a property.
      * 
-     * @type {Serializer<TType>}
+     * @type {Serializer<TObject>}
      */
-    serializer?: Serializer<TType>;
+    serializer?: Serializer<TObject>;
 
     /**
      * Type argument.
      * 
-     * @type {TypeArgument<TType>}
+     * @type {TypeArgument<TObject>}
      */
-    typeArgument?: TypeArgument<TType>;
+    typeArgument?: TypeArgument<TObject>;
 
     /**
      * If set to true then null values are preserved. Otherwise they will be 
@@ -129,4 +130,4 @@ export type PropertyOptions<TType> =
      * @type {boolean}
      */
     useImplicitConversion?: boolean;
-}
+};

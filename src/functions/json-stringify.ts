@@ -15,7 +15,7 @@ export function jsonStringify(
 {
 	const spacing = typeof space === 'number' ? new Array(isFinite(space) ? space + 1 : 0).join(' ') : (space ?? '');
 	const separator = spacing ? ': ' : ':';
-	const seen = new Array<any>();
+	const seen = new Set<any>();
 	
 	const stringify = (parent: any, key: any, node: any, level: number): any =>
     {
@@ -85,12 +85,15 @@ export function jsonStringify(
 			return 'null';
 		}
 
-		if (seen.indexOf(node) !== -1)
+		if (seen.has(node))
         {
-			throw new TypeError('Converting circular structure to JSON.');
+			seen.delete(node);
+
+			return 'null';
 		}
 
-		const seenIndex = seen.push(node) - 1;
+		seen.add(node);
+
 		const keys = Object.keys(node).sort();
 
 		for (i = 0; i < keys.length; i++)
@@ -111,7 +114,7 @@ export function jsonStringify(
 			out += indent + spacing + JSON.stringify(key) + separator + value;
 		}
 
-		seen.splice(seenIndex, 1);
+		seen.delete(node);
 
 		return '{' + out + indent + '}';
 	};

@@ -1,5 +1,3 @@
-import { isArray, isNull, isUndefined } from 'lodash';
-import { isUint32Array } from '../functions/is-uint-32-array';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -21,25 +19,22 @@ export class Uint32ArraySerializer implements Serializer<Uint32Array>
      */
     public serialize(x: TypeLike<Uint32Array>, serializerContext: SerializerContext<Uint32Array>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.serializedNullValue;
         }
 
-        if (isUint32Array(x))
+        if (x instanceof Uint32Array)
         {
             return Array.from(x);
         }
         
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as uint 32 array.`, x);
-        }
+        serializerContext.logger.error('Uint32ArraySerializer', `${serializerContext.jsonPath}: cannot serialize value as uint 32 array.`, x);
 
         return undefined;
     }
@@ -54,25 +49,22 @@ export class Uint32ArraySerializer implements Serializer<Uint32Array>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Uint32Array>): TypeLike<Uint32Array>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.deserializedNullValue;
         }
 
-        if (isArray(x))
+        if (Array.isArray(x))
         {
             return Uint32Array.from(x);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as uint 32 array.`, x);
-        }
+        serializerContext.logger.error('Uint32ArraySerializer', `${serializerContext.jsonPath}: cannot deserialize value as uint 32 array.`, x);
 
         return undefined;
     }

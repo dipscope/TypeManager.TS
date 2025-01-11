@@ -1,5 +1,3 @@
-import { isNull, isString, isUndefined } from 'lodash';
-import { isDataView } from '../functions/is-data-view';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -21,17 +19,17 @@ export class DataViewSerializer implements Serializer<DataView>
      */
     public serialize(x: TypeLike<DataView>, serializerContext: SerializerContext<DataView>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.serializedNullValue;
         }
 
-        if (isDataView(x))
+        if (x instanceof DataView)
         {
             const arrayBufferView = new Uint16Array(x.buffer);
             const charCodeArray = Array.from(arrayBufferView);
@@ -39,10 +37,7 @@ export class DataViewSerializer implements Serializer<DataView>
             return charCodeArray.map(c => String.fromCharCode(c)).join('');
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as data view.`, x);
-        }
+        serializerContext.logger.error('DataViewSerializer', `${serializerContext.jsonPath}: cannot serialize value as data view.`, x);
 
         return undefined;
     }
@@ -57,17 +52,17 @@ export class DataViewSerializer implements Serializer<DataView>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<DataView>): TypeLike<DataView>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.deserializedNullValue;
         }
 
-        if (isString(x))
+        if (typeof x === 'string')
         {
             const arrayBuffer = new ArrayBuffer(x.length * 2);
             const arrayBufferView = new Uint16Array(arrayBuffer);
@@ -80,10 +75,7 @@ export class DataViewSerializer implements Serializer<DataView>
             return new DataView(arrayBuffer);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as data view.`, x);
-        }
+        serializerContext.logger.error('DataViewSerializer', `${serializerContext.jsonPath}: cannot deserialize value as data view.`, x);
 
         return undefined;
     }

@@ -1,5 +1,3 @@
-import { isFunction, isObject } from 'lodash';
-
 /**
  * Reflect class declaration.
  * 
@@ -28,7 +26,7 @@ declare class Reflect
  */
 export function getOwnReflectMetadata(metadataKey: string, target: any): any
 {
-    if (isObject(Reflect) && isFunction(Reflect.getOwnMetadata))
+    if (typeof Reflect === 'object' && Reflect !== null && typeof Reflect.getOwnMetadata === 'function')
     {
         return Reflect.getOwnMetadata(metadataKey, target);
     }

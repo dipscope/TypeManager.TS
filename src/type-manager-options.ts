@@ -34,4 +34,4 @@ export type TypeManagerOptions =
      * @type {Map<TypeFn<any>, TypeConfiguration<any>>}
      */
     typeConfigurationMap?: Map<TypeFn<any>, TypeConfiguration<any>>;
-}
+};

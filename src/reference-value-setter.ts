@@ -5,4 +5,4 @@ import { ReferenceValue } from './reference-value';
  * 
  * @type {ReferenceValueSetter}
  */
-export type ReferenceValueSetter = (referenceValue: ReferenceValue) => void;
+export type ReferenceValueSetter = (referenceValue: ReferenceValue, jsonPathKey: any) => void;

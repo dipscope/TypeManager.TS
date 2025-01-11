@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.0.0] - 2025-??-??
+
+### Added
+
+- Support for lazy parent type and interface inheritance.
+- Performance on large object graphs is up to 3 times faster.
+
+### Changed
+
+- The metadata is now read-only and configuration must be done using the provided API.
+- Declaring and retrieving user custom options has been simplified.
+- Property `customOptions` was replaced with `customValueMap`.
+- Property `parentTypeFns` was replaced with `parentTypeArguments`.
+- Custom context is now part of the metadata.
+
+### Migrating from previous version
+
+- Rename `customOptions` to `customValueMap` and wrap your configuration array into map.
+- Rename `parentTypeFns` to `parentTypeArguments` if you have this option declared on your type.
+
 ## [7.2.1] - 2024-02-18
 
 ### Fixed

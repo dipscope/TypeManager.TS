@@ -1,25 +1,25 @@
-import { TypeFn } from './type-fn';
+import { TypeArgument } from './type-argument';
 
 /**
  * Inject options.
  * 
- * @type {InjectOptions<TType>}
+ * @type {InjectOptions<TObject>}
  */
-export type InjectOptions<TType> =
+export type InjectOptions<TObject> =
 {
     /**
-     * Parameter key to inject within a type context. If specified then
-     * type function will be ignored.
+     * Parameter key to inject within a type context. If specified then 
+     * type argument will be ignored.
      * 
      * @type {string}
      */
     key?: string;
-
+    
     /**
-     * Type of injection. Used if key is not specified. Will be resolved using 
-     * type injector.
+     * Type argument of the injection. Used if key is not specified and 
+     * resolved using injector.
      * 
-     * @type {TypeFn<TType>}
+     * @type {TypeArgument<TObject>}
      */
-    typeFn?: TypeFn<TType>;
-}
+    typeArgument?: TypeArgument<TObject>;
+};

@@ -4,27 +4,27 @@ import { TypeLike } from './type-like';
 /**
  * Serializer.
  * 
- * @type {Serializer<TType>}
+ * @type {Serializer<TObject>}
  */
-export interface Serializer<TType>
+export interface Serializer<TObject>
 {
     /**
      * Serializes provided value.
      * 
-     * @param {TypeLike<TType>} x Some value.
-     * @param {SerializerContext<TType>} serializerContext Serializer context.
+     * @param {TypeLike<TObject>} x Some value.
+     * @param {SerializerContext<TObject>} serializerContext Serializer context.
      * 
      * @returns {TypeLike<any>} Serialized value.
      */
-    serialize(x: TypeLike<TType>, serializerContext: SerializerContext<TType>): TypeLike<any>;
+    serialize(x: TypeLike<TObject>, serializerContext: Readonly<SerializerContext<TObject>>): TypeLike<any>;
 
     /**
      * Deserializes provided value.
      * 
      * @param {TypeLike<any>} x Some value.
-     * @param {SerializerContext<TType>} serializerContext Serializer context.
+     * @param {SerializerContext<TObject>} serializerContext Serializer context.
      * 
-     * @returns {TypeLike<TType>} Deserialized value.
+     * @returns {TypeLike<TObject>} Deserialized value.
      */
-    deserialize(x: TypeLike<any>, serializerContext: SerializerContext<TType>): TypeLike<TType>;
+    deserialize(x: TypeLike<any>, serializerContext: SerializerContext<TObject>): TypeLike<TObject>;
 }

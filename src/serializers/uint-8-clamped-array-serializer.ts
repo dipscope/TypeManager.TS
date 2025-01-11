@@ -1,5 +1,3 @@
-import { isArray, isNull, isUndefined } from 'lodash';
-import { isUint8ClampedArray } from '../functions/is-uint-8-clamped-array';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -21,25 +19,22 @@ export class Uint8ClampedArraySerializer implements Serializer<Uint8ClampedArray
      */
     public serialize(x: TypeLike<Uint8ClampedArray>, serializerContext: SerializerContext<Uint8ClampedArray>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.serializedNullValue;
         }
 
-        if (isUint8ClampedArray(x))
+        if (x instanceof Uint8ClampedArray)
         {
             return Array.from(x);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as uint 8 clamped array.`, x);
-        }
+        serializerContext.logger.error('Uint8ClampedArraySerializer', `${serializerContext.jsonPath}: cannot serialize value as uint 8 clamped array.`, x);
 
         return undefined;
     }
@@ -54,25 +49,22 @@ export class Uint8ClampedArraySerializer implements Serializer<Uint8ClampedArray
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Uint8ClampedArray>): TypeLike<Uint8ClampedArray>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.deserializedNullValue;
         }
 
-        if (isArray(x))
+        if (Array.isArray(x))
         {
             return Uint8ClampedArray.from(x);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as uint 8 clamped array.`, x);
-        }
+        serializerContext.logger.error('Uint8ClampedArraySerializer', `${serializerContext.jsonPath}: cannot deserialize value as uint 8 clamped array.`, x);
 
         return undefined;
     }

@@ -1,5 +1,3 @@
-import { isFunction } from 'lodash';
-
 /**
  * Defines name for any value.
  * 
@@ -9,10 +7,5 @@ import { isFunction } from 'lodash';
  */
 export function nameOf(x: any): string
 {
-    if (isFunction(x))
-    {
-        return x.name;
-    }
-
-    return 'Unknown';
+    return typeof x === 'function' ? x.name : 'Unknown';
 }

@@ -1,9 +1,10 @@
-import { CustomOption } from './custom-option';
+import { CustomKey } from './custom-key';
+import { CustomValue } from './custom-value';
 import { Discriminator } from './discriminator';
 import { Factory } from './factory';
 import { InjectSorter } from './inject-sorter';
 import { Injector } from './injector';
-import { Log } from './log';
+import { Logger } from './logger';
 import { NamingConvention } from './naming-convention';
 import { PropertySorter } from './property-sorter';
 import { ReferenceHandler } from './reference-handler';
@@ -12,17 +13,17 @@ import { Serializer } from './serializer';
 /**
  * Type options base interface.
  * 
- * @type {TypeOptionsBase<TType>}
+ * @type {TypeOptionsBase<TObject>}
  */
-export type TypeOptionsBase<TType> =
+export type TypeOptionsBase<TObject> =
 {
     /**
-     * Custom options defined by developer.
+     * Custom value map defined by developer.
      * 
-     * @type {Array<CustomOption>}
+     * @type {Map<CustomKey<any>, CustomValue>}
      */
-    customOptions?: Array<CustomOption>;
-
+    customValueMap: Map<CustomKey<any>, CustomValue>;
+    
     /**
      * Discriminator.
      * 
@@ -45,11 +46,11 @@ export type TypeOptionsBase<TType> =
     injector: Injector;
 
     /**
-     * Log instance with specified log level.
+     * Logger instance with specified logger level.
      * 
-     * @type {Log}
+     * @type {Logger}
      */
-    log: Log;
+    logger: Logger;
 
     /**
      * Naming convention.
@@ -76,9 +77,9 @@ export type TypeOptionsBase<TType> =
     /**
      * Serializer used to serialize and deserialize a type.
      * 
-     * @type {Serializer<TType>}
+     * @type {Serializer<TObject>}
      */
-    serializer: Serializer<TType>;
+    serializer: Serializer<TObject>;
     
     /**
      * If set to true then null values are preserved. Otherwise they will be 
@@ -118,4 +119,4 @@ export type TypeOptionsBase<TType> =
      * @type {InjectSorter}
      */
     injectSorter?: InjectSorter;
-}
+};

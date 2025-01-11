@@ -6,17 +6,17 @@ import { TypeOptions } from './type-options';
 /**
  * Type decorator.
  * 
- * @param {TypeOptions<TType>} typeOptions Type options.
+ * @param {TypeOptions<TObject>} typeOptions Type options.
  *
  * @returns {TypeDecorator} Type decorator.
  */
-export function Type<TType>(typeOptions?: TypeOptions<TType>): TypeDecorator
+export function Type<TObject>(typeOptions?: TypeOptions<TObject>): TypeDecorator
 {
     TypeManager.typeScope.open();
 
     return function (target: any): any
     {
-        const typeFn = target as TypeFn<TType>;
+        const typeFn = target as TypeFn<TObject>;
         const typeMetadata = TypeManager.configureTypeMetadata(typeFn, typeOptions).reflectInjectMetadata();
         
         TypeManager.typeScope.close(typeMetadata);

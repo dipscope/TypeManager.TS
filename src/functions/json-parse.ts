@@ -8,7 +8,7 @@
  */
 export function jsonParse(
     x: string,
-    reviver?: (this: any, key: string, value: any) => any | undefined
+    reviver?: (this: any, key: string, value: any) => any
 ): any
 {
     return JSON.parse(x, reviver);

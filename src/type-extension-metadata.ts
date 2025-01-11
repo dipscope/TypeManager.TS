@@ -5,24 +5,24 @@ import { TypeMetadata } from './type-metadata';
  * Type extension metadata used by plugins to provide additional features for type metadata 
  * using custom keys. Descendant classes are just wrappers to get convenient access to custom context.
  * 
- * @type {TypeExtensionMetadata<TType, TTypeExtensionOptions>}
+ * @type {TypeExtensionMetadata<TObject, TTypeExtensionOptions>}
  */
-export abstract class TypeExtensionMetadata<TType, TTypeExtensionOptions extends TypeExtensionOptions>
+export abstract class TypeExtensionMetadata<TObject, TTypeExtensionOptions extends TypeExtensionOptions>
 {
     /**
      * Type metadata which we extend.
      * 
-     * @type {TypeMetadata<TType>}
+     * @type {TypeMetadata<TObject>}
      */
-    public readonly typeMetadata: TypeMetadata<TType>;
+    public readonly typeMetadata: TypeMetadata<TObject>;
 
     /**
      * Constructor.
      * 
-     * @param {TypeMetadata<TType>} typeMetadata Type metadata which we extend.
+     * @param {TypeMetadata<TObject>} typeMetadata Type metadata which we extend.
      * @param {TTypeExtensionOptions} typeExtensionOptions Type extension options.
      */
-    public constructor(typeMetadata: TypeMetadata<TType>, typeExtensionOptions: TTypeExtensionOptions)
+    public constructor(typeMetadata: TypeMetadata<TObject>, typeExtensionOptions: TTypeExtensionOptions)
     {
         this.typeMetadata = typeMetadata;
 

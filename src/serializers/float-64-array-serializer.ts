@@ -1,5 +1,3 @@
-import { isArray, isNull, isUndefined } from 'lodash';
-import { isFloat64Array } from '../functions/is-float-64-array';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -21,25 +19,22 @@ export class Float64ArraySerializer implements Serializer<Float64Array>
      */
     public serialize(x: TypeLike<Float64Array>, serializerContext: SerializerContext<Float64Array>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.serializedNullValue;
         }
 
-        if (isFloat64Array(x))
+        if (x instanceof Float64Array)
         {
             return Array.from(x);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as float 64 array.`, x);
-        }
+        serializerContext.logger.error('Float64ArraySerializer', `${serializerContext.jsonPath}: cannot serialize value as float 64 array.`, x);
 
         return undefined;
     }
@@ -54,25 +49,22 @@ export class Float64ArraySerializer implements Serializer<Float64Array>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Float64Array>): TypeLike<Float64Array>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.deserializedNullValue;
         }
 
-        if (isArray(x))
+        if (Array.isArray(x))
         {
             return Float64Array.from(x);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value to a float 64 array.`, x);
-        }
+        serializerContext.logger.error('Float64ArraySerializer', `${serializerContext.jsonPath}: cannot deserialize value to a float 64 array.`, x);
 
         return undefined;
     }

@@ -1,15 +1,15 @@
-import { assign, isArray, isNil, isUndefined } from 'lodash';
 import { Alias } from './alias';
 import { Any } from './any';
-import { CustomContext } from './custom-context';
-import { CustomOption } from './custom-option';
+import { EMPTY_ARRAY } from './constants/empty-array';
+import { CustomKey } from './custom-key';
+import { CustomValue } from './custom-value';
 import { TypeFactory } from './factories/type-factory';
 import { jsonParse } from './functions/json-parse';
 import { jsonStringify } from './functions/json-stringify';
 import { GenericArgument } from './generic-argument';
 import { SingletonInjector } from './injectors/singleton-injector';
-import { Log } from './log';
-import { LogLevel } from './log-level';
+import { Logger } from './logger';
+import { LoggerLevel } from './logger-level';
 import { ReferenceCallback } from './reference-callback';
 import { CircularReferenceHandler } from './reference-handlers/circular-reference-handler';
 import { ReferenceKey } from './reference-key';
@@ -41,7 +41,7 @@ import { TypeFn } from './type-fn';
 import { TypeLike } from './type-like';
 import { TypeManagerOptions } from './type-manager-options';
 import { TypeMetadata } from './type-metadata';
-import { typeMetadataSymbol } from './type-metadata-symbol';
+import { TYPE_METADATA_SYMBOL } from './type-metadata-symbol';
 import { TypeOptions } from './type-options';
 import { TypeOptionsBase } from './type-options-base';
 import { TypeScope } from './type-scope';
@@ -60,11 +60,12 @@ export class TypeManager
      * 
      * @type {TypeOptionsBase<any>}
      */
-    public static readonly defaultTypeOptionsBase: TypeOptionsBase<any> = {
+    private static readonly defaultTypeOptionsBase: TypeOptionsBase<any> = {
+        customValueMap: new Map<CustomKey<any>, CustomValue>(),
         discriminator: '$type',
         factory: new TypeFactory(),
         injector: new SingletonInjector(),
-        log: new Log(LogLevel.Error),
+        logger: new Logger(LoggerLevel.Error),
         preserveDiscriminator: false,
         referenceHandler: new CircularReferenceHandler(),
         serializer: new TypeSerializer(),
@@ -72,14 +73,14 @@ export class TypeManager
         useDefaultValue: false,
         useImplicitConversion: false
     };
-
+    
     /**
      * Static type options per type which applied to any instance of type manager
      * by default.
      * 
-     * @type {Map<TypeFn<any>, TypeOptions<any>>}
+     * @type {ReadonlyMap<TypeFn<any>, TypeOptions<any>>}
      */
-    public static readonly defaultTypeOptionsMap: Map<TypeFn<any>, TypeOptions<any>> = new Map<TypeFn<any>, TypeOptions<any>>([
+    private static readonly defaultTypeOptionsMap: ReadonlyMap<TypeFn<any>, TypeOptions<any>> = new Map<TypeFn<any>, TypeOptions<any>>([
         [Any, { serializer: new AnySerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
         [ArrayBuffer, { serializer: new ArrayBufferSerializer(), serializedDefaultValue: undefined, deserializedDefaultValue: undefined }],
         [Array, { serializer: new ArraySerializer(), serializedDefaultValue: () => [], deserializedDefaultValue: () => [] }],
@@ -116,13 +117,6 @@ export class TypeManager
      * @type {TypeScope}
      */
     public static readonly typeScope: TypeScope = new TypeScope();
-    
-    /**
-     * Type function map for types with aliases.
-     * 
-     * @type {Map<Alias, TypeFn<any>>}
-     */
-    public readonly typeFnMap: Map<Alias, TypeFn<any>> = new Map<Alias, TypeFn<any>>();
 
     /**
      * Symbol of current instance which is used to store type metadata within types.
@@ -136,15 +130,22 @@ export class TypeManager
      * 
      * @type {TypeManagerOptions}
      */
-    public readonly typeManagerOptions: TypeManagerOptions;
+    private readonly typeManagerOptions: TypeManagerOptions;
 
     /**
-     * Custom context.
+     * Type function map for types with aliases.
      * 
-     * @type {CustomContext}
+     * @type {Map<Alias, TypeFn<any>>}
      */
-    public readonly customContext: CustomContext;
-
+    private readonly typeFnMap: Map<Alias, TypeFn<any>>;
+    
+    /**
+     * Type metadata set for the current instance of type manager.
+     * 
+     * @type {Set<TypeMetadata<any>>}
+     */
+    private readonly typeMetadataSet: Set<TypeMetadata<any>>;
+    
     /**
      * Constructor.
      * 
@@ -158,23 +159,14 @@ export class TypeManager
      */
     public constructor(typeManagerOptions: TypeManagerOptions = {})
     {
-        this.symbol = Symbol(typeMetadataSymbol.description);
+        this.symbol = Symbol(TYPE_METADATA_SYMBOL.description);
         this.typeManagerOptions = this.constructTypeManagerOptions(typeManagerOptions);
-        this.customContext = this.constructCustomContext();
+        this.typeFnMap = new Map<Alias, TypeFn<any>>();
+        this.typeMetadataSet = new Set<TypeMetadata<any>>();
 
         this.configure(typeManagerOptions);
 
         return;
-    }
-
-    /**
-     * Gets type function map in static context.
-     * 
-     * @returns {Map<Alias, TypeFn<any>>} Type function map.
-     */
-    public static get typeFnMap(): Map<Alias, TypeFn<any>>
-    {
-        return this.staticTypeManager.typeFnMap;
     }
 
     /**
@@ -188,21 +180,31 @@ export class TypeManager
     }
 
     /**
-     * Gets type manager options in static context.
+     * Gets logger in static context.
      * 
-     * @returns {TypeManagerOptions} Type manager options.
+     * @returns {Logger} Logger.
      */
-    public static get typeManagerOptions(): TypeManagerOptions
+    public static get logger(): Logger
     {
-        return this.staticTypeManager.typeManagerOptions;
+        return this.staticTypeManager.logger;
+    }
+    
+    /**
+     * Gets logger.
+     * 
+     * @returns {Logger} Logger.
+     */
+    public get logger(): Logger
+    {
+        return this.typeOptionsBase.logger;
     }
 
     /**
      * Gets type options base in static context.
      * 
-     * @returns {TypeOptionsBase<any>} Type options base.
+     * @returns {Readonly<TypeOptionsBase<any>>} Type options base.
      */
-    public static get typeOptionsBase(): TypeOptionsBase<any>
+    public static get typeOptionsBase(): Readonly<TypeOptionsBase<any>>
     {
         return this.staticTypeManager.typeOptionsBase;
     }
@@ -210,13 +212,13 @@ export class TypeManager
     /**
      * Gets type options base.
      * 
-     * @returns {TypeOptionsBase<any>} Type options base.
+     * @returns {Readonly<TypeOptionsBase<any>>} Type options base.
      */
-    public get typeOptionsBase(): TypeOptionsBase<any>
+    public get typeOptionsBase(): Readonly<TypeOptionsBase<any>>
     {
         let typeOptionsBase = this.typeManagerOptions.typeOptionsBase;
 
-        if (isNil(typeOptionsBase))
+        if (typeOptionsBase === undefined)
         {
             typeOptionsBase = {};
 
@@ -229,9 +231,9 @@ export class TypeManager
     /**
      * Gets type options map in static context.
      * 
-     * @returns {Map<TypeFn<any>, TypeOptions<any>>} Type options map.
+     * @returns {ReadonlyMap<TypeFn<any>, TypeOptions<any>>} Type options map.
      */
-    public static get typeOptionsMap(): Map<TypeFn<any>, TypeOptions<any>>
+    public static get typeOptionsMap(): ReadonlyMap<TypeFn<any>, TypeOptions<any>>
     {
         return this.staticTypeManager.typeOptionsMap;
     }
@@ -239,13 +241,13 @@ export class TypeManager
     /**
      * Gets type options map.
      * 
-     * @returns {Map<TypeFn<any>, TypeOptions<any>>} Type options map.
+     * @returns {ReadonlyMap<TypeFn<any>, TypeOptions<any>>} Type options map.
      */
-    public get typeOptionsMap(): Map<TypeFn<any>, TypeOptions<any>>
+    public get typeOptionsMap(): ReadonlyMap<TypeFn<any>, TypeOptions<any>>
     {
         let typeOptionsMap = this.typeManagerOptions.typeOptionsMap;
 
-        if (isNil(typeOptionsMap))
+        if (typeOptionsMap === undefined)
         {
             typeOptionsMap = new Map<TypeFn<any>, TypeOptions<any>>();
 
@@ -258,9 +260,9 @@ export class TypeManager
     /**
      * Gets type configuration map in static context.
      * 
-     * @returns {Map<TypeFn<any>, TypeConfiguration<any>>} Type configuration map.
+     * @returns {ReadonlyMap<TypeFn<any>, TypeConfiguration<any>>} Type configuration map.
      */
-    public static get typeConfigurationMap(): Map<TypeFn<any>, TypeConfiguration<any>>
+    public static get typeConfigurationMap(): ReadonlyMap<TypeFn<any>, TypeConfiguration<any>>
     {
         return this.staticTypeManager.typeConfigurationMap;
     }
@@ -268,13 +270,13 @@ export class TypeManager
     /**
      * Gets type configuration map.
      * 
-     * @returns {Map<TypeFn<any>, TypeConfiguration<any>>} Type configuration map.
+     * @returns {ReadonlyMap<TypeFn<any>, TypeConfiguration<any>>} Type configuration map.
      */
-    public get typeConfigurationMap(): Map<TypeFn<any>, TypeConfiguration<any>>
+    public get typeConfigurationMap(): ReadonlyMap<TypeFn<any>, TypeConfiguration<any>>
     {
         let typeConfigurationMap = this.typeManagerOptions.typeConfigurationMap;
 
-        if (isNil(typeConfigurationMap))
+        if (typeConfigurationMap === undefined)
         {
             typeConfigurationMap = new Map<TypeFn<any>, TypeConfiguration<any>>();
 
@@ -296,7 +298,7 @@ export class TypeManager
     {
         let typeOptionsBase = typeManagerOptions.typeOptionsBase;
 
-        if (isNil(typeOptionsBase))
+        if (typeOptionsBase === undefined)
         {
             typeOptionsBase = {};
 
@@ -305,7 +307,7 @@ export class TypeManager
 
         let typeOptionsMap = typeManagerOptions.typeOptionsMap;
 
-        if (isNil(typeOptionsMap))
+        if (typeOptionsMap === undefined)
         {
             typeOptionsMap = new Map<TypeFn<any>, TypeOptions<any>>();
 
@@ -324,9 +326,10 @@ export class TypeManager
      */
     private constructTypeOptionsBase(typeOptionsBase: Partial<TypeOptionsBase<any>>): Partial<TypeOptionsBase<any>>
     {
-        const initialTypeOptionsBase = assign({}, TypeManager.defaultTypeOptionsBase, typeOptionsBase);
+        const customValueMap = new Map<CustomKey<any>, CustomValue>();
+        const initialTypeOptionsBase = Object.assign({}, TypeManager.defaultTypeOptionsBase, { customValueMap: customValueMap }, typeOptionsBase);
         
-        assign(typeOptionsBase, initialTypeOptionsBase);
+        Object.assign(typeOptionsBase, initialTypeOptionsBase);
 
         return typeOptionsBase;
     }
@@ -346,24 +349,24 @@ export class TypeManager
         {
             let mapTypeOptions = initialTypeOptionsMap.get(typeFn);
 
-            if (isNil(mapTypeOptions))
+            if (mapTypeOptions === undefined)
             {
                 mapTypeOptions = {};
             }
 
-            initialTypeOptionsMap.set(typeFn, assign(mapTypeOptions, typeOptions));
+            initialTypeOptionsMap.set(typeFn, Object.assign(mapTypeOptions, typeOptions));
         }
 
         for (const [typeFn, typeOptions] of typeOptionsMap)
         {
             let mapTypeOptions = initialTypeOptionsMap.get(typeFn);
 
-            if (isNil(mapTypeOptions))
+            if (mapTypeOptions === undefined)
             {
                 mapTypeOptions = {};
             }
 
-            initialTypeOptionsMap.set(typeFn, assign(typeOptions, assign(mapTypeOptions, typeOptions)));
+            initialTypeOptionsMap.set(typeFn, Object.assign(typeOptions, Object.assign(mapTypeOptions, typeOptions)));
         }
 
         typeOptionsMap.clear();
@@ -375,31 +378,16 @@ export class TypeManager
 
         return typeOptionsMap;
     }
-    
-    /**
-     * Constructs custom context.
-     * 
-     * @returns {CustomContext} Constructed custom context.
-     */
-    private constructCustomContext(): CustomContext
-    {
-        const customOptions = this.typeOptionsBase.customOptions ?? new Array<CustomOption>();
-        const customContext = new CustomContext(customOptions);
-
-        this.typeOptionsBase.customOptions = customOptions;
-
-        return customContext;
-    }
 
     /**
      * Configures type metadata for provided type function in a static context.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
-     * @param {TypeOptions<TType>} typeOptions Type options.
+     * @param {TypeFn<TObject>} typeFn Type function.
+     * @param {TypeOptions<TObject>} typeOptions Type options.
      * 
-     * @returns {TypeMetadata<TType>} Type metadata for provided type function.
+     * @returns {TypeMetadata<TObject>} Type metadata for provided type function.
      */
-    public static configureTypeMetadata<TType>(typeFn: TypeFn<TType>, typeOptions?: TypeOptions<TType>): TypeMetadata<TType>
+    public static configureTypeMetadata<TObject>(typeFn: TypeFn<TObject>, typeOptions?: TypeOptions<TObject>): TypeMetadata<TObject>
     {
         return this.staticTypeManager.configureTypeMetadata(typeFn, typeOptions);
     }
@@ -407,17 +395,17 @@ export class TypeManager
     /**
      * Configures type metadata for provided type function.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
-     * @param {TypeOptions<TType>} typeOptions Type options.
+     * @param {TypeFn<TObject>} typeFn Type function.
+     * @param {TypeOptions<TObject>} typeOptions Type options.
      * 
-     * @returns {TypeMetadata<TType>} Type metadata for provided type function.
+     * @returns {TypeMetadata<TObject>} Type metadata for provided type function.
      */
-    public configureTypeMetadata<TType>(typeFn: TypeFn<TType>, typeOptions?: TypeOptions<TType>): TypeMetadata<TType>
+    public configureTypeMetadata<TObject>(typeFn: TypeFn<TObject>, typeOptions?: TypeOptions<TObject>): TypeMetadata<TObject>
     {
         const symbol = this.symbol;
         const prototype = typeFn.prototype;
         const typeMetadataDefined = prototype.hasOwnProperty(symbol);
-        const typeMetadata = typeMetadataDefined ? prototype[symbol] as TypeMetadata<TType> : this.declareTypeMetadata(typeFn, typeOptions);
+        const typeMetadata = typeMetadataDefined ? prototype[symbol] as TypeMetadata<TObject> : this.declareTypeMetadata(typeFn, typeOptions);
 
         if (!typeMetadataDefined)
         {
@@ -429,7 +417,7 @@ export class TypeManager
             });
         }
         
-        if (typeMetadataDefined && !isNil(typeOptions))
+        if (typeMetadataDefined && typeOptions !== undefined)
         {
             typeMetadata.configure(typeOptions);
         }
@@ -440,27 +428,39 @@ export class TypeManager
     /**
      * Declares type metadata for provided type function based on general configuration.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
-     * @param {TypeOptions<TType>} typeOptions Type options.
+     * @param {TypeFn<TObject>} typeFn Type function.
+     * @param {TypeOptions<TObject>} typeOptions Type options.
      * 
-     * @returns {TypeMetadata<TType>} Type metadata.
+     * @returns {TypeMetadata<TObject>} Type metadata.
      */
-    private declareTypeMetadata<TType>(typeFn: TypeFn<TType>, typeOptions?: TypeOptions<TType>): TypeMetadata<TType>
+    private declareTypeMetadata<TObject>(typeFn: TypeFn<TObject>, typeOptions?: TypeOptions<TObject>): TypeMetadata<TObject>
     {
-        let mapTypeOptions = this.typeOptionsMap.get(typeFn);
+        let typeOptionsMap = this.typeManagerOptions.typeOptionsMap;
 
-        if (isNil(mapTypeOptions))
+        if (typeOptionsMap === undefined)
+        {
+            typeOptionsMap = new Map<TypeFn<any>, TypeOptions<any>>();
+
+            this.typeManagerOptions.typeOptionsMap = this.constructTypeOptionsMap(typeOptionsMap);
+        }
+
+        let mapTypeOptions = typeOptionsMap.get(typeFn);
+
+        if (mapTypeOptions === undefined)
         {
             mapTypeOptions = typeOptions ?? {};
 
-            this.typeOptionsMap.set(typeFn, mapTypeOptions);
+            typeOptionsMap.set(typeFn, mapTypeOptions);
         }
 
+        const typeFnMap = this.typeFnMap;
+        const typeMetadataSet = this.typeMetadataSet;
         const symbol = this.symbol;
         const parentPrototype = Object.getPrototypeOf(typeFn.prototype) ?? {};
         const parentTypeMetadata = parentPrototype[symbol];
-        const parentTypeMetadatas = isNil(parentTypeMetadata) ? [] : [parentTypeMetadata];
-        const typeMetadata = new TypeMetadata(this, typeFn, mapTypeOptions, parentTypeMetadatas);
+        const typeMetadata = new TypeMetadata(this, typeFnMap, typeMetadataSet, typeFn, mapTypeOptions, parentTypeMetadata);
+
+        typeMetadataSet.add(typeMetadata);
 
         return typeMetadata;
     }
@@ -468,11 +468,11 @@ export class TypeManager
     /**
      * Extracts type metadata from provided type function in static context.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
+     * @param {TypeFn<TObject>} typeFn Type function.
      * 
-     * @returns {TypeMetadata<TType>} Type metadata for provided type function.
+     * @returns {TypeMetadata<TObject>} Type metadata for provided type function.
      */
-    public static extractTypeMetadata<TType>(typeFn: TypeFn<TType>): TypeMetadata<TType>
+    public static extractTypeMetadata<TObject>(typeFn: TypeFn<TObject>): TypeMetadata<TObject>
     {
         return this.staticTypeManager.extractTypeMetadata(typeFn);
     }
@@ -480,16 +480,16 @@ export class TypeManager
     /**
      * Extracts type metadata from provided type function.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
+     * @param {TypeFn<TObject>} typeFn Type function.
      * 
-     * @returns {TypeMetadata<TType>} Type metadata for provided type function.
+     * @returns {TypeMetadata<TObject>} Type metadata for provided type function.
      */
-    public extractTypeMetadata<TType>(typeFn: TypeFn<TType>): TypeMetadata<TType>
+    public extractTypeMetadata<TObject>(typeFn: TypeFn<TObject>): TypeMetadata<TObject>
     {
         const symbol = this.symbol;
         const prototype = typeFn.prototype;
         const typeMetadataDefined = prototype.hasOwnProperty(symbol);
-        const typeMetadata = typeMetadataDefined ? prototype[symbol] as TypeMetadata<TType> : this.configureTypeMetadata(typeFn);
+        const typeMetadata = typeMetadataDefined ? prototype[symbol] as TypeMetadata<TObject> : this.configureTypeMetadata(typeFn);
 
         return typeMetadata;
     }
@@ -497,11 +497,11 @@ export class TypeManager
     /**
      * Applies shared type options in static context.
      * 
-     * @param {Partial<TypeOptionsBase<TType>>} typeOptionsBase Type options base.
+     * @param {Partial<TypeOptionsBase<TObject>>} typeOptionsBase Type options base.
      * 
      * @returns {TypeManager} Static instance of type manager.
      */
-    public static applyTypeOptionsBase<TType>(typeOptionsBase: Partial<TypeOptionsBase<TType>>): TypeManager
+    public static applyTypeOptionsBase<TObject>(typeOptionsBase: Partial<TypeOptionsBase<TObject>>): TypeManager
     {
         return this.staticTypeManager.applyTypeOptionsBase(typeOptionsBase);
     }
@@ -509,19 +509,27 @@ export class TypeManager
     /**
      * Applies shared type options.
      * 
-     * @param {Partial<TypeOptionsBase<TType>>} typeOptionsBase Type options base.
+     * @param {Partial<TypeOptionsBase<TObject>>} typeOptionsBase Type options base.
      * 
      * @returns {this} Instance of type manager.
      */
-    public applyTypeOptionsBase<TType>(typeOptionsBase: Partial<TypeOptionsBase<TType>>): this
+    public applyTypeOptionsBase<TObject>(typeOptionsBase: Partial<TypeOptionsBase<TObject>>): this
     {
-        const customOptions = this.typeOptionsBase.customOptions;
+        const customValueMap = this.typeOptionsBase.customValueMap;
 
-        assign(this.typeOptionsBase, typeOptionsBase, { customOptions: customOptions });
+        Object.assign(this.typeOptionsBase, typeOptionsBase, { customValueMap: customValueMap });
 
-        if (!isNil(typeOptionsBase.customOptions))
+        if (typeOptionsBase.customValueMap !== undefined)
         {
-            this.customContext.configure(typeOptionsBase.customOptions);
+            for (const [customKey, customValue] of typeOptionsBase.customValueMap)
+            {
+                customValueMap.set(customKey, customValue);
+            }
+        }
+
+        for (const typeMetadata of this.typeMetadataSet)
+        {
+            typeMetadata.unresolveTypeState();
         }
 
         return this;
@@ -530,11 +538,11 @@ export class TypeManager
     /**
      * Applies type options map in static context.
      * 
-     * @param {Map<TypeFn<TType>, TypeOptions<TType>>} typeOptionsMap Type options map.
+     * @param {Map<TypeFn<TObject>, TypeOptions<TObject>>} typeOptionsMap Type options map.
      * 
      * @returns {TypeManager} Static instance of type manager.
      */
-    public static applyTypeOptionsMap<TType>(typeOptionsMap: Map<TypeFn<TType>, TypeOptions<TType>>): TypeManager
+    public static applyTypeOptionsMap<TObject>(typeOptionsMap: Map<TypeFn<TObject>, TypeOptions<TObject>>): TypeManager
     {
         return this.staticTypeManager.applyTypeOptionsMap(typeOptionsMap);
     }
@@ -542,11 +550,11 @@ export class TypeManager
     /**
      * Applies type options map.
      * 
-     * @param {Map<TypeFn<TType>, TypeOptions<TType>>} typeOptionsMap Type options map.
+     * @param {Map<TypeFn<TObject>, TypeOptions<TObject>>} typeOptionsMap Type options map.
      * 
      * @returns {this} Instance of type manager.
      */
-    public applyTypeOptionsMap<TType>(typeOptionsMap: Map<TypeFn<TType>, TypeOptions<TType>>): this
+    public applyTypeOptionsMap<TObject>(typeOptionsMap: Map<TypeFn<TObject>, TypeOptions<TObject>>): this
     {
         for (const [typeFn, typeOptions] of typeOptionsMap)
         {
@@ -559,12 +567,12 @@ export class TypeManager
     /**
      * Applies type options in static context.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
-     * @param {TypeOptions<TType>} typeOptions Type options.
+     * @param {TypeFn<TObject>} typeFn Type function.
+     * @param {TypeOptions<TObject>} typeOptions Type options.
      * 
      * @returns {TypeManager} Static instance of type manager.
      */
-    public static applyTypeOptions<TType>(typeFn: TypeFn<TType>, typeOptions: TypeOptions<TType>): TypeManager
+    public static applyTypeOptions<TObject>(typeFn: TypeFn<TObject>, typeOptions: TypeOptions<TObject>): TypeManager
     {
         return this.staticTypeManager.applyTypeOptions(typeFn, typeOptions);
     }
@@ -572,12 +580,12 @@ export class TypeManager
     /**
      * Applies type options.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
-     * @param {TypeOptions<TType>} typeOptions Type options.
+     * @param {TypeFn<TObject>} typeFn Type function.
+     * @param {TypeOptions<TObject>} typeOptions Type options.
      * 
      * @returns {this} Instance of type manager.
      */
-    public applyTypeOptions<TType>(typeFn: TypeFn<TType>, typeOptions: TypeOptions<TType>): this
+    public applyTypeOptions<TObject>(typeFn: TypeFn<TObject>, typeOptions: TypeOptions<TObject>): this
     {
         const typeMetadata = this.extractTypeMetadata(typeFn);
 
@@ -589,11 +597,11 @@ export class TypeManager
     /**
      * Applies type configuration map in static context.
      * 
-     * @param {Map<TypeFn<TType>, TypeConfiguration<TType>>} typeConfigurationMap Type configuration map.
+     * @param {Map<TypeFn<TObject>, TypeConfiguration<TObject>>} typeConfigurationMap Type configuration map.
      * 
      * @returns {TypeManager} Static instance of type manager.
      */
-    public static applyTypeConfigurationMap<TType>(typeConfigurationMap: Map<TypeFn<TType>, TypeConfiguration<TType>>): TypeManager
+    public static applyTypeConfigurationMap<TObject>(typeConfigurationMap: Map<TypeFn<TObject>, TypeConfiguration<TObject>>): TypeManager
     {
         return this.staticTypeManager.applyTypeConfigurationMap(typeConfigurationMap);
     }
@@ -601,11 +609,11 @@ export class TypeManager
     /**
      * Applies type configuration map.
      * 
-     * @param {Map<TypeFn<TType>, TypeConfiguration<TType>>} typeConfigurationMap Type configuration map.
+     * @param {Map<TypeFn<TObject>, TypeConfiguration<TObject>>} typeConfigurationMap Type configuration map.
      * 
      * @returns {this} Instance of type manager.
      */
-    public applyTypeConfigurationMap<TType>(typeConfigurationMap: Map<TypeFn<TType>, TypeConfiguration<TType>>): this
+    public applyTypeConfigurationMap<TObject>(typeConfigurationMap: Map<TypeFn<TObject>, TypeConfiguration<TObject>>): this
     {
         for (const [typeFn, typeConfiguration] of typeConfigurationMap)
         {
@@ -618,12 +626,12 @@ export class TypeManager
     /**
      * Applies type configuration in static context.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
-     * @param {TypeConfiguration<TType>} typeConfiguration Type configuration.
+     * @param {TypeFn<TObject>} typeFn Type function.
+     * @param {TypeConfiguration<TObject>} typeConfiguration Type configuration.
      * 
      * @returns {TypeManager} Static instance of type manager.
      */
-    public static applyTypeConfiguration<TType>(typeFn: TypeFn<TType>, typeConfiguration: TypeConfiguration<TType>): TypeManager
+    public static applyTypeConfiguration<TObject>(typeFn: TypeFn<TObject>, typeConfiguration: TypeConfiguration<TObject>): TypeManager
     {
         return this.staticTypeManager.applyTypeConfiguration(typeFn, typeConfiguration);
     }
@@ -631,12 +639,12 @@ export class TypeManager
     /**
      * Applies type configuration.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
-     * @param {TypeConfiguration<TType>} typeConfiguration Type configuration.
+     * @param {TypeFn<TObject>} typeFn Type function.
+     * @param {TypeConfiguration<TObject>} typeConfiguration Type configuration.
      * 
      * @returns {this} Instance of type manager.
      */
-    public applyTypeConfiguration<TType>(typeFn: TypeFn<TType>, typeConfiguration: TypeConfiguration<TType>): this
+    public applyTypeConfiguration<TObject>(typeFn: TypeFn<TObject>, typeConfiguration: TypeConfiguration<TObject>): this
     {
         const typeMetadata = this.extractTypeMetadata(typeFn);
 
@@ -666,17 +674,17 @@ export class TypeManager
      */
     public configure(typeManagerOptions: TypeManagerOptions): this
     {
-        if (!isUndefined(typeManagerOptions.typeOptionsBase)) 
+        if (typeManagerOptions.typeOptionsBase !== undefined) 
         {
             this.applyTypeOptionsBase(typeManagerOptions.typeOptionsBase);
         }
 
-        if (!isUndefined(typeManagerOptions.typeOptionsMap)) 
+        if (typeManagerOptions.typeOptionsMap !== undefined) 
         {
             this.applyTypeOptionsMap(typeManagerOptions.typeOptionsMap);
         }
 
-        if (!isUndefined(typeManagerOptions.typeConfigurationMap)) 
+        if (typeManagerOptions.typeConfigurationMap !== undefined) 
         {
             this.applyTypeConfigurationMap(typeManagerOptions.typeConfigurationMap);
         }
@@ -687,13 +695,13 @@ export class TypeManager
     /**
      * Defines serializer context for x in static context.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
+     * @param {TypeFn<TObject>} typeFn Type function.
      * @param {any} x Some value.
      * @param {Array<GenericArgument<any>>} genericArguments Generic arguments.
      * 
-     * @returns {SerializerContext<TType>} Serializer context.
+     * @returns {SerializerContext<TObject>} Serializer context.
      */
-    public static defineSerializerContext<TType>(typeFn: TypeFn<TType>, x: any, genericArguments?: Array<GenericArgument<any>>): SerializerContext<TType>
+    public static defineSerializerContext<TObject>(typeFn: TypeFn<TObject>, x: any, genericArguments?: Array<GenericArgument<any>>): SerializerContext<TObject>
     {
         return this.staticTypeManager.defineSerializerContext(typeFn, x, genericArguments);
     }
@@ -701,40 +709,43 @@ export class TypeManager
     /**
      * Defines serializer context for x.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
+     * @param {TypeFn<TObject>} typeFn Type function.
      * @param {any} x Some value.
      * @param {Array<GenericArgument<any>>} genericArguments Generic arguments.
      * 
-     * @returns {SerializerContext<TType>} Serializer context.
+     * @returns {SerializerContext<TObject>} Serializer context.
      */
-    public defineSerializerContext<TType>(typeFn: TypeFn<TType>, x: any, genericArguments?: Array<GenericArgument<any>>): SerializerContext<TType>
+    public defineSerializerContext<TObject>(typeFn: TypeFn<TObject>, x: any, genericArguments?: Array<GenericArgument<any>>): SerializerContext<TObject>
     {
         const typeMetadata = this.extractTypeMetadata(typeFn);
-        const genericStructures = isNil(genericArguments) ? undefined : typeMetadata.defineGenericStructures(genericArguments);
-        const genericMetadataResolvers = isNil(genericStructures) ? undefined : typeMetadata.defineGenericMetadataResolvers(genericStructures);
-
-        return new SerializerContext(x, new Map<ReferenceKey, ReferenceValue>(), new Map<ReferenceKey, Array<ReferenceCallback>>(), 
-        {
-            jsonPathKey: '$',
-            typeMetadata: typeMetadata,
-            genericStructures: genericStructures,
-            genericMetadataResolvers: genericMetadataResolvers
-        });
+        const genericMetadatas = genericArguments === undefined ? EMPTY_ARRAY : typeMetadata.resolveGenericMetadatas(genericArguments);
+        
+        return new SerializerContext(
+            x,
+            new Map<ReferenceKey, ReferenceValue>(), 
+            new Map<ReferenceKey, Array<ReferenceCallback>>(),
+            undefined,
+            '$',
+            typeMetadata.typeState,
+            genericMetadatas,
+            undefined,
+            undefined
+        );
     }
     
     /**
      * Serializes provided value based on the type in static context.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
-     * @param {TypeLike<TType>} x Input value.
+     * @param {TypeFn<TObject>} typeFn Type function.
+     * @param {TypeLike<TObject>} x Input value.
      * 
      * @returns {TypeLike<any>} Object created from provided input value or undefined. 
      */
-    public static serialize<TType>(typeFn: TypeFn<TType>, x: undefined): any;
-    public static serialize<TType>(typeFn: TypeFn<TType>, x: null): null;
-    public static serialize<TType>(typeFn: TypeFn<TType>, x: Array<TType>): Array<any>;
-    public static serialize<TType>(typeFn: TypeFn<TType>, x: TType): any;
-    public static serialize<TType>(typeFn: TypeFn<TType>, x: TypeLike<TType | Array<TType>>): TypeLike<any>
+    public static serialize<TObject>(typeFn: TypeFn<TObject>, x: undefined): any;
+    public static serialize<TObject>(typeFn: TypeFn<TObject>, x: null): null;
+    public static serialize<TObject>(typeFn: TypeFn<TObject>, x: Array<TObject>): Array<any>;
+    public static serialize<TObject>(typeFn: TypeFn<TObject>, x: TObject): any;
+    public static serialize<TObject>(typeFn: TypeFn<TObject>, x: TypeLike<TObject | Array<TObject>>): TypeLike<any>
     {
         return this.staticTypeManager.serialize(typeFn, x);
     }
@@ -742,20 +753,20 @@ export class TypeManager
     /**
      * Serializes provided value based on the type function.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
-     * @param {TypeLike<TType>} x Input value.
+     * @param {TypeFn<TObject>} typeFn Type function.
+     * @param {TypeLike<TObject>} x Input value.
      * 
      * @returns {TypeLike<any>} Object created from provided input value or undefined. 
      */
-    public serialize<TType>(typeFn: TypeFn<TType>, x: undefined): any;
-    public serialize<TType>(typeFn: TypeFn<TType>, x: null): null;
-    public serialize<TType>(typeFn: TypeFn<TType>, x: Array<TType>): Array<any>;
-    public serialize<TType>(typeFn: TypeFn<TType>, x: TType): any;
-    public serialize<TType>(typeFn: TypeFn<TType>, x: TypeLike<TType | Array<TType>>): TypeLike<any>
+    public serialize<TObject>(typeFn: TypeFn<TObject>, x: undefined): any;
+    public serialize<TObject>(typeFn: TypeFn<TObject>, x: null): null;
+    public serialize<TObject>(typeFn: TypeFn<TObject>, x: Array<TObject>): Array<any>;
+    public serialize<TObject>(typeFn: TypeFn<TObject>, x: TObject): any;
+    public serialize<TObject>(typeFn: TypeFn<TObject>, x: TypeLike<TObject | Array<TObject>>): TypeLike<any>
     {
         const arrayFn = Array as TypeFn<any>;
 
-        if (isArray(x) && typeFn !== arrayFn)
+        if (Array.isArray(x) && typeFn !== arrayFn)
         {
             return this.defineSerializerContext(arrayFn, x, [typeFn]).serialize(x);
         }
@@ -766,16 +777,16 @@ export class TypeManager
     /**
      * Deserializes provided value based on the type function in static context.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
+     * @param {TypeFn<TObject>} typeFn Type function.
      * @param {TypeLike<any>} x Input value.
      *
-     * @returns {TypeLike<TType>} Type created from provided input value or undefined.
+     * @returns {TypeLike<TObject>} Type created from provided input value or undefined.
      */
-    public static deserialize<TType>(typeFn: TypeFn<TType>, x: undefined): any;
-    public static deserialize<TType>(typeFn: TypeFn<TType>, x: null): null;
-    public static deserialize<TType>(typeFn: TypeFn<TType>, x: Array<any>): Array<TType>;
-    public static deserialize<TType>(typeFn: TypeFn<TType>, x: any): TType;
-    public static deserialize<TType>(typeFn: TypeFn<TType>, x: TypeLike<any>): TypeLike<TType | Array<TType>>
+    public static deserialize<TObject>(typeFn: TypeFn<TObject>, x: undefined): any;
+    public static deserialize<TObject>(typeFn: TypeFn<TObject>, x: null): null;
+    public static deserialize<TObject>(typeFn: TypeFn<TObject>, x: Array<any>): Array<TObject>;
+    public static deserialize<TObject>(typeFn: TypeFn<TObject>, x: any): TObject;
+    public static deserialize<TObject>(typeFn: TypeFn<TObject>, x: TypeLike<any>): TypeLike<TObject | Array<TObject>>
     {
         return this.staticTypeManager.deserialize(typeFn, x);
     }
@@ -783,20 +794,20 @@ export class TypeManager
     /**
      * Deserializes provided value based on the type function.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
+     * @param {TypeFn<TObject>} typeFn Type function.
      * @param {TypeLike<any>} x Input value.
      *
-     * @returns {TypeLike<TType>} Type created from provided input value or undefined.
+     * @returns {TypeLike<TObject>} Type created from provided input value or undefined.
      */
-    public deserialize<TType>(typeFn: TypeFn<TType>, x: undefined): any;
-    public deserialize<TType>(typeFn: TypeFn<TType>, x: null): null;
-    public deserialize<TType>(typeFn: TypeFn<TType>, x: Array<any>): Array<TType>;
-    public deserialize<TType>(typeFn: TypeFn<TType>, x: any): TType;
-    public deserialize<TType>(typeFn: TypeFn<TType>, x: TypeLike<any>): TypeLike<TType | Array<TType>>
+    public deserialize<TObject>(typeFn: TypeFn<TObject>, x: undefined): any;
+    public deserialize<TObject>(typeFn: TypeFn<TObject>, x: null): null;
+    public deserialize<TObject>(typeFn: TypeFn<TObject>, x: Array<any>): Array<TObject>;
+    public deserialize<TObject>(typeFn: TypeFn<TObject>, x: any): TObject;
+    public deserialize<TObject>(typeFn: TypeFn<TObject>, x: TypeLike<any>): TypeLike<TObject | Array<TObject>>
     {
         const arrayFn = Array as TypeFn<any>;
 
-        if (isArray(x) && typeFn !== arrayFn)
+        if (Array.isArray(x) && typeFn !== arrayFn)
         {
             return this.defineSerializerContext(arrayFn, x, [typeFn]).deserialize(x);
         }
@@ -807,14 +818,14 @@ export class TypeManager
     /**
      * Converts provided value to a JavaScript Object Notation (JSON) string in static context.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
+     * @param {TypeFn<TObject>} typeFn Type function.
      * @param {any} x Input value, usually an object or array, to be converted.
      * @param {Function|Array<number>|Array<string>} replacer A function that transforms the results or an array of strings and numbers that acts as an approved list.
      * @param {string|number} space Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
      * 
      * @returns {string} JSON string.
      */
-    public static stringify<TType>(typeFn: TypeFn<TType>, x: any, replacer?: (this: any, key: string, value: any) => any | Array<number> | Array<string> | null, space?: string | number): string
+    public static stringify<TObject>(typeFn: TypeFn<TObject>, x: any, replacer?: (this: any, key: string, value: any) => any | Array<number> | Array<string> | null, space?: string | number): string
     {
         return this.staticTypeManager.stringify(typeFn, x, replacer, space);
     }
@@ -822,14 +833,14 @@ export class TypeManager
     /**
      * Converts provided value to a JavaScript Object Notation (JSON) string.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
+     * @param {TypeFn<TObject>} typeFn Type function.
      * @param {any} x Input value, usually an object or array, to be converted.
      * @param {Function|Array<number>|Array<string>} replacer A function that transforms the results or an array of strings and numbers that acts as an approved list.
      * @param {string|number} space Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
      * 
      * @returns {string} JSON string.
      */
-    public stringify<TType>(typeFn: TypeFn<TType>, x: any, replacer?: (this: any, key: string, value: any) => any | Array<number> | Array<string> | null, space?: string | number): string
+    public stringify<TObject>(typeFn: TypeFn<TObject>, x: any, replacer?: (this: any, key: string, value: any) => any | Array<number> | Array<string> | null, space?: string | number): string
     {
         return jsonStringify(this.serialize(typeFn, x), replacer, space);
     }
@@ -837,13 +848,13 @@ export class TypeManager
     /**
      * Converts a JavaScript Object Notation (JSON) string into a type in static context.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
+     * @param {TypeFn<TObject>} typeFn Type function.
      * @param {string} x A valid JSON string.
      * @param {Function} reviver A function that transforms the results. This function is called for each member of the object.
      * 
-     * @returns {TypeLike<TType>} Type created from provided input value or undefined.
+     * @returns {TypeLike<TObject>} Type created from provided input value or undefined.
      */
-    public static parse<TType>(typeFn: TypeFn<TType>, x: string, reviver?: (this: any, key: string, value: any) => any): TypeLike<TType>
+    public static parse<TObject>(typeFn: TypeFn<TObject>, x: string, reviver?: (this: any, key: string, value: any) => any): TypeLike<TObject>
     {
         return this.staticTypeManager.parse(typeFn, x, reviver);
     }
@@ -851,13 +862,13 @@ export class TypeManager
     /**
      * Converts a JavaScript Object Notation (JSON) string into a type.
      * 
-     * @param {TypeFn<TType>} typeFn Type function.
+     * @param {TypeFn<TObject>} typeFn Type function.
      * @param {string} x A valid JSON string.
      * @param {Function} reviver A function that transforms the results. This function is called for each member of the object.
      * 
-     * @returns {TypeLike<TType>} Type created from provided input value or undefined.
+     * @returns {TypeLike<TObject>} Type created from provided input value or undefined.
      */
-    public parse<TType>(typeFn: TypeFn<TType>, x: string, reviver?: (this: any, key: string, value: any) => any): TypeLike<TType>
+    public parse<TObject>(typeFn: TypeFn<TObject>, x: string, reviver?: (this: any, key: string, value: any) => any): TypeLike<TObject>
     {
         return this.deserialize(typeFn, jsonParse(x, reviver));
     }

@@ -51,7 +51,7 @@ abstract class Statusable
 
 @Type({
     discriminant: 'Chat',
-    parentTypeFns: [HasTitle]
+    parentTypeArguments: [HasTitle]
 })
 class Chat extends Messageable implements HasTitle
 {
@@ -69,7 +69,7 @@ class Chat extends Messageable implements HasTitle
 
 @Type({
     discriminant: 'User',
-    parentTypeFns: [Messageable, HasTitle]
+    parentTypeArguments: [Messageable, () => HasTitle]
 })
 class User extends Statusable implements Messageable, HasTitle
 {

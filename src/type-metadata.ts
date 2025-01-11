@@ -1,8 +1,11 @@
-import { first, isEmpty, isFunction, isNil, isUndefined } from 'lodash';
 import { Alias } from './alias';
-import { CustomContext } from './custom-context';
+import { DEFAULT_VALUE_RESOLVER } from './constants/default-value-resolver';
+import { EMPTY_ARRAY } from './constants/empty-array';
+import { EMPTY_MAP } from './constants/empty-map';
+import { NULL_VALUE_RESOLVER } from './constants/null-value-resolver';
 import { CustomKey } from './custom-key';
 import { CustomOption } from './custom-option';
+import { CustomValue } from './custom-value';
 import { DefaultValue } from './default-value';
 import { Discriminant } from './discriminant';
 import { Discriminator } from './discriminator';
@@ -14,32 +17,37 @@ import { InjectMetadata } from './inject-metadata';
 import { InjectOptions } from './inject-options';
 import { InjectSorter } from './inject-sorter';
 import { Injector } from './injector';
-import { Log } from './log';
+import { Logger } from './logger';
 import { Metadata } from './metadata';
 import { NamingConvention } from './naming-convention';
+import { Nullable } from './nullable';
+import { Optional } from './optional';
 import { PropertyMetadata } from './property-metadata';
 import { PropertyName } from './property-name';
 import { PropertyOptions } from './property-options';
 import { PropertySorter } from './property-sorter';
 import { ReferenceHandler } from './reference-handler';
 import { Serializer } from './serializer';
+import { TypeArgument } from './type-argument';
 import { TypeExtensionMetadata } from './type-extension-metadata';
 import { TypeExtensionMetadataCtor } from './type-extension-metadata-ctor';
-import { typeExtensionMetadataCtorSetKey } from './type-extension-metadata-ctor-set-key';
+import { TYPE_EXTENSION_METADATA_CTOR_SET_KEY } from './type-extension-metadata-ctor-set-key';
 import { TypeExtensionOptions } from './type-extension-options';
 import { TypeFn } from './type-fn';
-import { TypeInternals } from './type-internals';
 import { TypeManager } from './type-manager';
 import { TypeName } from './type-name';
 import { TypeOptions } from './type-options';
 import { TypeOptionsBase } from './type-options-base';
+import { TypeState } from './type-state';
+import { ResolvedTypeState } from './type-states/resolved-type-state';
+import { UnresolvedTypeState } from './type-states/unresolved-type-state';
 
 /**
  * Main class used to describe a certain type.
  * 
- * @type {TypeMetadata<TType>}
+ * @type {TypeMetadata<TObject>}
  */
-export class TypeMetadata<TType> extends Metadata
+export class TypeMetadata<TObject> extends Metadata
 {
     /**
      * Type name. 
@@ -53,219 +61,200 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Type function.
      * 
-     * @type {TypeFn<TType>}
+     * @type {TypeFn<TObject>}
      */
-    public readonly typeFn: TypeFn<TType>;
+    public readonly typeFn: TypeFn<TObject>;
 
     /**
-     * Type options used by default.
+     * Parent type metadata.
      * 
-     * @type {TypeOptionsBase<TType>}
+     * @type {Optional<TypeMetadata<any>>}
      */
-    public readonly typeOptionsBase: TypeOptionsBase<TType>;
+    public readonly parentTypeMetadata: Optional<TypeMetadata<any>>;
+
+    /**
+     * Type options used as a fallback.
+     * 
+     * @type {TypeOptionsBase<TObject>}
+     */
+    private readonly typeOptionsBase: TypeOptionsBase<TObject>;
 
     /**
      * Type options.
      * 
-     * @type {TypeOptions<TType>}
+     * @type {TypeOptions<TObject>}
      */
-    public readonly typeOptions: TypeOptions<TType>;
+    private readonly typeOptions: TypeOptions<TObject>;
 
     /**
-     * Type internals.
+     * Type metadata set.
      * 
-     * @type {TypeInternals}
+     * @type {ReadonlySet<TypeMetadata<any>>}
      */
-    public readonly typeInternals: TypeInternals;
+    private readonly typeMetadataSet: ReadonlySet<TypeMetadata<any>>;
 
     /**
-     * Children type metadata map.
+     * Current type function map.
      * 
-     * @type {Map<TypeFn<TType>, TypeMetadata<any>>}
+     * @type {Map<Alias, TypeFn<any>>}
      */
-    public readonly childrenTypeMetadataMap: Map<TypeFn<any>, TypeMetadata<any>> = new Map<TypeFn<any>, TypeMetadata<any>>();
+    private readonly currentTypeFnMap: Map<Alias, TypeFn<any>>;
 
     /**
-     * Discriminant map.
+     * Current child type metadata map.
      * 
-     * @type {Map<TypeFn<any>, Discriminant>}
+     * @type {Map<TypeFn<TObject>, TypeMetadata<any>>}
      */
-    public readonly discriminantMap: Map<TypeFn<any>, Discriminant> = new Map<TypeFn<any>, Discriminant>();
+    private readonly currentChildTypeMetadataMap: Map<TypeFn<any>, TypeMetadata<any>>;
 
     /**
-     * Properties defined for a type.
+     * Current property metadata map.
      * 
-     * @type {Map<PropertyName, PropertyMetadata<TType, any>>}
+     * @type {Map<PropertyName, PropertyMetadata<TObject, any>>}
      */
-    public readonly propertyMetadataMap: Map<PropertyName, PropertyMetadata<TType, any>> = new Map<PropertyName, PropertyMetadata<TType, any>>();
+    private readonly currentPropertyMetadataMap: Map<PropertyName, PropertyMetadata<TObject, any>>;
+    
+    /**
+     * Current inject metadata map.
+     * 
+     * @type {Map<InjectIndex, InjectMetadata<TObject, any>>}
+     */
+    private readonly currentInjectMetadataMap: Map<InjectIndex, InjectMetadata<TObject, any>>;
 
     /**
-     * Injections defined for a type.
+     * Current type state.
      * 
-     * @type {Map<InjectIndex, InjectMetadata<TType, any>>}
+     * @type {TypeState<TObject>}
      */
-    public readonly injectMetadataMap: Map<InjectIndex, InjectMetadata<TType, any>> = new Map<InjectIndex, InjectMetadata<TType, any>>();
-
-    /**
-     * Parent type metadatas.
-     * 
-     * @type {Array<TypeMetadata<any>>}
-     */
-    public readonly parentTypeMetadatas: Array<TypeMetadata<any>>;
+    private currentTypeState: TypeState<TObject>;
 
     /**
      * Constructor.
      * 
      * @param {TypeManager} typeManager Type manager.
+     * @param {Map<Alias, TypeFn<any>>} typeFnMap Type function map for types with aliases.
+     * @param {ReadonlySet<TypeMetadata<any>>} typeMetadataSet Type metadata set.
      * @param {TypeFn<any>} typeFn Type function.
-     * @param {TypeOptions<TType>} typeOptions Type options.
-     * @param {Array<TypeMetadata<any>>} parentTypeMetadatas Parent type metadatas.
+     * @param {TypeOptions<TObject>} typeOptions Type options.
+     * @param {Optional<TypeMetadata<any>>} parentTypeMetadata Parent type metadata.
      */
     public constructor(
-        typeManager: TypeManager,
-        typeFn: TypeFn<TType>,
-        typeOptions: TypeOptions<TType>,
-        parentTypeMetadatas: Array<TypeMetadata<any>>
+        typeManager: TypeManager, 
+        typeFnMap: Map<Alias, TypeFn<any>>,
+        typeMetadataSet: ReadonlySet<TypeMetadata<any>>,
+        typeFn: TypeFn<TObject>,
+        typeOptions: TypeOptions<TObject>,
+        parentTypeMetadata: Optional<TypeMetadata<any>>
     )
     {
-        super(typeManager);
-
+        super(typeManager, typeFnMap);
+        
         this.typeName = nameOf(typeFn);
         this.typeFn = typeFn;
+        this.parentTypeMetadata = parentTypeMetadata;
         this.typeOptionsBase = typeManager.typeOptionsBase;
         this.typeOptions = this.constructTypeOptions(typeOptions);
-        this.typeInternals = this.constructTypeInternals();
-        this.parentTypeMetadatas = parentTypeMetadatas;
+        this.typeMetadataSet = typeMetadataSet;
+        this.currentTypeFnMap = typeFnMap;
+        this.currentChildTypeMetadataMap = new Map<TypeFn<any>, TypeMetadata<any>>();
+        this.currentPropertyMetadataMap = new Map<PropertyName, PropertyMetadata<TObject, any>>();
+        this.currentInjectMetadataMap = new Map<InjectIndex, InjectMetadata<TObject, any>>();
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
-        this.deriveParentTypeMetadataProperties();
-        this.hasDiscriminant(this.discriminant);
+        this.extendParentTypeMetadata();
         this.configure(typeOptions);
 
         return;
     }
+    
+    /**
+     * Gets type state.
+     * 
+     * @returns {TypeState<TObject>} Type state.
+     */
+    public get typeState(): TypeState<TObject>
+    {
+        return this.currentTypeState;
+    }
 
     /**
-     * Parent type metadata.
+     * Gets inject metadata map.
      * 
-     * @type {TypeMetadata<any>}
+     * @returns {ReadonlyMap<InjectIndex, InjectMetadata<TObject, any>>}
      */
-    public get parentTypeMetadata(): TypeMetadata<any> | undefined
+    public get injectMetadataMap(): ReadonlyMap<InjectIndex, InjectMetadata<TObject, any>>
     {
-        return first(this.parentTypeMetadatas);
+        return this.currentTypeState.injectMetadataMap;
+    }
+
+    /**
+     * Gets property metadata map.
+     * 
+     * @returns {ReadonlyMap<PropertyName, PropertyMetadata<TObject, any>>}
+     */
+    public get propertyMetadataMap(): ReadonlyMap<PropertyName, PropertyMetadata<TObject, any>>
+    {
+        return this.currentTypeState.propertyMetadataMap;
     }
 
     /**
      * Gets alias.
      * 
-     * @returns {Alias|undefined} Alias or undefined.
+     * @returns {Optional<Alias>} Alias or undefined.
      */
-    public get alias(): Alias | undefined
+    public get alias(): Optional<Alias>
     {
-        return this.typeOptions.alias;
+        return this.currentTypeState.alias;
     }
 
     /**
-     * Gets custom options.
+     * Gets custom value map.
      * 
-     * @returns {Array<CustomOption>} Custom options.
+     * @returns {ReadonlyMap<CustomKey<any>, CustomValue>} Custom value map.
      */
-    public get customOptions(): Array<CustomOption> | undefined
+    public get customValueMap(): ReadonlyMap<CustomKey<any>, CustomValue>
     {
-        return this.typeOptions.customOptions;
-    }
-    
-    /**
-     * Gets custom context.
-     * 
-     * @returns {CustomContext} Custom context.
-     */
-    public get customContext(): CustomContext
-    {
-        let customContext = this.typeInternals.customContext;
-
-        if (isNil(customContext))
-        {
-            this.typeOptions.customOptions = new Array<CustomOption>();
-            this.typeInternals.customContext = new CustomContext(this.typeOptions.customOptions);
-
-            customContext = this.typeInternals.customContext;
-        }
-
-        return customContext;
+        return this.currentTypeState.customValueMap;
     }
 
     /**
      * Gets serialized null value.
      * 
-     * @returns {any|undefined} Resolved serialized null value or undefined.
+     * @returns {Nullable<any>} Resolved serialized null value.
      */
-    public get serializedNullValue(): any | undefined
+    public get serializedNullValue(): Nullable<any>
     {
-        if (this.preserveNull)
-        {
-            return null;
-        }
-
-        return this.serializedDefaultValue;
+        return this.currentTypeState.serializedNullValueResolver();
     }
 
     /**
      * Gets serialized default value.
      * 
-     * @returns {any|undefined} Resolved serialized default value or undefined.
+     * @returns {Optional<any>} Resolved serialized default value.
      */
-    public get serializedDefaultValue(): any | undefined
+    public get serializedDefaultValue(): Optional<any>
     {
-        if (this.useDefaultValue)
-        {
-            const serializedDefaultValue = this.typeOptions.defaultValue 
-                ?? this.typeOptions.serializedDefaultValue;
-
-            const defaultValue = isFunction(serializedDefaultValue) 
-                ? serializedDefaultValue() 
-                : serializedDefaultValue;
-
-            return defaultValue;
-        }
-        
-        return undefined;
+        return this.currentTypeState.serializedDefaultValueResolver();
     }
 
     /**
      * Gets deserialized null value.
      * 
-     * @returns {any|undefined} Resolved deserialized null value or undefined.
+     * @returns {Nullable<any>} Resolved deserialized null value.
      */
-    public get deserializedNullValue(): any | undefined
+    public get deserializedNullValue(): Nullable<any>
     {
-        if (this.preserveNull)
-        {
-            return null;
-        }
-
-        return this.deserializedDefaultValue;
+        return this.currentTypeState.deserializedNullValueResolver();
     }
     
     /**
      * Gets deserialized default value.
      * 
-     * @returns {any|undefined} Resolved deserialized default value or undefined.
+     * @returns {Optional<any>} Resolved deserialized default value.
      */
-    public get deserializedDefaultValue(): any | undefined
+    public get deserializedDefaultValue(): Optional<any>
     {
-        if (this.useDefaultValue)
-        {
-            const deserializedDefaultValue = this.typeOptions.defaultValue 
-                ?? this.typeOptions.deserializedDefaultValue;
-
-            const defaultValue = isFunction(deserializedDefaultValue) 
-                ? deserializedDefaultValue() 
-                : deserializedDefaultValue;
-
-            return defaultValue;
-        }
-
-        return undefined;
+        return this.currentTypeState.deserializedDefaultValueResolver();
     }
     
     /**
@@ -275,7 +264,7 @@ export class TypeMetadata<TType> extends Metadata
      */
     public get discriminant(): Discriminant
     {
-        return this.typeOptions.discriminant ?? this.typeName;
+        return this.currentTypeState.discriminant;
     }
 
     /**
@@ -285,7 +274,7 @@ export class TypeMetadata<TType> extends Metadata
      */
     public get discriminator(): Discriminator
     {
-        return this.typeOptions.discriminator ?? this.typeOptionsBase.discriminator;
+        return this.currentTypeState.discriminator;
     }
 
     /**
@@ -295,17 +284,17 @@ export class TypeMetadata<TType> extends Metadata
      */
     public get factory(): Factory
     {
-        return this.typeOptions.factory ?? this.typeOptionsBase.factory;
+        return this.currentTypeState.factory;
     }
 
     /**
      * Gets injectable value.
      * 
-     * @returns {boolean|undefined} Injectable indicator or undefined.
+     * @returns {boolean} Injectable indicator.
      */
-    public get injectable(): boolean | undefined
+    public get injectable(): boolean
     {
-        return this.typeOptions.injectable;
+        return this.currentTypeState.injectable;
     }
 
     /**
@@ -315,27 +304,27 @@ export class TypeMetadata<TType> extends Metadata
      */
     public get injector(): Injector
     {
-        return this.typeOptions.injector ?? this.typeOptionsBase.injector;
+        return this.currentTypeState.injector;
     }
 
     /**
-     * Gets log.
+     * Gets logger.
      * 
-     * @returns {Log} Log instance.
+     * @returns {Logger} Logger instance.
      */
-    public get log(): Log
+    public get logger(): Logger
     {
-        return this.typeOptions.log ?? this.typeOptionsBase.log;
+        return this.currentTypeState.logger;
     }
 
     /**
      * Gets naming convention.
      * 
-     * @returns {NamingConvention|undefined} Naming convention or undefined.
+     * @returns {Optional<NamingConvention>} Naming convention or undefined.
      */
-    public get namingConvention(): NamingConvention | undefined
+    public get namingConvention(): Optional<NamingConvention>
     {
-        return this.typeOptions.namingConvention ?? this.typeOptionsBase.namingConvention;
+        return this.currentTypeState.namingConvention;
     }
 
     /**
@@ -345,7 +334,7 @@ export class TypeMetadata<TType> extends Metadata
      */
     public get polymorphic(): boolean
     {
-        return this.discriminantMap.size > 1;
+        return this.currentTypeState.polymorphic;
     }
 
     /**
@@ -355,7 +344,7 @@ export class TypeMetadata<TType> extends Metadata
      */
     public get preserveDiscriminator(): boolean 
     {
-        return this.typeOptions.preserveDiscriminator ?? this.typeOptionsBase.preserveDiscriminator;
+        return this.currentTypeState.preserveDiscriminator;
     }
 
     /**
@@ -365,17 +354,17 @@ export class TypeMetadata<TType> extends Metadata
      */
     public get referenceHandler(): ReferenceHandler
     {
-        return this.typeOptions.referenceHandler ?? this.typeOptionsBase.referenceHandler;
+        return this.currentTypeState.referenceHandler;
     }
 
     /**
      * Gets serializer.
      * 
-     * @returns {Serializer<TType>} Serializer.
+     * @returns {Serializer<TObject>} Serializer.
      */
-    public get serializer(): Serializer<TType>
+    public get serializer(): Serializer<TObject>
     {
-        return this.typeOptions.serializer ?? this.typeOptionsBase.serializer;
+        return this.currentTypeState.serializer;
     }
 
     /**
@@ -385,7 +374,7 @@ export class TypeMetadata<TType> extends Metadata
      */
     public get preserveNull(): boolean
     {
-        return this.typeOptions.preserveNull ?? this.typeOptionsBase.preserveNull;
+        return this.currentTypeState.preserveNull;
     }
 
     /**
@@ -395,7 +384,7 @@ export class TypeMetadata<TType> extends Metadata
      */
     public get useDefaultValue(): boolean
     {
-        return this.typeOptions.useDefaultValue ?? this.typeOptionsBase.useDefaultValue;
+        return this.currentTypeState.useDefaultValue;
     }
 
     /**
@@ -405,172 +394,624 @@ export class TypeMetadata<TType> extends Metadata
      */
     public get useImplicitConversion(): boolean
     {
-        return this.typeOptions.useImplicitConversion ?? this.typeOptionsBase.useImplicitConversion;
+        return this.currentTypeState.useImplicitConversion;
     }
 
     /**
      * Gets property sorter.
      * 
-     * @returns {PropertySorter|undefined} Property sorter or undefined.
+     * @returns {Optional<PropertySorter>} Property sorter or undefined.
      */
-    public get propertySorter(): PropertySorter | undefined
+    public get propertySorter(): Optional<PropertySorter>
     {
-        return this.typeOptions.propertySorter ?? this.typeOptionsBase.propertySorter;
+        return this.currentTypeState.propertySorter;
     }
 
     /**
      * Gets sorted property metadatas.
      * 
-     * @returns {IterableIterator<PropertyMetadata<TType, any>>} Iterable of property metadatas.
+     * @returns {ReadonlyArray<PropertyMetadata<TObject, any>>} Readonly array of property metadatas.
      */
-    public get sortedPropertyMetadatas(): IterableIterator<PropertyMetadata<TType, any>>
+    public get sortedPropertyMetadatas(): ReadonlyArray<PropertyMetadata<TObject, any>>
     {
-        const propertySorter = this.propertySorter;
-        const propertyMetadatas = this.propertyMetadataMap.values();
-
-        if (isNil(propertySorter))
-        {
-            return propertyMetadatas;
-        }
-
-        const sortedPropertyMetadatas = Array.from(propertyMetadatas).sort(propertySorter.sort);
-
-        return sortedPropertyMetadatas[Symbol.iterator]();
+        return this.currentTypeState.sortedPropertyMetadatas;
     }
 
     /**
      * Gets inject sorter.
      * 
-     * @returns {InjectSorter|undefined} Property sorter or undefined.
+     * @returns {Optional<InjectSorter>} Property sorter or undefined.
      */
-    public get injectSorter(): InjectSorter | undefined
+    public get injectSorter(): Optional<InjectSorter>
     {
-        return this.typeOptions.injectSorter ?? this.typeOptionsBase.injectSorter;
+        return this.currentTypeState.injectSorter;
     }
 
     /**
      * Gets sorted inject metadatas.
      * 
-     * @returns {IterableIterator<InjectMetadata<TType, any>>} Iterable of inject metadatas.
+     * @returns {ReadonlyArray<InjectMetadata<TObject, any>>} Iterable of inject metadatas.
      */
-    public get sortedInjectMetadatas(): IterableIterator<InjectMetadata<TType, any>>
+    public get sortedInjectMetadatas(): ReadonlyArray<InjectMetadata<TObject, any>>
     {
-        const injectSorter = this.injectSorter;
-        const injectMetadatas = this.injectMetadataMap.values();
+        return this.currentTypeState.sortedInjectMetadatas;
+    }
 
-        if (isNil(injectSorter))
-        {
-            return injectMetadatas;
-        }
-        
-        const sortedInjectMetadatas = Array.from(injectMetadatas).sort(injectSorter.sort);
-        
-        return sortedInjectMetadatas[Symbol.iterator]();
+    /**
+     * Gets parent type arguments.
+     * 
+     * @returns {ReadonlyArray<TypeArgument<any>>} Parent arguments.
+     */
+    public get parentTypeArguments(): ReadonlyArray<TypeArgument<any>>
+    {
+        return this.currentTypeState.parentTypeArguments;
     }
 
     /**
      * Gets property options map.
      * 
-     * @returns {Map<PropertyName, PropertyOptions<any>>} Property options map.
+     * @returns {ReadonlyMap<PropertyName, PropertyOptions<any>>} Property options map.
      */
-    public get propertyOptionsMap(): Map<PropertyName, PropertyOptions<any>>
+    public get propertyOptionsMap(): ReadonlyMap<PropertyName, PropertyOptions<any>>
     {
-        let propertyOptionsMap = this.typeOptions.propertyOptionsMap;
-
-        if (isNil(propertyOptionsMap))
-        {
-            propertyOptionsMap = new Map<PropertyName, PropertyOptions<any>>();
-
-            this.typeOptions.propertyOptionsMap = propertyOptionsMap;
-        }
-
-        return propertyOptionsMap;
+        return this.currentTypeState.propertyOptionsMap;
     }
 
     /**
      * Gets inject options map.
      * 
-     * @returns {Map<InjectIndex, InjectOptions<any>>} Inject options map.
+     * @returns {ReadonlyMap<InjectIndex, InjectOptions<any>>} Inject options map.
      */
-    public get injectOptionsMap(): Map<InjectIndex, InjectOptions<any>>
+    public get injectOptionsMap(): ReadonlyMap<InjectIndex, InjectOptions<any>>
     {
-        let injectOptionsMap = this.typeOptions.injectOptionsMap;
-
-        if (isNil(injectOptionsMap))
-        {
-            injectOptionsMap = new Map<InjectIndex, InjectOptions<any>>();
-
-            this.typeOptions.injectOptionsMap = injectOptionsMap;
-        }
-
-        return injectOptionsMap;
-    }
-
-    /**
-     * Gets parent type fns value.
-     * 
-     * @returns {Array<TypeFn<any>>|undefined} Parent type fns or undefined.
-     */
-    public get parentTypeFns(): Array<TypeFn<any>> | undefined
-    {
-        return this.typeOptions.parentTypeFns;
+        return this.currentTypeState.injectOptionsMap;
     }
 
     /**
      * Constructs initial type options by extending passed options 
      * with default values if they are not overriden. All references are kept.
      * 
-     * @param {TypeOptions<TType>} typeOptions Type options.
+     * @param {TypeOptions<TObject>} typeOptions Type options.
      * 
-     * @returns {TypeOptions<TType>} Constructed type options.
+     * @returns {TypeOptions<TObject>} Constructed type options.
      */
-    private constructTypeOptions(typeOptions: TypeOptions<TType>): TypeOptions<TType>
+    private constructTypeOptions(typeOptions: TypeOptions<TObject>): TypeOptions<TObject>
     {
+        if (typeOptions.customValueMap === undefined)
+        {
+            typeOptions.customValueMap = new Map<CustomKey<any>, CustomValue>();
+        }
+
+        if (typeOptions.propertyOptionsMap === undefined)
+        {
+            typeOptions.propertyOptionsMap = new Map<PropertyName, PropertyOptions<any>>();
+        }
+
+        if (typeOptions.injectOptionsMap === undefined)
+        {
+            typeOptions.injectOptionsMap = new Map<InjectIndex, InjectOptions<any>>();
+        }
+        
         return typeOptions;
     }
 
     /**
-     * Constructs type internals.
+     * Configures type extension metadata.
      * 
-     * @returns {TypeInternals} Constructed type internals.
+     * @param {TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TObject>} typeExtensionMetadataCtor Type extension metadata constructor.
+     * @param {TTypeExtensionOptions} typeExtensionOptions Type extension options.
+     * 
+     * @returns {TTypeExtensionMetadata} Type extension metadata
      */
-    private constructTypeInternals(): TypeInternals
+    public configureTypeExtensionMetadata<TTypeExtensionMetadata extends TypeExtensionMetadata<TObject, TTypeExtensionOptions>, TTypeExtensionOptions extends TypeExtensionOptions>(
+        typeExtensionMetadataCtor: TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TObject>, 
+        typeExtensionOptions?: TTypeExtensionOptions
+    ): TTypeExtensionMetadata
     {
-        const customOptions = this.typeOptions.customOptions;
-        const customContext = isNil(customOptions) ? undefined : new CustomContext(customOptions);
-        const typeInternals = { customContext: customContext };
+        const typeExtensionMetadataCtorSet = this.extractTypeExtensionMetadataCtorSet();
 
-        return typeInternals;
+        if (!typeExtensionMetadataCtorSet.has(typeExtensionMetadataCtor))
+        {
+            typeExtensionMetadataCtorSet.add(typeExtensionMetadataCtor);
+        }
+
+        const initialTypeExtensionOptions = typeExtensionOptions ?? {} as TTypeExtensionOptions;
+        const typeExtensionMetadata = new typeExtensionMetadataCtor(this, initialTypeExtensionOptions);
+
+        return typeExtensionMetadata;
     }
 
     /**
-     * Derives parent type metadata properties.
+     * Extracts type extension metadata.
+     * 
+     * @param {TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TObject>} typeExtensionMetadataCtor Type extension metadata constructor.
+     * 
+     * @returns {Optional<TTypeExtensionMetadata>} Type extension metadata or undefined.
+     */
+    public extractTypeExtensionMetadata<TTypeExtensionMetadata extends TypeExtensionMetadata<TObject, TTypeExtensionOptions>, TTypeExtensionOptions extends TypeExtensionOptions>(
+        typeExtensionMetadataCtor: TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TObject>
+    ): Optional<TTypeExtensionMetadata>
+    {
+        const typeExtensionMetadataCtorSet = this.extractTypeExtensionMetadataCtorSet();
+
+        if (!typeExtensionMetadataCtorSet.has(typeExtensionMetadataCtor)) 
+        {
+            return undefined;
+        }
+        
+        const initialTypeExtensionOptions = {} as TTypeExtensionOptions;
+        const typeExtensionMetadata = new typeExtensionMetadataCtor(this, initialTypeExtensionOptions);
+
+        return typeExtensionMetadata;
+    }
+
+    /**
+     * Extracts type extension metadata ctor set from custom value map.
+     * 
+     * @returns {Set<TypeExtensionMetadataCtor<any, any, any>>} Type extension metadata ctor set.
+     */
+    private extractTypeExtensionMetadataCtorSet(): Set<TypeExtensionMetadataCtor<any, any, any>>
+    {
+        let customValueMap = this.typeOptions.customValueMap;
+
+        if (customValueMap === undefined)
+        {
+            customValueMap = new Map<CustomKey<any>, CustomValue>();
+
+            this.typeOptions.customValueMap = customValueMap;
+        }
+
+        let typeExtensionMetadataCtorSet = customValueMap.get(TYPE_EXTENSION_METADATA_CTOR_SET_KEY) as Optional<Set<TypeExtensionMetadataCtor<any, any, any>>>;
+
+        if (typeExtensionMetadataCtorSet === undefined)
+        {
+            typeExtensionMetadataCtorSet = new Set<TypeExtensionMetadataCtor<any, any, any>>();
+
+            customValueMap.set(TYPE_EXTENSION_METADATA_CTOR_SET_KEY, typeExtensionMetadataCtorSet);
+        }
+
+        return typeExtensionMetadataCtorSet;
+    }
+
+    /**
+     * Resolves type state.
+     * 
+     * Calling this method has side effects by recomputing type state. If you need current
+     * type state then use provided getter for that.
+     * 
+     * @returns {ResolvedTypeState<TObject>} Resolved type state.
+     */
+    public resolveTypeState(): ResolvedTypeState<TObject>
+    {
+        const typeOptionsBase = this.typeOptionsBase;
+        const typeOptions = this.typeOptions;
+        const typeName = this.typeName;
+        const alias = typeOptions.alias;
+        const customValueMap = this.resolveCustomValueMap();
+
+        const preserveNull = typeOptions.preserveNull === undefined 
+            ? typeOptionsBase.preserveNull
+            : typeOptions.preserveNull;
+
+        const useDefaultValue = typeOptions.useDefaultValue === undefined 
+            ? typeOptionsBase.useDefaultValue 
+            : typeOptions.useDefaultValue;
+
+        const useImplicitConversion = typeOptions.useImplicitConversion === undefined 
+            ? typeOptionsBase.useImplicitConversion 
+            : typeOptions.useImplicitConversion;
+
+        const serializedDefaultValue = typeOptions.defaultValue === undefined 
+            ? typeOptions.serializedDefaultValue
+            : typeOptions.defaultValue;
+        
+        const serializedDefaultValueResolver = useDefaultValue 
+            ? (typeof serializedDefaultValue === 'function' ? serializedDefaultValue : () => serializedDefaultValue)
+            : DEFAULT_VALUE_RESOLVER;
+
+        const serializedNullValueResolver = preserveNull 
+            ? NULL_VALUE_RESOLVER 
+            : serializedDefaultValueResolver;
+
+        const deserializedDefaultValue = typeOptions.defaultValue === undefined 
+            ? typeOptions.deserializedDefaultValue
+            : typeOptions.defaultValue;
+        
+        const deserializedDefaultValueResolver = useDefaultValue
+            ? (typeof deserializedDefaultValue === 'function' ? deserializedDefaultValue : () => deserializedDefaultValue)
+            : DEFAULT_VALUE_RESOLVER;
+
+        const deserializedNullValueResolver = preserveNull 
+            ? NULL_VALUE_RESOLVER
+            : deserializedDefaultValueResolver;
+        
+        const discriminant = typeOptions.discriminant === undefined
+            ? typeName
+            : typeOptions.discriminant;
+
+        const discriminator = typeOptions.discriminator === undefined
+            ? typeOptionsBase.discriminator
+            : typeOptions.discriminator;
+
+        const factory = typeOptions.factory === undefined
+            ? typeOptionsBase.factory
+            : typeOptions.factory;
+        
+        const injectable = typeOptions.injectable === true;
+
+        const injector = typeOptions.injector === undefined
+            ? typeOptionsBase.injector
+            : typeOptions.injector;
+
+        const logger = typeOptions.logger === undefined
+            ? typeOptionsBase.logger
+            : typeOptions.logger;
+
+        const namingConvention = typeOptions.namingConvention === undefined
+            ? typeOptionsBase.namingConvention
+            : typeOptions.namingConvention;
+
+        const parentTypeArguments = typeOptions.parentTypeArguments === undefined
+            ? EMPTY_ARRAY
+            : typeOptions.parentTypeArguments;
+        
+        const ownParentTypeMetadatas = this.resolveOwnParentTypeMetadatas(parentTypeArguments);
+        const ownChildTypeMetadatas = this.resolveOwnChildTypeMetadatas();
+        const parentTypeMetadataSet = this.resolveParentTypeMetadataSet(this);
+        const parentTypeMetadatas = Array.from(parentTypeMetadataSet);
+        const childTypeMetadataSet = this.resolveChildTypeMetadataSet(this);
+        const childTypeMetadatas = Array.from(childTypeMetadataSet);
+
+        const typeMetadataMap = new Map<TypeFn<any>, TypeMetadata<any>>();
+        const polymorphic = childTypeMetadatas.length > 1;
+
+        for (let i = 0; i < childTypeMetadatas.length; i++)
+        {
+            const childTypeMetadata = childTypeMetadatas[i];
+
+            typeMetadataMap.set(childTypeMetadata.typeFn, childTypeMetadata);
+        }
+
+        const preserveDiscriminator = typeOptions.preserveDiscriminator === undefined 
+            ? typeOptionsBase.preserveDiscriminator
+            : typeOptions.preserveDiscriminator;
+
+        const referenceHandler = typeOptions.referenceHandler === undefined 
+            ? typeOptionsBase.referenceHandler
+            : typeOptions.referenceHandler;
+
+        const serializer = typeOptions.serializer === undefined 
+            ? typeOptionsBase.serializer
+            : typeOptions.serializer;
+
+        const propertySorter = typeOptions.propertySorter === undefined 
+            ? typeOptionsBase.propertySorter
+            : typeOptions.propertySorter;
+
+        const ownPropertyMetadataMap = this.currentPropertyMetadataMap;
+        const propertyMetadataMap = this.resolvePropertyMetadataMap(parentTypeMetadatas);
+
+        const sortedPropertyMetadatas = propertySorter === undefined
+            ? Array.from(propertyMetadataMap.values())
+            : Array.from(propertyMetadataMap.values()).sort(propertySorter.sort);
+
+        const injectMetadataMap = this.currentInjectMetadataMap;
+
+        const injectSorter = typeOptions.injectSorter === undefined 
+            ? typeOptionsBase.injectSorter
+            : typeOptions.injectSorter;
+
+        const sortedInjectMetadatas = injectSorter === undefined
+            ? Array.from(injectMetadataMap.values())
+            : Array.from(injectMetadataMap.values()).sort(injectSorter.sort);
+        
+        const propertyOptionsMap = typeOptions.propertyOptionsMap === undefined 
+            ? EMPTY_MAP
+            : typeOptions.propertyOptionsMap;
+
+        const injectOptionsMap = typeOptions.injectOptionsMap === undefined 
+            ? EMPTY_MAP
+            : typeOptions.injectOptionsMap;
+
+        const resolvedTypeState = new ResolvedTypeState(
+            this,
+            alias,
+            customValueMap,
+            serializedNullValueResolver,
+            serializedDefaultValue,
+            serializedDefaultValueResolver,
+            deserializedNullValueResolver,
+            deserializedDefaultValue,
+            deserializedDefaultValueResolver,
+            discriminant,
+            discriminator,
+            factory,
+            injectable,
+            injector,
+            logger,
+            namingConvention,
+            polymorphic,
+            typeMetadataMap,
+            preserveDiscriminator,
+            referenceHandler,
+            serializer,
+            preserveNull,
+            useDefaultValue,
+            useImplicitConversion,
+            propertySorter,
+            sortedPropertyMetadatas,
+            injectSorter,
+            sortedInjectMetadatas,
+            parentTypeArguments,
+            parentTypeMetadatas,
+            ownParentTypeMetadatas,
+            childTypeMetadatas,
+            ownChildTypeMetadatas,
+            propertyOptionsMap,
+            propertyMetadataMap,
+            ownPropertyMetadataMap,
+            injectOptionsMap,
+            injectMetadataMap
+        );
+
+        this.currentTypeState = resolvedTypeState;
+
+        return resolvedTypeState;
+    }
+
+    /**
+     * Unresolves type state.
+     * 
+     * Calling this method has side effects by resetting type state. 
+     * 
+     * @returns {UnresolvedTypeState<TObject>} Unresolved type state.
+     */
+    public unresolveTypeState(): UnresolvedTypeState<TObject>
+    {
+        const unresolvedTypeState = new UnresolvedTypeState<TObject>(this);
+
+        this.currentTypeState = unresolvedTypeState;
+
+        return unresolvedTypeState;
+    }
+
+    /**
+     * Resolves custom value map the same way as it is done for the main options.
+     * 
+     * @returns {ReadonlyMap<CustomKey<any>, CustomValue>} Resolved custom value map.
+     */
+    private resolveCustomValueMap(): ReadonlyMap<CustomKey<any>, CustomValue>
+    {
+        const typeOptionsBase = this.typeOptionsBase;
+        const typeOptions = this.typeOptions;
+        const customValueMap = new Map<CustomKey<any>, CustomValue>();
+
+        if (typeOptions.customValueMap === undefined)
+        {
+            return customValueMap;
+        }
+
+        const baseCustomValueMap = typeOptionsBase.customValueMap === undefined
+            ? EMPTY_MAP
+            : typeOptionsBase.customValueMap;
+        
+        for (const [customKey, customValue] of typeOptions.customValueMap)
+        {
+            if (customValue === undefined)
+            {
+                customValueMap.set(customKey, baseCustomValueMap.get(customKey));
+
+                continue;
+            }
+
+            customValueMap.set(customKey, customValue);
+        }
+
+        return customValueMap;
+    }
+
+    /**
+     * Resolves own parent type metadatas.
+     * 
+     * @param {ReadonlyArray<TypeArgument<any>>} parentTypeArguments Resolved parent type arguments.
+     * 
+     * @returns {ReadonlyArray<TypeMetadata<any>>} Resolved own parent type metadatas.
+     */
+    private resolveOwnParentTypeMetadatas(parentTypeArguments: ReadonlyArray<TypeArgument<any>>): ReadonlyArray<TypeMetadata<any>>
+    {
+        const ownParentTypeMetadatas = new Array<TypeMetadata<any>>();
+        const parentTypeMetadatas = this.resolveTypeMetadatas(parentTypeArguments);
+
+        for (let i = parentTypeMetadatas.length - 1; i >= 0; i--)
+        {
+            ownParentTypeMetadatas.push(parentTypeMetadatas[i]);
+        }
+
+        if (this.parentTypeMetadata !== undefined)
+        {
+            ownParentTypeMetadatas.push(this.parentTypeMetadata);
+        }
+
+        return ownParentTypeMetadatas;
+    }
+
+    /**
+     * Resolves own child type metadatas.
+     * 
+     * @returns {ReadonlyArray<TypeMetadata<any>>} Resolved own child type metadatas.
+     */
+    private resolveOwnChildTypeMetadatas(): ReadonlyArray<TypeMetadata<any>>
+    {
+        const ownChildTypeMetadatas = new Array<TypeMetadata<any>>();
+
+        for (const childTypeMetadata of this.currentChildTypeMetadataMap.values())
+        {
+            ownChildTypeMetadatas.push(childTypeMetadata);
+        }
+
+        for (const setTypeMetadata of this.typeMetadataSet)
+        {
+            const typeOptions = setTypeMetadata.typeOptions;
+
+            const parentTypeArguments = typeOptions.parentTypeArguments === undefined
+                ? EMPTY_ARRAY
+                : typeOptions.parentTypeArguments;
+
+            const parentTypeMetadatas = this.resolveTypeMetadatas(parentTypeArguments);
+
+            for (let i = 0; i < parentTypeMetadatas.length; i++)
+            {
+                if (parentTypeMetadatas[i] === this)
+                {
+                    ownChildTypeMetadatas.push(setTypeMetadata);
+
+                    break;
+                }
+            }
+        }
+
+        return ownChildTypeMetadatas;
+    }
+
+    /**
+     * Resolves parent type metadata set for provided type metadata reflecting inheritance order where the 
+     * first element is the current type metadata and the last element is the most abstract parent. This
+     * collection is used to define all properties which are declared for the provided type metadata 
+     * respecting nested declarations.
+     * 
+     * @param {TypeMetadata<any>} typeMetadata Type metadata. 
+     * @param {Set<TypeMetadata<any>>} parentTypeMetadataSet Parent type metadata set.
+     *  
+     * @returns {ReadonlySet<TypeMetadata<any>>} Parent type metadata set.
+     */
+    private resolveParentTypeMetadataSet(
+        typeMetadata: TypeMetadata<any>, 
+        parentTypeMetadataSet: Set<TypeMetadata<any>> = new Set<TypeMetadata<any>>()
+    ): ReadonlySet<TypeMetadata<any>>
+    {
+        if (parentTypeMetadataSet.has(typeMetadata))
+        {
+            return parentTypeMetadataSet;
+        }
+
+        parentTypeMetadataSet.add(typeMetadata);
+
+        const typeOptions = typeMetadata.typeOptions;
+
+        const parentTypeArguments = typeOptions.parentTypeArguments === undefined
+            ? EMPTY_ARRAY
+            : typeOptions.parentTypeArguments;
+
+        const parentTypeMetadatas = this.resolveTypeMetadatas(parentTypeArguments);
+
+        for (let i = parentTypeMetadatas.length - 1; i >= 0; i--)
+        {
+            this.resolveParentTypeMetadataSet(parentTypeMetadatas[i], parentTypeMetadataSet);
+        }
+
+        if (typeMetadata.parentTypeMetadata !== undefined) 
+        {
+            this.resolveParentTypeMetadataSet(typeMetadata.parentTypeMetadata, parentTypeMetadataSet);
+        }
+        
+        return parentTypeMetadataSet;
+    }
+
+    /**
+     * Resolved child type metadata set for provided type metadata reflecting inheritance order where the 
+     * first element is the current type metadata and the last element is the most specific child. This 
+     * collection is used to define polymorphic relationships between types.
+     * 
+     * @param {TypeMetadata<any>} typeMetadata Type metadata. 
+     * @param {Set<TypeMetadata<any>>} childTypeMetadataSet Child type metadata set.
+     *  
+     * @returns {ReadonlySet<TypeMetadata<any>>} Child type metadata set.
+     */
+    private resolveChildTypeMetadataSet(
+        typeMetadata: TypeMetadata<any>, 
+        childTypeMetadataSet: Set<TypeMetadata<any>> = new Set<TypeMetadata<any>>()
+    ): ReadonlySet<TypeMetadata<any>>
+    {
+        if (childTypeMetadataSet.has(typeMetadata))
+        {
+            return childTypeMetadataSet;
+        }
+
+        childTypeMetadataSet.add(typeMetadata);
+
+        for (const childTypeMetadata of typeMetadata.currentChildTypeMetadataMap.values())
+        {
+            this.resolveChildTypeMetadataSet(childTypeMetadata, childTypeMetadataSet);
+        }
+
+        for (const setTypeMetadata of this.typeMetadataSet)
+        {
+            const typeOptions = setTypeMetadata.typeOptions;
+
+            const parentTypeArguments = typeOptions.parentTypeArguments === undefined
+                ? EMPTY_ARRAY
+                : typeOptions.parentTypeArguments;
+
+            const parentTypeMetadatas = this.resolveTypeMetadatas(parentTypeArguments);
+
+            for (let i = 0; i < parentTypeMetadatas.length; i++)
+            {
+                if (parentTypeMetadatas[i] === typeMetadata)
+                {
+                    this.resolveChildTypeMetadataSet(setTypeMetadata, childTypeMetadataSet);
+
+                    break;
+                }
+            }
+        }
+
+        return childTypeMetadataSet;
+    }
+
+    /**
+     * Resolves property metadata map.
+     * 
+     * @param {ReadonlyArray<TypeMetadata<any>>} parentTypeMetadatas Resolved parent type metadatas.
+     * 
+     * @returns {ReadonlyMap<PropertyName, PropertyMetadata<TObject, any>>} Resolved property metadata map.
+     */
+    private resolvePropertyMetadataMap(parentTypeMetadatas: ReadonlyArray<TypeMetadata<any>>): ReadonlyMap<PropertyName, PropertyMetadata<TObject, any>>
+    {
+        const propertyMetadataMap = new Map<PropertyName, PropertyMetadata<TObject, any>>();
+
+        for (let i = parentTypeMetadatas.length - 1; i >= 0; i--)
+        {
+            for (const [propertyName, propertyMetadata] of parentTypeMetadatas[i].currentPropertyMetadataMap)
+            {
+                propertyMetadataMap.set(propertyName, propertyMetadata);
+            }
+        }
+
+        for (const propertyMetadata of this.currentPropertyMetadataMap.values())
+        {
+            propertyMetadata.unresolvePropertyState();
+        }
+
+        return propertyMetadataMap;
+    }
+
+    /**
+     * Extends parent type metadata.
      * 
      * @returns {this} Current instance of type metadata.
      */
-    private deriveParentTypeMetadataProperties(): this
+    private extendParentTypeMetadata(): this
     {
-        if (isEmpty(this.parentTypeMetadatas)) 
-        {
-            return this;
-        }
+        const parentTypeMetadata = this.parentTypeMetadata;
 
-        for (const parentTypeMetadata of this.parentTypeMetadatas)
+        if (parentTypeMetadata !== undefined) 
         {
-            for (const [propertyName, propertyMetadata] of parentTypeMetadata.propertyMetadataMap)
-            {
-                if (!this.propertyMetadataMap.has(propertyName))
-                {
-                    this.propertyMetadataMap.set(propertyName, propertyMetadata);
-                }
-            }
-
-            parentTypeMetadata.childrenTypeMetadataMap.set(this.typeFn, this);
+            parentTypeMetadata.currentChildTypeMetadataMap.set(this.typeFn, this);
         }
 
         return this;
     }
-
+    
     /**
      * Reflects inject metadata.
      * 
@@ -589,9 +1030,9 @@ export class TypeMetadata<TType> extends Metadata
 
         for (let injectIndex = 0; injectIndex < injectTypeFns.length; injectIndex++)
         {
-            if (!this.injectMetadataMap.has(injectIndex))
+            if (!this.currentInjectMetadataMap.has(injectIndex))
             {
-                this.configureInjectMetadata(injectIndex, { typeFn: injectTypeFns[injectIndex] });
+                this.configureInjectMetadata(injectIndex, { typeArgument: injectTypeFns[injectIndex] });
             }
         }
 
@@ -601,20 +1042,22 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures alias.
      * 
-     * @param {Alias|undefined} alias Alias.
+     * @param {Optional<Alias>} alias Alias.
      * 
      * @returns {this} Current instance of type metadata.
      */
-    public hasAlias(alias: Alias | undefined): this
+    public hasAlias(alias: Optional<Alias>): this
     {
         this.releaseAlias();
 
         this.typeOptions.alias = alias;
 
-        if (!isNil(alias)) 
+        if (alias !== undefined) 
         {
-            this.typeFnMap.set(alias, this.typeFn);
+            this.currentTypeFnMap.set(alias, this.typeFn);
         }
+
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -626,56 +1069,121 @@ export class TypeMetadata<TType> extends Metadata
      */
     private releaseAlias(): this
     {
-        const alias = this.alias;
+        const alias = this.typeOptions.alias;
 
-        if (!isNil(alias) && this.typeFnMap.has(alias))
+        if (alias !== undefined && this.currentTypeFnMap.has(alias))
         {
-            this.typeFnMap.delete(alias);
+            this.currentTypeFnMap.delete(alias);
         }
 
         return this;
     }
 
     /**
-     * Configures custom option.
+     * Configures custom value map.
+     * 
+     * @param {Optional<Map<CustomKey<any>, CustomValue>>} customValueMap Custom value map or undefined.
+     * 
+     * @returns {this} Current instance of type metadata.
+     */
+    public hasCustomValueMap(customValueMap: Optional<Map<CustomKey<any>, CustomValue>>): this
+    {
+        let currentCustomValueMap = this.typeOptions.customValueMap;
+
+        if (currentCustomValueMap === undefined)
+        {
+            currentCustomValueMap = new Map<CustomKey<any>, CustomValue>();
+
+            this.typeOptions.customValueMap = currentCustomValueMap;
+        }
+
+        if (customValueMap !== undefined)
+        {
+            if (currentCustomValueMap !== customValueMap)
+            {
+                currentCustomValueMap.clear();
+            }
+
+            for (const [customKey, customValue] of customValueMap)
+            {
+                currentCustomValueMap.set(customKey, customValue);
+            }
+        }
+
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures custom value.
      * 
      * @param {CustomKey<TCustomValue>} customKey Custom key.
      * @param {TCustomValue} customValue Custom value.
      * 
      * @returns {this} Current instance of type metadata.
      */
-    public hasCustomOption<TCustomValue>(customKey: CustomKey<TCustomValue>, customValue: TCustomValue): this
+    public hasCustomValue<TCustomValue>(customKey: CustomKey<TCustomValue>, customValue: TCustomValue): this
     {
-        this.customContext.set(customKey, customValue);
+        let customValueMap = this.typeOptions.customValueMap;
+
+        if (customValueMap === undefined)
+        {
+            customValueMap = new Map<CustomKey<any>, CustomValue>();
+
+            this.typeOptions.customValueMap = customValueMap;
+        }
+
+        customValueMap.set(customKey, customValue);
+
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
-    
+
     /**
-     * Extracts custom option.
+     * Extracts value by custom key.
      * 
      * @param {CustomKey<TCustomValue>} customKey Custom key.
-     * 
+     *  
      * @returns {TCustomValue} Custom value.
      */
-    public extractCustomOption<TCustomValue>(customKey: CustomKey<TCustomValue>): TCustomValue
+    public extractCustomValue<TCustomValue>(customKey: CustomKey<TCustomValue>): TCustomValue
     {
-        return this.customContext.get(customKey);
+        let customValue =  this.typeState.customValueMap.get(customKey) as TCustomValue;
+
+        if (customValue === undefined && customKey.customValueResolver !== undefined)
+        {
+            customValue = customKey.customValueResolver();
+        }
+
+        return customValue;
     }
 
     /**
      * Configures custom options.
      * 
-     * @param {Array<CustomOption>|undefined} customOptions Custom options.
+     * @param {ReadonlyArray<CustomOption>} customOptions Custom options.
      * 
      * @returns {this} Current instance of type metadata.
      */
-    public hasCustomOptions(customOptions: Array<CustomOption> | undefined): this
+    public hasCustomOptions(customOptions: ReadonlyArray<CustomOption>): this
     {
-        if (!isNil(customOptions))
+        let customValueMap = this.typeOptions.customValueMap;
+
+        if (customValueMap === undefined)
         {
-            this.customContext.configure(customOptions);
+            customValueMap = new Map<CustomKey<any>, CustomValue>();
+
+            this.typeOptions.customValueMap = customValueMap;
         }
+
+        for (let i = 0; i < customOptions.length; i++)
+        {
+            customValueMap.set(customOptions[i][0], customOptions[i][1]);
+        }
+
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -690,6 +1198,7 @@ export class TypeMetadata<TType> extends Metadata
     public hasDefaultValue(defaultValue: DefaultValue): this
     {
         this.typeOptions.defaultValue = defaultValue;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -704,6 +1213,7 @@ export class TypeMetadata<TType> extends Metadata
     public hasSerializedDefaultValue(serializedDefaultValue: DefaultValue): this
     {
         this.typeOptions.serializedDefaultValue = serializedDefaultValue;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -718,6 +1228,7 @@ export class TypeMetadata<TType> extends Metadata
     public hasDeserializedDefaultValue(deserializedDefaultValue: DefaultValue): this
     {
         this.typeOptions.deserializedDefaultValue = deserializedDefaultValue;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -725,13 +1236,14 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures discriminator.
      * 
-     * @param {Discriminator|undefined} discriminator Discriminator.
+     * @param {Optional<Discriminator>} discriminator Discriminator.
      * 
      * @returns {this} Current instance of type metadata.
      */
-    public hasDiscriminator(discriminator: Discriminator | undefined): this
+    public hasDiscriminator(discriminator: Optional<Discriminator>): this
     {
         this.typeOptions.discriminator = discriminator;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -739,41 +1251,14 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures discriminant.
      * 
-     * @param {Discriminant|undefined} discriminant Discriminant.
+     * @param {Optional<Discriminant>} discriminant Discriminant.
      * 
      * @returns {this} Current instance of type metadata.
      */
-    public hasDiscriminant(discriminant: Discriminant | undefined): this
+    public hasDiscriminant(discriminant: Optional<Discriminant>): this
     {
         this.typeOptions.discriminant = discriminant;
-
-        if (!isNil(discriminant)) 
-        {
-            this.provideDiscriminant(this.typeFn, discriminant);
-        }
-
-        return this;
-    }
-
-    /**
-     * Provides discriminant.
-     * 
-     * @param {TypeFn<any>} typeFn Type function.
-     * @param {Discriminant} discriminant Discriminant.
-     * 
-     * @returns {this} Current instance of type metadata.
-     */
-    private provideDiscriminant(typeFn: TypeFn<any>, discriminant: Discriminant): this
-    {
-        this.discriminantMap.set(typeFn, discriminant);
-
-        if (!isEmpty(this.parentTypeMetadatas))
-        {
-            for (const parentTypeMetadata of this.parentTypeMetadatas)
-            {
-                parentTypeMetadata.provideDiscriminant(typeFn, discriminant);
-            }
-        }
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -781,13 +1266,14 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures factory.
      * 
-     * @param {Factory|undefined} factory Factory.
+     * @param {Optional<Factory>} factory Factory.
      * 
      * @returns {this} Current instance of type metadata.
      */
-    public hasFactory(factory: Factory | undefined): this
+    public hasFactory(factory: Optional<Factory>): this
     {
         this.typeOptions.factory = factory;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -802,6 +1288,7 @@ export class TypeMetadata<TType> extends Metadata
     public isInjectable(injectable: boolean = true): this
     {
         this.typeOptions.injectable = injectable;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -809,27 +1296,29 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures injector.
      * 
-     * @param {Injector|undefined} injector Injector.
+     * @param {Optional<Injector>} injector Injector.
      * 
      * @returns {this} Current instance of type metadata.
      */
-    public hasInjector(injector: Injector | undefined): this
+    public hasInjector(injector: Optional<Injector>): this
     {
         this.typeOptions.injector = injector;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
 
     /**
-     * Configures log.
+     * Configures logger.
      * 
-     * @param {Log|undefined} log Log.
+     * @param {Optional<Logger>} logger Logger.
      * 
      * @returns {this} Current instance of type metadata.
      */
-    public hasLog(log: Log | undefined): this
+    public hasLogger(logger: Optional<Logger>): this
     {
-        this.typeOptions.log = log;
+        this.typeOptions.logger = logger;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -837,13 +1326,14 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures naming convention.
      * 
-     * @param {NamingConvention|undefined} namingConvention Naming convention.
+     * @param {Optional<NamingConvention>} namingConvention Naming convention.
      * 
      * @returns {this} Current instance of type metadata.
      */
-    public hasNamingConvention(namingConvention: NamingConvention | undefined): this
+    public hasNamingConvention(namingConvention: Optional<NamingConvention>): this
     {
         this.typeOptions.namingConvention = namingConvention;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -858,6 +1348,7 @@ export class TypeMetadata<TType> extends Metadata
     public shouldPreserveDiscriminator(preserveDiscriminator: boolean = true): this
     {
         this.typeOptions.preserveDiscriminator = preserveDiscriminator;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -865,13 +1356,14 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures reference handler.
      * 
-     * @param {ReferenceHandler|undefined} referenceHandler Reference handler.
+     * @param {Optional<ReferenceHandler>} referenceHandler Reference handler.
      * 
      * @returns {this} Current instance of type metadata.
      */
-    public hasReferenceHandler(referenceHandler: ReferenceHandler | undefined): this
+    public hasReferenceHandler(referenceHandler: Optional<ReferenceHandler>): this
     {
         this.typeOptions.referenceHandler = referenceHandler;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -879,13 +1371,14 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures serializer.
      * 
-     * @param {Serializer<TType>|undefined} serializer Serializer.
+     * @param {Optional<Serializer<TObject>>} serializer Serializer.
      * 
      * @returns {this} Current instance of type metadata.
      */
-    public hasSerializer(serializer: Serializer<TType> | undefined): this
+    public hasSerializer(serializer: Optional<Serializer<TObject>>): this
     {
         this.typeOptions.serializer = serializer;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -900,6 +1393,7 @@ export class TypeMetadata<TType> extends Metadata
     public shouldPreserveNull(preserveNull: boolean = true): this
     {
         this.typeOptions.preserveNull = preserveNull;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -914,6 +1408,7 @@ export class TypeMetadata<TType> extends Metadata
     public shouldUseDefaultValue(useDefaultValue: boolean = true): this
     {
         this.typeOptions.useDefaultValue = useDefaultValue;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -928,6 +1423,7 @@ export class TypeMetadata<TType> extends Metadata
     public shouldUseImplicitConversion(useImplicitConversion: boolean = true): this
     {
         this.typeOptions.useImplicitConversion = useImplicitConversion;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -935,13 +1431,14 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures property sorter.
      * 
-     * @param {PropertySorter|undefined} propertySorter Property sorter.
+     * @param {Optional<PropertySorter>} propertySorter Property sorter.
      * 
      * @returns {this} Current instance of type metadata.
      */
-    public hasPropertySorter(propertySorter: PropertySorter | undefined): this
+    public hasPropertySorter(propertySorter: Optional<PropertySorter>): this
     {
         this.typeOptions.propertySorter = propertySorter;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -949,13 +1446,29 @@ export class TypeMetadata<TType> extends Metadata
     /**
      * Configures inject sorter.
      * 
-     * @param {InjectSorter|undefined} injectSorter Inject sorter.
+     * @param {Optional<InjectSorter>} injectSorter Inject sorter.
      * 
      * @returns {this} Current instance of type metadata.
      */
-    public hasInjectSorter(injectSorter: InjectSorter | undefined): this
+    public hasInjectSorter(injectSorter: Optional<InjectSorter>): this
     {
         this.typeOptions.injectSorter = injectSorter;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures parent type arguments.
+     * 
+     * @param {Array<TypeArgument<any>>} parentTypeArguments Parent type arguments.
+     * 
+     * @returns {this} Current instance of type metadata.
+     */
+    public hasParentTypeArguments(parentTypeArguments: Array<TypeArgument<any>>): this
+    {
+        this.typeOptions.parentTypeArguments = parentTypeArguments;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
@@ -966,26 +1479,41 @@ export class TypeMetadata<TType> extends Metadata
      * @param {PropertyName} propertyName Property name. 
      * @param {PropertyOptions<TPropertyType>} propertyOptions Property options.
      * 
-     * @returns {PropertyMetadata<TType, TPropertyType>} Configured property metadata.
+     * @returns {PropertyMetadata<TObject, TPropertyType>} Configured property metadata.
      */
-    public configurePropertyMetadata<TPropertyType>(propertyName: PropertyName, propertyOptions?: PropertyOptions<TPropertyType>): PropertyMetadata<TType, TPropertyType>
+    public configurePropertyMetadata<TPropertyType>(propertyName: PropertyName, propertyOptions?: PropertyOptions<TPropertyType>): PropertyMetadata<TObject, TPropertyType>
     {
-        let propertyMetadata = this.propertyMetadataMap.get(propertyName);
+        let propertyOptionsMap = this.typeOptions.propertyOptionsMap;
 
-        if (isNil(propertyMetadata))
+        if (propertyOptionsMap === undefined)
         {
-            propertyMetadata = new PropertyMetadata(this, propertyName, propertyOptions ?? {});
+            propertyOptionsMap = new Map<PropertyName, PropertyOptions<any>>();
 
-            this.propertyMetadataMap.set(propertyName, propertyMetadata);
-            this.propertyOptionsMap.set(propertyName, propertyMetadata.propertyOptions);
+            this.typeOptions.propertyOptionsMap = propertyOptionsMap;
+        }
+
+        let propertyMetadata = this.currentPropertyMetadataMap.get(propertyName);
+
+        if (propertyMetadata === undefined)
+        {
+            propertyOptions = propertyOptions ?? {} as PropertyOptions<TPropertyType>;
+            propertyMetadata = new PropertyMetadata(this.typeManager, this.currentTypeFnMap, this, propertyName, propertyOptions);
+
+            this.currentPropertyMetadataMap.set(propertyName, propertyMetadata);
+
+            propertyOptionsMap.set(propertyName, propertyOptions);
+
+            this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
             return propertyMetadata;
         }
 
-        if (!isNil(propertyOptions))
+        if (propertyOptions !== undefined)
         {
             propertyMetadata.configure(propertyOptions);
         }
+
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return propertyMetadata;
     }
@@ -996,26 +1524,41 @@ export class TypeMetadata<TType> extends Metadata
      * @param {InjectIndex} injectIndex Inject index. 
      * @param {InjectOptions<TInjectType>} injectOptions Inject options.
      * 
-     * @returns {InjectMetadata<TType, TInjectType>} Configured inject metadata.
+     * @returns {InjectMetadata<TObject, TInjectType>} Configured inject metadata.
      */
-    public configureInjectMetadata<TInjectType>(injectIndex: InjectIndex, injectOptions?: InjectOptions<TInjectType>): InjectMetadata<TType, TInjectType>
+    public configureInjectMetadata<TInjectType>(injectIndex: InjectIndex, injectOptions?: InjectOptions<TInjectType>): InjectMetadata<TObject, TInjectType>
     {
-        let injectMetadata = this.injectMetadataMap.get(injectIndex);
+        let injectOptionsMap = this.typeOptions.injectOptionsMap;
 
-        if (isNil(injectMetadata))
+        if (injectOptionsMap === undefined)
         {
-            injectMetadata = new InjectMetadata(this, injectIndex, injectOptions ?? {});
+            injectOptionsMap = new Map<InjectIndex, InjectOptions<any>>();
 
-            this.injectMetadataMap.set(injectIndex, injectMetadata);
-            this.injectOptionsMap.set(injectIndex, injectMetadata.injectOptions);
+            this.typeOptions.injectOptionsMap = injectOptionsMap;
+        }
+
+        let injectMetadata = this.currentInjectMetadataMap.get(injectIndex);
+
+        if (injectMetadata === undefined)
+        {
+            injectOptions = injectOptions ?? {} as InjectOptions<TInjectType>;
+            injectMetadata = new InjectMetadata(this.typeManager, this.currentTypeFnMap, this, injectIndex, injectOptions);
+
+            this.currentInjectMetadataMap.set(injectIndex, injectMetadata);
+
+            injectOptionsMap.set(injectIndex, injectOptions);
+
+            this.currentTypeState = new UnresolvedTypeState<TObject>(this);
             
             return injectMetadata;
         }
-        
-        if (!isNil(injectOptions))
+
+        if (injectOptions !== undefined)
         {
             injectMetadata.configure(injectOptions);
         }
+
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return injectMetadata;
     }
@@ -1029,12 +1572,48 @@ export class TypeMetadata<TType> extends Metadata
      */
     public hasPropertyMetadataMap<TPropertyType>(propertyOptionsMap: Map<PropertyName, PropertyOptions<TPropertyType>>): this
     {
+        const currentPropertyOptionsMap = this.clearPropertyOptionsMap(propertyOptionsMap);
+
         for (const [propertyName, propertyOptions] of propertyOptionsMap)
         {
-            this.configurePropertyMetadata(propertyName, propertyOptions);
+            const propertyMetadata = new PropertyMetadata(this.typeManager, this.currentTypeFnMap, this, propertyName, propertyOptions);
+
+            this.currentPropertyMetadataMap.set(propertyName, propertyMetadata);
+
+            currentPropertyOptionsMap.set(propertyName, propertyOptions);
         }
 
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
+
         return this;
+    }
+
+    /**
+     * Clears property options map.
+     * 
+     * @param {Map<PropertyName, PropertyOptions<TPropertyType>>} propertyOptionsMap Property options map.
+     * 
+     * @returns {Map<PropertyName, PropertyOptions<any>>} Cleared property options map.
+     */
+    private clearPropertyOptionsMap<TPropertyType>(propertyOptionsMap: Map<PropertyName, PropertyOptions<TPropertyType>>): Map<PropertyName, PropertyOptions<any>>
+    {
+        let currentPropertyOptionsMap = this.typeOptions.propertyOptionsMap;
+
+        if (currentPropertyOptionsMap === undefined)
+        {
+            currentPropertyOptionsMap = new Map<PropertyName, PropertyOptions<any>>();
+
+            this.typeOptions.propertyOptionsMap = currentPropertyOptionsMap;
+        }
+
+        if (currentPropertyOptionsMap !== propertyOptionsMap)
+        {
+            currentPropertyOptionsMap.clear();
+
+            this.currentPropertyMetadataMap.clear();
+        }
+
+        return currentPropertyOptionsMap;
     }
 
     /**
@@ -1046,221 +1625,172 @@ export class TypeMetadata<TType> extends Metadata
      */
     public hasInjectMetadataMap<TInjectType>(injectOptionsMap: Map<InjectIndex, InjectOptions<TInjectType>>): this
     {
+        const currentInjectOptionsMap = this.clearInjectOptionsMap(injectOptionsMap);
+
         for (const [injectIndex, injectOptions] of injectOptionsMap)
         {
-            this.configureInjectMetadata(injectIndex, injectOptions);
+            const injectMetadata = new InjectMetadata(this.typeManager, this.currentTypeFnMap, this, injectIndex, injectOptions);
+
+            this.currentInjectMetadataMap.set(injectIndex, injectMetadata);
+
+            currentInjectOptionsMap.set(injectIndex, injectOptions);
         }
+
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
 
         return this;
     }
 
     /**
-     * Configures type extension metadata.
+     * Clears inject options map.
      * 
-     * @param {TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TType>} typeExtensionMetadataCtor Type extension metadata constructor.
-     * @param {TTypeExtensionOptions} typeExtensionOptions Type extension options.
+     * @param {Map<InjectIndex, InjectOptions<TInjectType>>} injectOptionsMap Inject options map.
      * 
-     * @returns {TTypeExtensionMetadata} Type extension metadata
+     * @returns {Map<InjectIndex, InjectOptions<any>>} Cleared inject options map.
      */
-    public configureTypeExtensionMetadata<TTypeExtensionMetadata extends TypeExtensionMetadata<TType, TTypeExtensionOptions>, TTypeExtensionOptions extends TypeExtensionOptions>(
-        typeExtensionMetadataCtor: TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TType>, 
-        typeExtensionOptions?: TTypeExtensionOptions
-    ): TTypeExtensionMetadata
+    private clearInjectOptionsMap<TInjectType>(injectOptionsMap: Map<InjectIndex, InjectOptions<TInjectType>>): Map<InjectIndex, InjectOptions<any>>
     {
-        const typeExtensionMetadataCtorSet = this.extractCustomOption(typeExtensionMetadataCtorSetKey);
+        let currentInjectOptionsMap = this.typeOptions.injectOptionsMap;
 
-        if (!typeExtensionMetadataCtorSet.has(typeExtensionMetadataCtor))
+        if (currentInjectOptionsMap === undefined)
         {
-            typeExtensionMetadataCtorSet.add(typeExtensionMetadataCtor);
+            currentInjectOptionsMap = new Map<InjectIndex, InjectOptions<any>>();
+
+            this.typeOptions.injectOptionsMap = currentInjectOptionsMap;
         }
 
-        const initialTypeExtensionOptions = typeExtensionOptions ?? {} as TTypeExtensionOptions;
-        const typeExtensionMetadata = new typeExtensionMetadataCtor(this, initialTypeExtensionOptions);
-
-        return typeExtensionMetadata;
-    }
-    
-    /**
-     * Extracts type extension metadata.
-     * 
-     * @param {TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TType>} typeExtensionMetadataCtor Type extension metadata constructor.
-     * 
-     * @returns {TTypeExtensionMetadata|undefined} Type extension metadata or undefined.
-     */
-    public extractTypeExtensionMetadata<TTypeExtensionMetadata extends TypeExtensionMetadata<TType, TTypeExtensionOptions>, TTypeExtensionOptions extends TypeExtensionOptions>(
-        typeExtensionMetadataCtor: TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TType>
-    ): TTypeExtensionMetadata | undefined
-    {
-        const typeExtensionMetadataCtorSet = this.extractCustomOption(typeExtensionMetadataCtorSetKey);
-
-        if (!typeExtensionMetadataCtorSet.has(typeExtensionMetadataCtor)) 
+        if (currentInjectOptionsMap !== injectOptionsMap)
         {
-            return undefined;
-        }
-        
-        const initialTypeExtensionOptions = {} as TTypeExtensionOptions;
-        const typeExtensionMetadata = new typeExtensionMetadataCtor(this, initialTypeExtensionOptions);
+            currentInjectOptionsMap.clear();
 
-        return typeExtensionMetadata;
-    }
-
-    /**
-     * Configures parent type fns.
-     * 
-     * @param {Array<TypeFn<any>>} parentTypeFns Parent type fns.
-     * 
-     * @returns {this} Current instance of type metadata.
-     */
-    public hasParentTypeFns(parentTypeFns: Array<TypeFn<any>>): this
-    {
-        if (isNil(this.typeOptions.parentTypeFns))
-        {
-            this.typeOptions.parentTypeFns = new Array<TypeFn<any>>();
+            this.currentInjectMetadataMap.clear();
         }
 
-        for (const parentTypeFn of parentTypeFns) 
-        {
-            const parentTypeMetadata = this.typeManager.extractTypeMetadata(parentTypeFn);
-
-            if (!this.parentTypeMetadatas.some(ptm => ptm === parentTypeMetadata))
-            {
-                this.parentTypeMetadatas.push(parentTypeMetadata);
-            }
-
-            if (!this.typeOptions.parentTypeFns.some(ptf => ptf === parentTypeFn))
-            {
-                this.typeOptions.parentTypeFns.push(parentTypeFn);
-            }
-        }
-        
-        this.deriveParentTypeMetadataProperties();
-        this.hasDiscriminant(this.discriminant);
-
-        return this;
+        return currentInjectOptionsMap;
     }
 
     /**
      * Configures type metadata based on provided options.
      * 
-     * @param {TypeOptions<TType>} typeOptions Type options.
+     * @param {TypeOptions<TObject>} typeOptions Type options.
      * 
      * @returns {this} Current instance of type metadata.
      */
-    public configure(typeOptions: TypeOptions<TType>): this
+    public configure(typeOptions: TypeOptions<TObject>): this
     {
-        if (!isUndefined(typeOptions.parentTypeFns))
-        {
-            this.hasParentTypeFns(typeOptions.parentTypeFns);
-        }
-
-        if (!isUndefined(typeOptions.alias)) 
+        if (typeOptions.alias !== undefined) 
         {
             this.hasAlias(typeOptions.alias);
         }
 
-        if (!isUndefined(typeOptions.customOptions))
+        if (typeOptions.customValueMap !== undefined)
         {
-            this.hasCustomOptions(typeOptions.customOptions);
+            this.hasCustomValueMap(typeOptions.customValueMap);
         }
 
-        if (!isUndefined(typeOptions.defaultValue))
+        if (typeOptions.defaultValue !== undefined)
         {
             this.hasDefaultValue(typeOptions.defaultValue);
         }
 
-        if (!isUndefined(typeOptions.serializedDefaultValue))
+        if (typeOptions.serializedDefaultValue !== undefined)
         {
             this.hasSerializedDefaultValue(typeOptions.serializedDefaultValue);
         }
 
-        if (!isUndefined(typeOptions.deserializedDefaultValue)) 
+        if (typeOptions.deserializedDefaultValue !== undefined) 
         {
             this.hasDeserializedDefaultValue(typeOptions.deserializedDefaultValue);
         }
 
-        if (!isUndefined(typeOptions.discriminator)) 
+        if (typeOptions.discriminator !== undefined) 
         {
             this.hasDiscriminator(typeOptions.discriminator);
         }
 
-        if (!isUndefined(typeOptions.discriminant))
+        if (typeOptions.discriminant !== undefined)
         {
             this.hasDiscriminant(typeOptions.discriminant);
         }
 
-        if (!isUndefined(typeOptions.factory)) 
+        if (typeOptions.factory !== undefined) 
         {
             this.hasFactory(typeOptions.factory);
         }
 
-        if (!isUndefined(typeOptions.injectable))
+        if (typeOptions.injectable !== undefined)
         {
             this.isInjectable(typeOptions.injectable);
         }
 
-        if (!isUndefined(typeOptions.injector))
+        if (typeOptions.injector !== undefined)
         {
             this.hasInjector(typeOptions.injector);
         }
 
-        if (!isUndefined(typeOptions.log))
+        if (typeOptions.logger !== undefined)
         {
-            this.hasLog(typeOptions.log);
+            this.hasLogger(typeOptions.logger);
         }
 
-        if (!isUndefined(typeOptions.namingConvention))
+        if (typeOptions.namingConvention !== undefined)
         {
             this.hasNamingConvention(typeOptions.namingConvention);
         }
 
-        if (!isUndefined(typeOptions.preserveDiscriminator))
+        if (typeOptions.preserveDiscriminator !== undefined)
         {
             this.shouldPreserveDiscriminator(typeOptions.preserveDiscriminator);
         }
 
-        if (!isUndefined(typeOptions.referenceHandler))
+        if (typeOptions.referenceHandler !== undefined)
         {
             this.hasReferenceHandler(typeOptions.referenceHandler);
         }
 
-        if (!isUndefined(typeOptions.serializer))
+        if (typeOptions.serializer !== undefined)
         {
             this.hasSerializer(typeOptions.serializer);
         }
 
-        if (!isUndefined(typeOptions.preserveNull))
+        if (typeOptions.preserveNull !== undefined)
         {
             this.shouldPreserveNull(typeOptions.preserveNull);
         }
 
-        if (!isUndefined(typeOptions.useDefaultValue)) 
+        if (typeOptions.useDefaultValue !== undefined) 
         {
             this.shouldUseDefaultValue(typeOptions.useDefaultValue);
         }
 
-        if (!isUndefined(typeOptions.useImplicitConversion)) 
+        if (typeOptions.useImplicitConversion !== undefined) 
         {
             this.shouldUseImplicitConversion(typeOptions.useImplicitConversion);
         }
 
-        if (!isUndefined(typeOptions.propertyOptionsMap))
+        if (typeOptions.propertyOptionsMap !== undefined)
         {
             this.hasPropertyMetadataMap(typeOptions.propertyOptionsMap);
         }
 
-        if (!isUndefined(typeOptions.injectOptionsMap))
+        if (typeOptions.injectOptionsMap !== undefined)
         {
             this.hasInjectMetadataMap(typeOptions.injectOptionsMap);
         }
 
-        if (!isUndefined(typeOptions.propertySorter))
+        if (typeOptions.propertySorter !== undefined)
         {
             this.hasPropertySorter(typeOptions.propertySorter);
         }
 
-        if (!isUndefined(typeOptions.injectSorter))
+        if (typeOptions.injectSorter !== undefined)
         {
             this.hasInjectSorter(typeOptions.injectSorter);
+        }
+
+        if (typeOptions.parentTypeArguments !== undefined)
+        {
+            this.hasParentTypeArguments(typeOptions.parentTypeArguments);
         }
 
         return this;

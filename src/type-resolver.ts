@@ -3,6 +3,6 @@ import { TypeFn } from './type-fn';
 /**
  * Type resolver.
  * 
- * @type {TypeResolver<TType>}
+ * @type {TypeResolver<TObject>}
  */
-export type TypeResolver<TType> = () => TypeFn<TType>;
+export type TypeResolver<TObject> = () => TypeFn<TObject>;

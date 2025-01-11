@@ -1,13 +1,12 @@
-import { isUndefined } from 'lodash';
 import { CustomKey, Inject, Property, PropertyExtensionMetadata, PropertyMetadata, Type, TypeManager } from '../src';
 
 const customPropertyKey: CustomKey<string> = new CustomKey<string>('$customPropertyKey');
 
 type CustomPropertyOptions = { customProperty?: string };
 
-class CustomPropertyMetadata<TDeclaringType, TType> extends PropertyExtensionMetadata<TDeclaringType, TType, CustomPropertyOptions>
+class CustomPropertyMetadata<TDeclaringObject, TObject> extends PropertyExtensionMetadata<TDeclaringObject, TObject, CustomPropertyOptions>
 {
-    public constructor(propertyMetadata: PropertyMetadata<TDeclaringType, TType>, customPropertyOptions: CustomPropertyOptions)
+    public constructor(propertyMetadata: PropertyMetadata<TDeclaringObject, TObject>, customPropertyOptions: CustomPropertyOptions)
     {
         super(propertyMetadata, customPropertyOptions);
 
@@ -16,19 +15,19 @@ class CustomPropertyMetadata<TDeclaringType, TType> extends PropertyExtensionMet
 
     public get customProperty(): string
     {
-        return this.propertyMetadata.extractCustomOption(customPropertyKey);
+        return this.propertyMetadata.extractCustomValue(customPropertyKey);
     }
 
     public hasCustomProperty(customProperty: string): this
     {
-        this.propertyMetadata.hasCustomOption(customPropertyKey, customProperty);
+        this.propertyMetadata.hasCustomValue(customPropertyKey, customProperty);
 
         return this;
     }
 
     public configure(propertyExtensionOptions: CustomPropertyOptions): this 
     {
-        if (!isUndefined(propertyExtensionOptions.customProperty)) 
+        if (propertyExtensionOptions.customProperty !== undefined) 
         {
             this.hasCustomProperty(propertyExtensionOptions.customProperty);
         }

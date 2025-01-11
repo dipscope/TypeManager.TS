@@ -4,6 +4,6 @@ import { TypeCtor } from './type-ctor';
 /**
  * Type function.
  * 
- * @type {TypeFn<TType>}
+ * @type {TypeFn<TObject>}
  */
-export type TypeFn<TType> = TypeCtor<TType> | TypeAbstraction<TType>;
+export type TypeFn<TObject> = TypeCtor<TObject> | TypeAbstraction<TObject>;

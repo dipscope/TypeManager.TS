@@ -1,4 +1,3 @@
-import { isArray, isNull, isSet, isUndefined } from 'lodash';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -20,27 +19,27 @@ export class SetSerializer implements Serializer<Set<any>>
      */
     public serialize(x: TypeLike<Set<any>>, serializerContext: SerializerContext<Set<any>>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.serializedNullValue;
         }
 
-        if (isSet(x))
+        if (x instanceof Set)
         {
             return serializerContext.defineReference(x, () =>
             {
                 const set = x;
-                const array = new Array<any>();
+                const array = new Array<any>(set.size);
                 const genericSerializerContext = serializerContext.defineGenericSerializerContext(0);
+                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext();
+                const serializer = valueSerializerContext.serializer;
 
-                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({ 
-                    jsonPathKey: genericSerializerContext.jsonPathKey 
-                });
+                valueSerializerContext.referenceValueSetter = (v, k) => array[k] = v;
 
                 let i = -1;
                 
@@ -48,20 +47,16 @@ export class SetSerializer implements Serializer<Set<any>>
                 {
                     i++;
 
-                    valueSerializerContext.hasJsonPathKey(i);
-                    valueSerializerContext.hasReferenceValueSetter(v => array[i] = v);
+                    valueSerializerContext.jsonPathKey = i;
 
-                    array[i] = valueSerializerContext.serialize(v);
+                    array[i] = serializer.serialize(v, valueSerializerContext);
                 }
 
                 return array;
             });
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as set.`, x);
-        }
+        serializerContext.logger.error('SetSerializer', `${serializerContext.jsonPath}: cannot serialize value as set.`, x);
 
         return undefined;
     }
@@ -76,44 +71,40 @@ export class SetSerializer implements Serializer<Set<any>>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Set<any>>): TypeLike<Set<any>>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.deserializedNullValue;
         }
 
-        if (isArray(x))
+        if (Array.isArray(x))
         {
             return serializerContext.restoreReference(x, () =>
             {
                 const array = x;
                 const set = new Set<any>();
                 const genericSerializerContext = serializerContext.defineGenericSerializerContext(0);
+                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext();
+                const serializer = valueSerializerContext.serializer;
                 
-                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({ 
-                    jsonPathKey: genericSerializerContext.jsonPathKey 
-                });
-                
+                valueSerializerContext.referenceValueSetter = v => set.add(v);
+
                 for (let i = 0; i < array.length; i++)
                 {
-                    valueSerializerContext.hasJsonPathKey(i);
-                    valueSerializerContext.hasReferenceValueSetter(v => set.add(v));
+                    valueSerializerContext.jsonPathKey = i;
 
-                    set.add(valueSerializerContext.deserialize(array[i]));
+                    set.add(serializer.deserialize(array[i], valueSerializerContext));
                 }
 
                 return set;
             });
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as set.`, x);
-        }
+        serializerContext.logger.error('SetSerializer', `${serializerContext.jsonPath}: cannot deserialize value as set.`, x);
 
         return undefined;
     }

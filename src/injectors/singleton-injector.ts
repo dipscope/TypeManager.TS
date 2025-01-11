@@ -1,6 +1,5 @@
-import { isNil } from 'lodash';
-import { isCtorFunction } from '../functions/is-ctor-function';
 import { Injector } from '../injector';
+import { TypeCtor } from '../type-ctor';
 import { TypeMetadata } from '../type-metadata';
 
 /**
@@ -20,11 +19,11 @@ export class SingletonInjector implements Injector
     /**
      * Method to get instance described by type metadata.
      * 
-     * @param {TypeMetadata<TType>} typeMetadata Type metadata.
+     * @param {TypeMetadata<TObject>} typeMetadata Type metadata.
      * 
-     * @returns {TType} Instance of type described by type metadata or undefined.
+     * @returns {TObject} Instance of type described by type metadata or undefined.
      */
-    public get<TType>(typeMetadata: TypeMetadata<TType>): TType | undefined
+    public get<TObject>(typeMetadata: TypeMetadata<TObject>): TObject | undefined
     {
         if (!typeMetadata.injectable)
         {
@@ -33,7 +32,7 @@ export class SingletonInjector implements Injector
 
         const instance = this.instanceMap.get(typeMetadata);
 
-        if (isNil(instance))
+        if (instance === undefined)
         {
             return this.init(typeMetadata);
         }
@@ -44,26 +43,21 @@ export class SingletonInjector implements Injector
     /**
      * Creates instance described by type metadata.
      * 
-     * @param {TypeMetadata<TType>} typeMetadata Type metadata.
+     * @param {TypeMetadata<TObject>} typeMetadata Type metadata.
      * 
-     * @returns {TType} Type instance described by type metadata.
+     * @returns {TObject} Type instance described by type metadata.
      */
-    private init<TType>(typeMetadata: TypeMetadata<TType>): TType
+    private init<TObject>(typeMetadata: TypeMetadata<TObject>): TObject
     {
-        const typeCtor = isCtorFunction(typeMetadata.typeFn) ? typeMetadata.typeFn : undefined;
+        const typeCtor = typeMetadata.typeFn as TypeCtor<TObject>;
+        const args = new Array<any>(typeCtor.length);
+        const sortedInjectMetadatas = typeMetadata.sortedInjectMetadatas;
 
-        if (isNil(typeCtor))
+        for (let i = 0; i < sortedInjectMetadatas.length; i++)
         {
-            throw new Error(`${typeMetadata.typeName}: cannot inject instance of abstract type.`);
+            args[sortedInjectMetadatas[i].injectIndex] = this.get(sortedInjectMetadatas[i].typeMetadata);
         }
-
-        const args = new Array<any>();
-
-        for (const injectMetadata of typeMetadata.injectMetadataMap.values())
-        {
-            args[injectMetadata.injectIndex] = this.get(injectMetadata.typeMetadata);
-        }
-
+        
         const instance = new typeCtor(...args);
 
         this.instanceMap.set(typeMetadata, instance);

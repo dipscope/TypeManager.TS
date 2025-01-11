@@ -5,15 +5,15 @@ import { InjectIndex } from './inject-index';
 import { InjectOptions } from './inject-options';
 import { PropertyName } from './property-name';
 import { PropertyOptions } from './property-options';
-import { TypeFn } from './type-fn';
+import { TypeArgument } from './type-argument';
 import { TypeOptionsBase } from './type-options-base';
 
 /**
  * Type options interface.
  * 
- * @type {TypeOptions<TType>}
+ * @type {TypeOptions<TObject>}
  */
-export type TypeOptions<TType> = Partial<TypeOptionsBase<TType>> &
+export type TypeOptions<TObject> = Partial<TypeOptionsBase<TObject>> &
 {
     /**
      * Type alias. 
@@ -67,6 +67,14 @@ export type TypeOptions<TType> = Partial<TypeOptionsBase<TType>> &
     injectable?: boolean;
 
     /**
+     * Explicit array of type arguments to specify polymorphic serialization based 
+     * on implemented interfaces.
+     * 
+     * @type {Array<TypeArgument<any>>}
+     */
+    parentTypeArguments?: Array<TypeArgument<any>>;
+
+    /**
      * Inject options related to this type.
      * 
      * @type {Map<InjectIndex, InjectOptions<any>>}
@@ -79,12 +87,4 @@ export type TypeOptions<TType> = Partial<TypeOptionsBase<TType>> &
      * @type {Map<PropertyName, PropertyOptions<any>>}
      */
     propertyOptionsMap?: Map<PropertyName, PropertyOptions<any>>;
-    
-    /**
-     * Explicit array of type fns to specify polymorphic serialization based 
-     * on implemented interfaces.
-     * 
-     * @type {Array<TypeFn<any>>}
-     */
-    parentTypeFns?: Array<TypeFn<any>>;
-}
+};

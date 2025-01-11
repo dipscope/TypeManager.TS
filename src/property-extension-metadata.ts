@@ -3,26 +3,26 @@ import { PropertyMetadata } from './property-metadata';
 
 /**
  * Property extension metadata used by plugins to provide additional features for property metadata 
- * using custom keys. Descendant classes are just wrappers to get convenient access to custom context.
+ * using custom keys. Descendant classes are just wrappers to get convenient access to custom value map.
  * 
- * @type {PropertyExtensionMetadata<TDeclaringType, TType, TPropertyExtensionOptions>}
+ * @type {PropertyExtensionMetadata<TDeclaringObject, TObject, TPropertyExtensionOptions>}
  */
-export abstract class PropertyExtensionMetadata<TDeclaringType, TType, TPropertyExtensionOptions extends PropertyExtensionOptions>
+export abstract class PropertyExtensionMetadata<TDeclaringObject, TObject, TPropertyExtensionOptions extends PropertyExtensionOptions>
 {
     /**
      * Property metadata which we extend.
      * 
-     * @type {PropertyMetadata<TDeclaringType, TType>}
+     * @type {PropertyMetadata<TDeclaringObject, TObject>}
      */
-    public readonly propertyMetadata: PropertyMetadata<TDeclaringType, TType>;
+    public readonly propertyMetadata: PropertyMetadata<TDeclaringObject, TObject>;
 
     /**
      * Constructor.
      * 
-     * @param {PropertyMetadata<TDeclaringType, TType>} propertyMetadata Property metadata which we extend.
+     * @param {PropertyMetadata<TDeclaringObject, TObject>} propertyMetadata Property metadata which we extend.
      * @param {TPropertyExtensionOptions} propertyExtensionOptions Property extension options.
      */
-    public constructor(propertyMetadata: PropertyMetadata<TDeclaringType, TType>, propertyExtensionOptions: TPropertyExtensionOptions)
+    public constructor(propertyMetadata: PropertyMetadata<TDeclaringObject, TObject>, propertyExtensionOptions: TPropertyExtensionOptions)
     {
         this.propertyMetadata = propertyMetadata;
 

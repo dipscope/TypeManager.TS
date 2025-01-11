@@ -5,7 +5,7 @@ const rankKey = new CustomKey<number>('rank');
 
 @Type({
     alias: 'User:Type',
-    customOptions: [[rankKey, 1]],
+    customValueMap: new Map([[rankKey, 1]]),
     serializedDefaultValue: () => new User(),
     deserializedDefaultValue: () => new User(),
     preserveNull: false,
@@ -31,32 +31,26 @@ describe('Type decorator', () =>
     it('should register type metadata', () =>
     {
         const userMetadata = TypeManager.extractTypeMetadata(User);
-        const typeFn = TypeManager.typeFnMap.get('User:Type');
 
-        expect(userMetadata.typeOptions.alias).toBe('User:Type');
-        expect(userMetadata.typeOptions.customOptions).toBeDefined();
-        expect(userMetadata.typeOptions.customOptions?.length).toBe(1);
-        expect(userMetadata.typeOptions.serializedDefaultValue).toBeDefined();
-        expect(userMetadata.typeOptions.serializedDefaultValue()).toBeInstanceOf(User);
-        expect(userMetadata.typeOptions.deserializedDefaultValue).toBeDefined();
-        expect(userMetadata.typeOptions.deserializedDefaultValue()).toBeInstanceOf(User);
-        expect(userMetadata.typeOptions.preserveNull).toBeFalse();
-        expect(userMetadata.typeOptions.useDefaultValue).toBeTrue();
-        expect(userMetadata.typeOptions.useImplicitConversion).toBeFalse();
-        expect(userMetadata.typeOptions.injectable).toBeTrue();
-        expect(userMetadata.typeOptions.factory).toBeInstanceOf(TypeFactory);
-        expect(userMetadata.typeOptions.injector).toBeInstanceOf(SingletonInjector);
-        expect(userMetadata.typeOptions.serializer).toBeInstanceOf(TypeSerializer);
-        expect(userMetadata.typeOptions.discriminator).toBe('UserDiscriminator');
-        expect(userMetadata.typeOptions.discriminant).toBe('UserDiscriminant');
-        expect(userMetadata.typeOptions.preserveDiscriminator).toBeTrue();
-        expect(userMetadata.typeOptions.propertySorter).toBeInstanceOf(DescPropertySorter);
-        expect(userMetadata.typeOptions.injectSorter).toBeInstanceOf(AscInjectSorter);
-        
-        expect(typeFn).toBeDefined();
-        expect(typeFn).toBe(userMetadata.typeFn);
-
-        expect(userMetadata.customContext.has(rankKey)).toBeTrue();
-        expect(userMetadata.customContext.get(rankKey)).toBe(1);
+        expect(userMetadata.alias).toBe('User:Type');
+        expect(userMetadata.customValueMap.size).toBe(1);
+        expect(userMetadata.serializedDefaultValue).toBeDefined();
+        expect(userMetadata.serializedDefaultValue).toBeInstanceOf(User);
+        expect(userMetadata.deserializedDefaultValue).toBeDefined();
+        expect(userMetadata.deserializedDefaultValue).toBeInstanceOf(User);
+        expect(userMetadata.preserveNull).toBeFalse();
+        expect(userMetadata.useDefaultValue).toBeTrue();
+        expect(userMetadata.useImplicitConversion).toBeFalse();
+        expect(userMetadata.injectable).toBeTrue();
+        expect(userMetadata.factory).toBeInstanceOf(TypeFactory);
+        expect(userMetadata.injector).toBeInstanceOf(SingletonInjector);
+        expect(userMetadata.serializer).toBeInstanceOf(TypeSerializer);
+        expect(userMetadata.discriminator).toBe('UserDiscriminator');
+        expect(userMetadata.discriminant).toBe('UserDiscriminant');
+        expect(userMetadata.preserveDiscriminator).toBeTrue();
+        expect(userMetadata.propertySorter).toBeInstanceOf(DescPropertySorter);
+        expect(userMetadata.injectSorter).toBeInstanceOf(AscInjectSorter);
+        expect(userMetadata.customValueMap.has(rankKey)).toBeTrue();
+        expect(userMetadata.customValueMap.get(rankKey)).toBe(1);
     });
 });

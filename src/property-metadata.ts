@@ -1,43 +1,49 @@
-import { isFunction, isNil, isUndefined } from 'lodash';
 import { Alias } from './alias';
-import { CustomContext } from './custom-context';
+import { DEFAULT_VALUE_RESOLVER } from './constants/default-value-resolver';
+import { EMPTY_ARRAY } from './constants/empty-array';
+import { EMPTY_MAP } from './constants/empty-map';
+import { NULL_VALUE_RESOLVER } from './constants/null-value-resolver';
 import { CustomKey } from './custom-key';
 import { CustomOption } from './custom-option';
+import { CustomValue } from './custom-value';
 import { DefaultValue } from './default-value';
 import { getReflectMetadata } from './functions/get-reflect-metadata';
 import { GenericArgument } from './generic-argument';
 import { GenericMetadata } from './generic-metadata';
-import { GenericMetadataResolver } from './generic-metadata-resolver';
-import { GenericStructure } from './generic-structure';
 import { Metadata } from './metadata';
 import { NamingConvention } from './naming-convention';
+import { Nullable } from './nullable';
+import { Optional } from './optional';
 import { PropertyExtensionMetadata } from './property-extension-metadata';
 import { PropertyExtensionMetadataCtor } from './property-extension-metadata-ctor';
-import { propertyExtensionMetadataCtorSetKey } from './property-extension-metadata-ctor-set-key';
+import { PROPERTY_EXTENSION_METADATA_CTOR_SET_KEY } from './property-extension-metadata-ctor-set-key';
 import { PropertyExtensionOptions } from './property-extension-options';
-import { PropertyInternals } from './property-internals';
 import { PropertyName } from './property-name';
 import { PropertyOptions } from './property-options';
+import { PropertyState } from './property-state';
+import { ResolvedPropertyState } from './property-states/resolved-property-state';
+import { UnresolvedPropertyState } from './property-states/unresolved-property-state';
 import { ReferenceHandler } from './reference-handler';
 import { Serializer } from './serializer';
 import { TypeArgument } from './type-argument';
 import { TypeFn } from './type-fn';
+import { TypeManager } from './type-manager';
 import { TypeMetadata } from './type-metadata';
-import { TypeMetadataResolver } from './type-metadata-resolver';
+import { TypeState } from './type-state';
 
 /**
  * Main class used to describe a certain property.
  * 
- * @type {PropertyMetadata<TDeclaringType, TType>}
+ * @type {PropertyMetadata<TDeclaringObject, TObject>}
  */
-export class PropertyMetadata<TDeclaringType, TType> extends Metadata
+export class PropertyMetadata<TDeclaringObject, TObject> extends Metadata
 {
     /**
      * Type metadata to which property metadata belongs to.
      * 
-     * @type {TypeMetadata<TDeclaringType>}
+     * @type {TypeMetadata<TDeclaringObject>}
      */
-    public readonly declaringTypeMetadata: TypeMetadata<TDeclaringType>;
+    public readonly declaringTypeMetadata: TypeMetadata<TDeclaringObject>;
 
     /**
      * Property name as declared in type.
@@ -47,168 +53,132 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     public readonly propertyName: PropertyName;
 
     /**
-     * Property options.
+     * Normalized property name used for sorting.
      * 
-     * @type {PropertyOptions<TType>}
+     * @type {PropertyName}
      */
-    public readonly propertyOptions: PropertyOptions<TType>;
+    public readonly normalizedPropertyName: PropertyName;
 
     /**
-     * Property internals.
+     * Property options.
      * 
-     * @type {PropertyInternals}
+     * @type {PropertyOptions<TObject>}
      */
-    public readonly propertyInternals: PropertyInternals;
+    private readonly propertyOptions: PropertyOptions<TObject>;
 
     /**
      * Type function defined using reflect metadata.
      * 
-     * Used as a fallback when type argument is not defined.
-     * 
-     * @type {TypeFn<TType>}
+     * @type {Optional<TypeFn<TObject>>}
      */
-    public readonly reflectTypeFn?: TypeFn<TType>;
+    private readonly reflectTypeFn: Optional<TypeFn<TObject>>;
+
+    /**
+     * Current property state.
+     * 
+     * @type {PropertyState<TDeclaringObject, TObject>}
+     */
+    private currentPropertyState: PropertyState<TDeclaringObject, TObject>;
 
     /**
      * Constructor.
      * 
-     * @param {TypeMetadata<TDeclaringType>} declaringTypeMetadata Type metadata to which property metadata belongs to.
+     * @param {TypeManager} typeManager Type manager.
+     * @param {ReadonlyMap<Alias, TypeFn<any>>} typeFnMap Type function map for types with aliases.
+     * @param {TypeMetadata<TDeclaringObject>} declaringTypeMetadata Type metadata to which property metadata belongs to.
      * @param {PropertyName} propertyName Property name.
-     * @param {PropertyOptions<TType>} propertyOptions Property options.
+     * @param {PropertyOptions<TObject>} propertyOptions Property options.
      */
     public constructor(
-        declaringTypeMetadata: TypeMetadata<TDeclaringType>, 
+        typeManager: TypeManager, 
+        typeFnMap: ReadonlyMap<Alias, TypeFn<any>>,
+        declaringTypeMetadata: TypeMetadata<TDeclaringObject>, 
         propertyName: PropertyName,
-        propertyOptions: PropertyOptions<TType>
+        propertyOptions: PropertyOptions<TObject>
     )
     {
-        super(declaringTypeMetadata.typeManager);
+        super(typeManager, typeFnMap);
 
         this.declaringTypeMetadata = declaringTypeMetadata;
         this.propertyName = propertyName;
+        this.normalizedPropertyName = propertyName.toLocaleLowerCase();
         this.reflectTypeFn = getReflectMetadata('design:type', declaringTypeMetadata.typeFn.prototype, propertyName);
         this.propertyOptions = this.constructPropertyOptions(propertyOptions);
-        this.propertyInternals = this.constructPropertyInternals();
-        
+        this.currentPropertyState = new UnresolvedPropertyState(this);
+
         this.configure(propertyOptions);
 
         return;
     }
 
     /**
+     * Gets property state.
+     * 
+     * @returns {PropertyState<TDeclaringObject, TObject>} Property state.
+     */
+    public get propertyState(): PropertyState<TDeclaringObject, TObject>
+    {
+        return this.currentPropertyState;
+    }
+
+    /**
      * Gets alias.
      * 
-     * @returns {Alias|undefined} Alias or undefined.
+     * @returns {Optional<Alias>} Alias or undefined.
      */
-    public get alias(): Alias | undefined
+    public get alias(): Optional<Alias>
     {
-        return this.propertyOptions.alias;
+        return this.currentPropertyState.alias;
     }
 
     /**
-     * Gets custom options.
+     * Gets custom value map.
      * 
-     * @returns {Array<CustomOption>} Custom options.
+     * @returns {ReadonlyMap<CustomKey<any>, CustomValue>} Custom value map.
      */
-    public get customOptions(): Array<CustomOption> | undefined
+    public get customValueMap(): ReadonlyMap<CustomKey<any>, CustomValue>
     {
-        return this.propertyOptions.customOptions;
-    }
-    
-    /**
-     * Gets custom context.
-     * 
-     * @returns {CustomContext} Custom context.
-     */
-    public get customContext(): CustomContext
-    {
-        let customContext = this.propertyInternals.customContext;
-
-        if (isNil(customContext))
-        {
-            this.propertyOptions.customOptions = new Array<CustomOption>();
-            this.propertyInternals.customContext = new CustomContext(this.propertyOptions.customOptions);
-
-            customContext = this.propertyInternals.customContext;
-        }
-
-        return customContext;
+        return this.currentPropertyState.customValueMap;
     }
 
     /**
      * Gets serialized null value.
      * 
-     * @returns {any|undefined} Resolved serialized null value or undefined.
+     * @returns {Nullable<any>} Resolved serialized null value or undefined.
      */
-    public get serializedNullValue(): any | undefined
+    public get serializedNullValue(): Nullable<any>
     {
-        if (this.preserveNull)
-        {
-            return null;
-        }
-
-        return this.serializedDefaultValue;
+        return this.currentPropertyState.serializedNullValueResolver();
     }
 
     /**
      * Gets serialized default value.
      * 
-     * @returns {any|undefined} Resolved serialized default value or undefined.
+     * @returns {Optional<any>} Resolved serialized default value or undefined.
      */
-    public get serializedDefaultValue(): any | undefined
+    public get serializedDefaultValue(): Optional<any>
     {
-        if (this.useDefaultValue)
-        {
-            const serializedDefaultValue = this.propertyOptions.defaultValue 
-                ?? this.propertyOptions.serializedDefaultValue 
-                ?? this.typeMetadata.serializedDefaultValue;
-
-            const defaultValue = isFunction(serializedDefaultValue) 
-                ? serializedDefaultValue() 
-                : serializedDefaultValue;
-
-            return defaultValue;
-        }
-
-        return undefined;
+        return this.currentPropertyState.serializedDefaultValueResolver();
     }
 
     /**
      * Gets deserialized null value.
      * 
-     * @returns {any|undefined} Resolved deserialized null value or undefined.
+     * @returns {Nullable<any>} Resolved deserialized null value or undefined.
      */
-    public get deserializedNullValue(): any | undefined
+    public get deserializedNullValue(): Nullable<any>
     {
-        if (this.preserveNull)
-        {
-            return null;
-        }
-
-        return this.deserializedDefaultValue;
+        return this.currentPropertyState.deserializedNullValueResolver();
     }
     
     /**
      * Gets deserialized default value.
      * 
-     * @returns {any|undefined} Resolved deserialized default value or undefined.
+     * @returns {Optional<any>} Resolved deserialized default value or undefined.
      */
-    public get deserializedDefaultValue(): any | undefined
+    public get deserializedDefaultValue(): Optional<any>
     {
-        if (this.useDefaultValue)
-        {
-            const deserializedDefaultValue = this.propertyOptions.defaultValue 
-                ?? this.propertyOptions.deserializedDefaultValue 
-                ?? this.typeMetadata.deserializedDefaultValue;
-
-            const defaultValue = isFunction(deserializedDefaultValue) 
-                ? deserializedDefaultValue() 
-                : deserializedDefaultValue;
-
-            return defaultValue;
-        }
-
-        return undefined;
+        return this.currentPropertyState.deserializedDefaultValueResolver();
     }
 
     /**
@@ -218,17 +188,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public get serializedPropertyName(): string
     {
-        const alias = this.alias;
-
-        if (isNil(alias))
-        {
-            const namingConvention = this.namingConvention ?? this.declaringTypeMetadata.namingConvention;
-            const propertyName = namingConvention ? namingConvention.convert(this.propertyName) : this.propertyName;
-
-            return propertyName;
-        }
-
-        return alias;
+        return this.currentPropertyState.serializedPropertyName;
     }
 
     /**
@@ -238,75 +198,47 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public get deserializedPropertyName(): string
     {
-        return this.propertyName;
+        return this.currentPropertyState.deserializedPropertyName;
     }
 
     /**
      * Gets deserializable value.
      * 
-     * @returns {boolean|undefined} Deserializable indicator or undefined.
+     * @returns {boolean} Deserializable indicator.
      */
-    public get deserializable(): boolean | undefined
+    public get deserializable(): boolean
     {
-        return this.propertyOptions.deserializable;
+        return this.currentPropertyState.deserializable;
     }
 
     /**
      * Gets generic arguments.
      * 
-     * @returns {Array<GenericArgument<any>>|undefined} Generic arguments or undefined.
+     * @returns {ReadonlyArray<GenericArgument<any>>} Generic arguments.
      */
-    public get genericArguments(): Array<GenericArgument<any>> | undefined
+    public get genericArguments(): ReadonlyArray<GenericArgument<any>>
     {
-        return this.propertyOptions.genericArguments;
-    }
-
-    /**
-     * Gets generic structures.
-     * 
-     * @returns {Array<GenericStructure<any>>|undefined} Generic structures or undefined.
-     */
-    public get genericStructures(): Array<GenericStructure<any>> | undefined
-    {
-        return this.propertyInternals.genericStructures;
-    }
-
-    /**
-     * Gets generic metadata resolvers.
-     * 
-     * @returns {Array<GenericMetadataResolver<any>>|undefined} Generic metadata resolvers or undefined.
-     */
-    public get genericMetadataResolvers(): Array<GenericMetadataResolver<any>> | undefined
-    {
-        return this.propertyInternals.genericMetadataResolvers;
+        return this.currentPropertyState.genericArguments;
     }
 
     /**
      * Gets generic metadatas.
      * 
-     * @returns {Array<GenericMetadata<any>>|undefined} Generic metadatas.
+     * @returns {ReadonlyArray<GenericMetadata<any>>} Generic metadatas.
      */
-    public get genericMetadatas(): Array<GenericMetadata<any>> | undefined
+    public get genericMetadatas(): ReadonlyArray<GenericMetadata<any>>
     {
-        const genericStructures = this.genericStructures;
-        const genericMetadataResolvers = this.genericMetadataResolvers;
-
-        if (isNil(genericStructures) || isNil(genericMetadataResolvers))
-        {
-            return undefined;
-        }
-
-        return this.defineGenericMetadatas(genericStructures, genericMetadataResolvers);
+        return this.currentPropertyState.genericMetadatas;
     }
 
     /**
      * Gets naming convention.
      * 
-     * @returns {NamingConvention|undefined} Naming convention or undefined.
+     * @returns {Optional<NamingConvention>} Naming convention or undefined.
      */
-    public get namingConvention(): NamingConvention | undefined
+    public get namingConvention(): Optional<NamingConvention>
     {
-        return this.propertyOptions.namingConvention ?? this.typeMetadata.namingConvention;
+        return this.currentPropertyState.namingConvention;
     }
 
     /**
@@ -316,37 +248,27 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public get referenceHandler(): ReferenceHandler 
     {
-        return this.propertyOptions.referenceHandler ?? this.typeMetadata.referenceHandler;
+        return this.currentPropertyState.referenceHandler;
     }
 
     /**
      * Gets serializable value.
      * 
-     * @returns {boolean|undefined} Serializable indicator or undefined.
+     * @returns {boolean} Serializable indicator.
      */
-    public get serializable(): boolean | undefined
+    public get serializable(): boolean
     {
-        return this.propertyOptions.serializable;
-    }
-
-    /**
-     * Checks if serialization configured.
-     * 
-     * @returns {boolean} True when serialization configured. False otherwise.
-     */
-    public get serializationConfigured(): boolean
-    {
-        return !isNil(this.serializable) || !isNil(this.deserializable);
+        return this.currentPropertyState.serializable;
     }
 
     /**
      * Gets serializer.
      * 
-     * @returns {Serializer<TType>} Serializer.
+     * @returns {Serializer<TObject>} Serializer.
      */
-    public get serializer(): Serializer<TType> 
+    public get serializer(): Serializer<TObject> 
     {
-        return this.propertyOptions.serializer ?? this.typeMetadata.serializer;
+        return this.currentPropertyState.serializer;
     }
 
     /**
@@ -354,29 +276,19 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      * 
      * @returns {TypeArgument} Type argument.
      */
-    public get typeArgument(): TypeArgument<TType>
+    public get typeArgument(): TypeArgument<TObject>
     {
-        return this.propertyOptions.typeArgument;
-    }
-
-    /**
-     * Gets type metadata resolver.
-     * 
-     * @returns {TypeMetadataResolver<TType>} Type metadata resolver.
-     */
-    public get typeMetadataResolver(): TypeMetadataResolver<TType>
-    {
-        return this.propertyInternals.typeMetadataResolver;
+        return this.currentPropertyState.typeArgument;
     }
 
     /**
      * Gets type metadata.
      * 
-     * @returns {TypeMetadata<TType>} Type metadata.
+     * @returns {TypeMetadata<TObject>} Type metadata.
      */
-    public get typeMetadata(): TypeMetadata<TType>
+    public get typeMetadata(): TypeMetadata<TObject>
     {
-        return this.typeMetadataResolver(this.typeArgument);
+        return this.currentPropertyState.typeMetadata;
     }
 
     /**
@@ -386,7 +298,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public get preserveNull(): boolean
     {
-        return this.propertyOptions.preserveNull ?? this.typeMetadata.preserveNull;
+        return this.currentPropertyState.preserveNull;
     }
 
     /**
@@ -396,7 +308,7 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public get useDefaultValue(): boolean
     {
-        return this.propertyOptions.useDefaultValue ?? this.typeMetadata.useDefaultValue;
+        return this.currentPropertyState.useDefaultValue;
     }
 
     /**
@@ -406,307 +318,41 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
      */
     public get useImplicitConversion(): boolean
     {
-        return this.propertyOptions.useImplicitConversion ?? this.typeMetadata.useImplicitConversion;
+        return this.currentPropertyState.useImplicitConversion;
     }
 
     /**
      * Constructs initial property options by extending passed options 
      * with default values if they are not overriden. All references are kept.
      * 
-     * @param {PropertyOptions<TType>} propertyOptions Type options.
+     * @param {PropertyOptions<TObject>} propertyOptions Property options.
      * 
-     * @returns {PropertyOptions<TType>} Constructed property options.
+     * @returns {PropertyOptions<TObject>} Constructed type options.
      */
-    private constructPropertyOptions(propertyOptions: PropertyOptions<TType>): PropertyOptions<TType>
+    private constructPropertyOptions(propertyOptions: PropertyOptions<TObject>): PropertyOptions<TObject>
     {
-        propertyOptions.typeArgument = propertyOptions.typeArgument ?? this.reflectTypeFn;
+        if (propertyOptions.customValueMap === undefined)
+        {
+            propertyOptions.customValueMap = new Map<CustomKey<any>, CustomValue>();
+        }
 
         return propertyOptions;
     }
 
     /**
-     * Constructs property internals.
-     * 
-     * @returns {PropertyInternals} Constructed property internals.
-     */
-    private constructPropertyInternals(): PropertyInternals
-    {
-        const typeMetadataResolver = this.defineTypeMetadataResolver(this.propertyOptions.typeArgument);
-        const customOptions = this.propertyOptions.customOptions;
-        const customContext = isNil(customOptions) ? undefined : new CustomContext(customOptions);
-        const propertyInternals = { typeMetadataResolver: typeMetadataResolver, customContext: customContext };
-
-        return propertyInternals;
-    }
-
-    /**
-     * Configures alias.
-     * 
-     * @param {Alias} alias Alias.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public hasAlias(alias: Alias | undefined): this
-    {
-        this.propertyOptions.alias = alias;
-
-        return this;
-    }
-
-    /**
-     * Configures custom option.
-     * 
-     * @param {CustomKey<TCustomValue>} customKey Custom key.
-     * @param {TCustomValue} customValue Custom value.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public hasCustomOption<TCustomValue>(customKey: CustomKey<TCustomValue>, customValue: TCustomValue): this
-    {
-        this.customContext.set(customKey, customValue);
-
-        return this;
-    }
-    
-    /**
-     * Extracts custom option.
-     * 
-     * @param {CustomKey<TCustomValue>} customKey Custom key.
-     * 
-     * @returns {TCustomValue} Custom value.
-     */
-    public extractCustomOption<TCustomValue>(customKey: CustomKey<TCustomValue>): TCustomValue
-    {
-        return this.customContext.get(customKey);
-    }
-
-    /**
-     * Configures custom options.
-     * 
-     * @param {Array<CustomOption>|undefined} customOptions Custom options.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public hasCustomOptions(customOptions: Array<CustomOption> | undefined): this
-    {
-        if (!isNil(customOptions))
-        {
-            this.customContext.configure(customOptions);
-        }
-
-        return this;
-    }
-
-    /**
-     * Configures default value.
-     * 
-     * @param {DefaultValue} defaultValue Default value.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public hasDefaultValue(defaultValue: DefaultValue): this
-    {
-        this.propertyOptions.defaultValue = defaultValue;
-
-        return this;
-    }
-
-    /**
-     * Configures serialized default value.
-     * 
-     * @param {DefaultValue} serializedDefaultValue Serialized default value.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public hasSerializedDefaultValue(serializedDefaultValue: DefaultValue): this
-    {
-        this.propertyOptions.serializedDefaultValue = serializedDefaultValue;
-
-        return this;
-    }
-
-    /**
-     * Configures deserialized default value.
-     * 
-     * @param {DefaultValue} deserializedDefaultValue Deserialized default value.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public hasDeserializedDefaultValue(deserializedDefaultValue: DefaultValue): this
-    {
-        this.propertyOptions.deserializedDefaultValue = deserializedDefaultValue;
-
-        return this;
-    }
-
-    /**
-     * Configures deserializable.
-     * 
-     * @param {boolean} deserializable Deserializable.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public isDeserializable(deserializable: boolean = true): this
-    {
-        this.propertyOptions.deserializable = deserializable;
-
-        return this;
-    }
-
-    /**
-     * Configures serializable.
-     * 
-     * @param {boolean} serializable Serializable.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public isSerializable(serializable: boolean = true): this
-    {
-        this.propertyOptions.serializable = serializable;
-
-        return this;
-    }
-
-    /**
-     * Configures generic arguments.
-     * 
-     * @param {Array<GenericArgument<any>>|undefined} genericArguments Generic arguments.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public hasGenericArguments(genericArguments: Array<GenericArgument<any>> | undefined): this
-    {
-        this.propertyOptions.genericArguments = genericArguments;
-
-        if (isNil(genericArguments))
-        {
-            this.propertyInternals.genericStructures = undefined;
-            this.propertyInternals.genericMetadataResolvers = undefined;
-
-            return this;
-        }
-
-        const genericStructures = this.defineGenericStructures(genericArguments);
-
-        this.propertyInternals.genericStructures = genericStructures;
-        this.propertyInternals.genericMetadataResolvers = this.defineGenericMetadataResolvers(genericStructures);
-
-        return this;
-    }
-
-    /**
-     * Configures naming convention.
-     * 
-     * @param {NamingConvention|undefined} namingConvention Naming convention.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public hasNamingConvention(namingConvention: NamingConvention | undefined): this
-    {
-        this.propertyOptions.namingConvention = namingConvention;
-
-        return this;
-    }
-
-    /**
-     * Configures reference handler.
-     * 
-     * @param {ReferenceHandler|undefined} referenceHandler Reference handler.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public hasReferenceHandler(referenceHandler: ReferenceHandler | undefined): this
-    {
-        this.propertyOptions.referenceHandler = referenceHandler;
-
-        return this;
-    }
-
-    /**
-     * Configures serializer.
-     * 
-     * @param {Serializer<TType>|undefined} serializer Serializer.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public hasSerializer(serializer: Serializer<TType> | undefined): this
-    {
-        this.propertyOptions.serializer = serializer;
-
-        return this;
-    }
-
-    /**
-     * Configures type argument.
-     * 
-     * @param {TypeArgument<TType>|undefined} typeArgument Type argument.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public hasTypeArgument(typeArgument: TypeArgument<TType> | undefined): this
-    {
-        this.propertyOptions.typeArgument = typeArgument ?? this.reflectTypeFn;
-        this.propertyInternals.typeMetadataResolver = this.defineTypeMetadataResolver(this.propertyOptions.typeArgument);
-
-        return this;
-    }
-
-    /**
-     * Configures preserve null.
-     * 
-     * @param {boolean} preserveNull Preserve null.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public shouldPreserveNull(preserveNull: boolean = true): this
-    {
-        this.propertyOptions.preserveNull = preserveNull;
-
-        return this;
-    }
-
-    /**
-     * Configures use default value.
-     * 
-     * @param {boolean} useDefaultValue Use default value.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public shouldUseDefaultValue(useDefaultValue: boolean = true): this
-    {
-        this.propertyOptions.useDefaultValue = useDefaultValue;
-
-        return this;
-    }
-
-    /**
-     * Configures use implicit convertion.
-     * 
-     * @param {boolean} useImplicitConversion Use implicit convertion.
-     * 
-     * @returns {this} Current instance of property metadata.
-     */
-    public shouldUseImplicitConversion(useImplicitConversion: boolean = true): this
-    {
-        this.propertyOptions.useImplicitConversion = useImplicitConversion;
-
-        return this;
-    }
-
-    /**
      * Configures property extension metadata.
      * 
-     * @param {PropertyExtensionMetadataCtor<TPropertyExtensionMetadata, TPropertyExtensionOptions, TDeclaringType, TType>} propertyExtensionMetadataCtor Property extension metadata constructor.
+     * @param {PropertyExtensionMetadataCtor<TPropertyExtensionMetadata, TPropertyExtensionOptions, TDeclaringObject, TObject>} propertyExtensionMetadataCtor Property extension metadata constructor.
      * @param {TPropertyExtensionOptions} propertyExtensionOptions Property extension options.
      * 
      * @returns {TPropertyExtensionMetadata} Property extension metadata
      */
-    public configurePropertyExtensionMetadata<TPropertyExtensionMetadata extends PropertyExtensionMetadata<TDeclaringType, TType, TPropertyExtensionOptions>, TPropertyExtensionOptions extends PropertyExtensionOptions>(
-        propertyExtensionMetadataCtor: PropertyExtensionMetadataCtor<TPropertyExtensionMetadata, TPropertyExtensionOptions, TDeclaringType, TType>, 
+    public configurePropertyExtensionMetadata<TPropertyExtensionMetadata extends PropertyExtensionMetadata<TDeclaringObject, TObject, TPropertyExtensionOptions>, TPropertyExtensionOptions extends PropertyExtensionOptions>(
+        propertyExtensionMetadataCtor: PropertyExtensionMetadataCtor<TPropertyExtensionMetadata, TPropertyExtensionOptions, TDeclaringObject, TObject>, 
         propertyExtensionOptions?: TPropertyExtensionOptions
     ): TPropertyExtensionMetadata
     {
-        const propertyExtensionMetadataCtorSet = this.extractCustomOption(propertyExtensionMetadataCtorSetKey);
+        const propertyExtensionMetadataCtorSet = this.extractPropertyExtensionMetadataCtorSet();
 
         if (!propertyExtensionMetadataCtorSet.has(propertyExtensionMetadataCtor))
         {
@@ -722,15 +368,15 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Extracts property extension metadata.
      * 
-     * @param {PropertyExtensionMetadataCtor<TPropertyExtensionMetadata, TPropertyExtensionOptions, TDeclaringType, TType>} propertyExtensionMetadataCtor Property extension metadata constructor.
+     * @param {PropertyExtensionMetadataCtor<TPropertyExtensionMetadata, TPropertyExtensionOptions, TDeclaringObject, TObject>} propertyExtensionMetadataCtor Property extension metadata constructor.
      * 
-     * @returns {TPropertyExtensionMetadata} Property extension metadata.
+     * @returns {Optional<TPropertyExtensionMetadata>} Property extension metadata or undefined.
      */
-    public extractPropertyExtensionMetadata<TPropertyExtensionMetadata extends PropertyExtensionMetadata<TDeclaringType, TType, TPropertyExtensionOptions>, TPropertyExtensionOptions extends PropertyExtensionOptions>(
-        propertyExtensionMetadataCtor: PropertyExtensionMetadataCtor<TPropertyExtensionMetadata, TPropertyExtensionOptions, TDeclaringType, TType>
-    ): TPropertyExtensionMetadata | undefined
+    public extractPropertyExtensionMetadata<TPropertyExtensionMetadata extends PropertyExtensionMetadata<TDeclaringObject, TObject, TPropertyExtensionOptions>, TPropertyExtensionOptions extends PropertyExtensionOptions>(
+        propertyExtensionMetadataCtor: PropertyExtensionMetadataCtor<TPropertyExtensionMetadata, TPropertyExtensionOptions, TDeclaringObject, TObject>
+    ): Optional<TPropertyExtensionMetadata>
     {
-        const propertyExtensionMetadataCtorSet = this.extractCustomOption(propertyExtensionMetadataCtorSetKey);
+        const propertyExtensionMetadataCtorSet = this.extractPropertyExtensionMetadataCtorSet();
         
         if (!propertyExtensionMetadataCtorSet.has(propertyExtensionMetadataCtor))
         {
@@ -744,85 +390,601 @@ export class PropertyMetadata<TDeclaringType, TType> extends Metadata
     }
 
     /**
-     * Configures property metadata based on provided options.
+     * Extracts property extension metadata ctor set from custom value map.
      * 
-     * @param {PropertyOptions<TType>} propertyOptions Property options.
+     * @returns {Set<PropertyExtensionMetadataCtor<any, any, any, any>>} Property extension metadata ctor set.
+     */
+    private extractPropertyExtensionMetadataCtorSet(): Set<PropertyExtensionMetadataCtor<any, any, any, any>>
+    {
+        let customValueMap = this.propertyOptions.customValueMap;
+
+        if (customValueMap === undefined)
+        {
+            customValueMap = new Map<CustomKey<any>, CustomValue>();
+
+            this.propertyOptions.customValueMap = customValueMap;
+        }
+
+        let propertyExtensionMetadataCtorSet = customValueMap.get(PROPERTY_EXTENSION_METADATA_CTOR_SET_KEY) as Optional<Set<PropertyExtensionMetadataCtor<any, any, any, any>>>;
+
+        if (propertyExtensionMetadataCtorSet === undefined)
+        {
+            propertyExtensionMetadataCtorSet = new Set<PropertyExtensionMetadataCtor<any, any, any, any>>();
+
+            customValueMap.set(PROPERTY_EXTENSION_METADATA_CTOR_SET_KEY, propertyExtensionMetadataCtorSet);
+        }
+
+        return propertyExtensionMetadataCtorSet;
+    }
+
+    /**
+     * Resolves property state.
+     * 
+     * Calling this method has side effects by recomputing property state. If you need current
+     * type state then use provided getter for that.
+     * 
+     * @returns {ResolvedPropertyState<TDeclaringObject, TObject>} Resolved property state.
+     */
+    public resolvePropertyState(): ResolvedPropertyState<TDeclaringObject, TObject>
+    {
+        const propertyOptions = this.propertyOptions;
+        const propertyName = this.propertyName;
+        const alias = propertyOptions.alias;
+        const deserializedPropertyName = propertyName;
+
+        const typeArgument = propertyOptions.typeArgument === undefined 
+            ? this.reflectTypeFn 
+            : propertyOptions.typeArgument;
+
+        const typeMetadata = this.resolveTypeMetadata(typeArgument);
+        const typeState = typeMetadata.typeState;
+        const customValueMap = this.resolveCustomValueMap(typeState);
+
+        const preserveNull = propertyOptions.preserveNull === undefined 
+            ? typeState.preserveNull 
+            : propertyOptions.preserveNull;
+
+        const useDefaultValue = propertyOptions.useDefaultValue === undefined 
+            ? typeState.useDefaultValue 
+            : propertyOptions.useDefaultValue;
+
+        const useImplicitConversion = propertyOptions.useImplicitConversion === undefined 
+            ? typeState.useImplicitConversion 
+            : propertyOptions.useImplicitConversion;
+
+        const serializedDefaultValue = propertyOptions.defaultValue === undefined 
+            ? (propertyOptions.serializedDefaultValue === undefined ? typeState.serializedDefaultValue : propertyOptions.serializedDefaultValue)
+            : propertyOptions.defaultValue;
+        
+        const serializedDefaultValueResolver = useDefaultValue 
+            ? (typeof serializedDefaultValue === 'function' ? serializedDefaultValue : () => serializedDefaultValue)
+            : DEFAULT_VALUE_RESOLVER;
+
+        const serializedNullValueResolver = preserveNull 
+            ? NULL_VALUE_RESOLVER 
+            : serializedDefaultValueResolver;
+        
+        const deserializedDefaultValue = propertyOptions.defaultValue === undefined 
+            ? (propertyOptions.deserializedDefaultValue === undefined ? typeState.deserializedDefaultValue : propertyOptions.deserializedDefaultValue)
+            : propertyOptions.defaultValue;
+        
+        const deserializedDefaultValueResolver = useDefaultValue
+            ? (typeof deserializedDefaultValue === 'function' ? deserializedDefaultValue : () => deserializedDefaultValue)
+            : DEFAULT_VALUE_RESOLVER;
+
+        const deserializedNullValueResolver = preserveNull 
+            ? NULL_VALUE_RESOLVER
+            : deserializedDefaultValueResolver;
+        
+        const namingConvention = propertyOptions.namingConvention === undefined
+            ? this.declaringTypeMetadata.typeState.namingConvention
+            : propertyOptions.namingConvention;
+
+        const serializedPropertyName = alias === undefined
+            ? (namingConvention === undefined ? propertyName : namingConvention.convert(propertyName))
+            : alias;
+        
+        const useDefaultSerialization = propertyOptions.serializable === undefined 
+            && propertyOptions.deserializable === undefined;
+
+        const serializable = useDefaultSerialization
+            || propertyOptions.serializable === true;
+
+        const deserializable = useDefaultSerialization
+            || propertyOptions.deserializable === true;
+
+        const genericArguments = propertyOptions.genericArguments === undefined
+            ? EMPTY_ARRAY
+            : propertyOptions.genericArguments;
+
+        const genericMetadatas = this.resolveGenericMetadatas(genericArguments);
+
+        const referenceHandler = propertyOptions.referenceHandler === undefined
+            ? typeState.referenceHandler
+            : propertyOptions.referenceHandler;
+
+        const serializer = propertyOptions.serializer === undefined
+            ? typeState.serializer
+            : propertyOptions.serializer;
+        
+        const resolvedPropertyState = new ResolvedPropertyState<TDeclaringObject, TObject>(
+            this,
+            alias,
+            customValueMap,
+            serializedNullValueResolver,
+            serializedDefaultValueResolver,
+            deserializedNullValueResolver,
+            deserializedDefaultValueResolver,
+            serializedPropertyName,
+            deserializedPropertyName,
+            serializable,
+            deserializable,
+            genericArguments,
+            genericMetadatas,
+            namingConvention,
+            referenceHandler,
+            serializer,
+            typeArgument,
+            typeMetadata,
+            preserveNull,
+            useDefaultValue,
+            useImplicitConversion
+        );
+        
+        this.currentPropertyState = resolvedPropertyState;
+
+        return resolvedPropertyState;
+    }
+
+    /**
+     * Unresolves property state.
+     * 
+     * Calling this method has side effects by resetting property state. 
+     * 
+     * @returns {UnresolvedPropertyState<TDeclaringObject, TObject>} Unresolved property state.
+     */
+    public unresolvePropertyState(): UnresolvedPropertyState<TDeclaringObject, TObject>
+    {
+        const unresolvedPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        this.currentPropertyState = unresolvedPropertyState;
+
+        return unresolvedPropertyState;
+    }
+
+    /**
+     * Resolves custom value map the same way as it is done for the main options.
+     * 
+     * @returns {ReadonlyMap<CustomKey<any>, CustomValue>} Resolved custom value map.
+     */
+    private resolveCustomValueMap(typeState: TypeState<TObject>): ReadonlyMap<CustomKey<any>, CustomValue>
+    {
+        const propertyOptions = this.propertyOptions;
+        const customValueMap = new Map<CustomKey<any>, CustomValue>();
+
+        if (propertyOptions.customValueMap === undefined)
+        {
+            return customValueMap;
+        }
+
+        const typeCustomValueMap = typeState.customValueMap === undefined
+            ? EMPTY_MAP
+            : typeState.customValueMap;
+        
+        for (const [customKey, customValue] of propertyOptions.customValueMap)
+        {
+            if (customValue === undefined)
+            {
+                customValueMap.set(customKey, typeCustomValueMap.get(customKey));
+
+                continue;
+            }
+
+            customValueMap.set(customKey, customValue);
+        }
+
+        return customValueMap;
+    }
+
+    /**
+     * Configures alias.
+     * 
+     * @param {Optional<Alias>} alias Alias or undefined.
      * 
      * @returns {this} Current instance of property metadata.
      */
-    public configure(propertyOptions: PropertyOptions<TType>): this
+    public hasAlias(alias: Optional<Alias>): this
     {
-        if (!isUndefined(propertyOptions.alias))
+        this.propertyOptions.alias = alias;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures custom value map.
+     * 
+     * @param {Optional<Map<CustomKey<any>, CustomValue>>} customValueMap Custom value map or undefined.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public hasCustomValueMap(customValueMap: Optional<Map<CustomKey<any>, CustomValue>>): this
+    {
+        let currentCustomValueMap = this.propertyOptions.customValueMap;
+
+        if (currentCustomValueMap === undefined)
+        {
+            currentCustomValueMap = new Map<CustomKey<any>, CustomValue>();
+
+            this.propertyOptions.customValueMap = currentCustomValueMap;
+        }
+        
+        if (customValueMap !== undefined)
+        {
+            if (currentCustomValueMap !== customValueMap)
+            {
+                currentCustomValueMap.clear();
+            }
+
+            for (const [customKey, customValue] of customValueMap)
+            {
+                currentCustomValueMap.set(customKey, customValue);
+            }
+        }
+
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures custom value.
+     * 
+     * @param {CustomKey<TCustomValue>} customKey Custom key.
+     * @param {TCustomValue} customValue Custom value.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public hasCustomValue<TCustomValue>(customKey: CustomKey<TCustomValue>, customValue: TCustomValue): this
+    {
+        let customValueMap = this.propertyOptions.customValueMap;
+
+        if (customValueMap === undefined)
+        {
+            customValueMap = new Map<CustomKey<any>, CustomValue>();
+
+            this.propertyOptions.customValueMap = customValueMap;
+        }
+
+        customValueMap.set(customKey, customValue);
+
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Extracts value by custom key.
+     * 
+     * @param {CustomKey<TCustomValue>} customKey Custom key.
+     *  
+     * @returns {TCustomValue} Custom value.
+     */
+    public extractCustomValue<TCustomValue>(customKey: CustomKey<TCustomValue>): TCustomValue
+    {
+        let customValue =  this.propertyState.customValueMap.get(customKey) as TCustomValue;
+
+        if (customValue === undefined && customKey.customValueResolver !== undefined)
+        {
+            customValue = customKey.customValueResolver();
+        }
+
+        return customValue;
+    }
+
+    /**
+     * Configures custom options.
+     * 
+     * @param {ReadonlyArray<CustomOption>} customOptions Custom options.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public hasCustomOptions(customOptions: ReadonlyArray<CustomOption>): this
+    {
+        let customValueMap = this.propertyOptions.customValueMap;
+
+        if (customValueMap === undefined)
+        {
+            customValueMap = new Map<CustomKey<any>, CustomValue>();
+
+            this.propertyOptions.customValueMap = customValueMap;
+        }
+
+        for (let i = 0; i < customOptions.length; i++)
+        {
+            customValueMap.set(customOptions[i][0], customOptions[i][1]);
+        }
+
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures default value.
+     * 
+     * @param {DefaultValue} defaultValue Default value.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public hasDefaultValue(defaultValue: DefaultValue): this
+    {
+        this.propertyOptions.defaultValue = defaultValue;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures serialized default value.
+     * 
+     * @param {DefaultValue} serializedDefaultValue Serialized default value.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public hasSerializedDefaultValue(serializedDefaultValue: DefaultValue): this
+    {
+        this.propertyOptions.serializedDefaultValue = serializedDefaultValue;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures deserialized default value.
+     * 
+     * @param {DefaultValue} deserializedDefaultValue Deserialized default value.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public hasDeserializedDefaultValue(deserializedDefaultValue: DefaultValue): this
+    {
+        this.propertyOptions.deserializedDefaultValue = deserializedDefaultValue;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures deserializable.
+     * 
+     * @param {boolean} deserializable Deserializable.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public isDeserializable(deserializable: boolean = true): this
+    {
+        this.propertyOptions.deserializable = deserializable;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures serializable.
+     * 
+     * @param {boolean} serializable Serializable.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public isSerializable(serializable: boolean = true): this
+    {
+        this.propertyOptions.serializable = serializable;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures generic arguments.
+     * 
+     * @param {Optional<Array<GenericArgument<any>>>} genericArguments Generic arguments or undefined.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public hasGenericArguments(genericArguments: Optional<Array<GenericArgument<any>>>): this
+    {
+        this.propertyOptions.genericArguments = genericArguments;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures naming convention.
+     * 
+     * @param {Optional<NamingConvention>} namingConvention Naming convention or undefined.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public hasNamingConvention(namingConvention: Optional<NamingConvention>): this
+    {
+        this.propertyOptions.namingConvention = namingConvention;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures reference handler.
+     * 
+     * @param {Optional<ReferenceHandler>} referenceHandler Reference handler or undefined.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public hasReferenceHandler(referenceHandler: Optional<ReferenceHandler>): this
+    {
+        this.propertyOptions.referenceHandler = referenceHandler;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures serializer.
+     * 
+     * @param {Optional<Serializer<TObject>>} serializer Serializer or undefined.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public hasSerializer(serializer: Optional<Serializer<TObject>>): this
+    {
+        this.propertyOptions.serializer = serializer;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures type argument.
+     * 
+     * @param {Optional<TypeArgument<TObject>>} typeArgument Type argument or undefined.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public hasTypeArgument(typeArgument: Optional<TypeArgument<TObject>>): this
+    {
+        this.propertyOptions.typeArgument = typeArgument ?? this.reflectTypeFn;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures preserve null.
+     * 
+     * @param {boolean} preserveNull Preserve null.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public shouldPreserveNull(preserveNull: boolean = true): this
+    {
+        this.propertyOptions.preserveNull = preserveNull;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures use default value.
+     * 
+     * @param {boolean} useDefaultValue Use default value.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public shouldUseDefaultValue(useDefaultValue: boolean = true): this
+    {
+        this.propertyOptions.useDefaultValue = useDefaultValue;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures use implicit convertion.
+     * 
+     * @param {boolean} useImplicitConversion Use implicit convertion.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public shouldUseImplicitConversion(useImplicitConversion: boolean = true): this
+    {
+        this.propertyOptions.useImplicitConversion = useImplicitConversion;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures property metadata based on provided options.
+     * 
+     * @param {PropertyOptions<TObject>} propertyOptions Property options.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public configure(propertyOptions: PropertyOptions<TObject>): this
+    {
+        if (propertyOptions.alias !== undefined)
         {
             this.hasAlias(propertyOptions.alias);
         }
 
-        if (!isUndefined(propertyOptions.customOptions))
+        if (propertyOptions.customValueMap !== undefined)
         {
-            this.hasCustomOptions(propertyOptions.customOptions);
+            this.hasCustomValueMap(propertyOptions.customValueMap);
         }
 
-        if (!isUndefined(propertyOptions.defaultValue))
+        if (propertyOptions.defaultValue !== undefined)
         {
             this.hasDefaultValue(propertyOptions.defaultValue);
         }
 
-        if (!isUndefined(propertyOptions.serializedDefaultValue))
+        if (propertyOptions.serializedDefaultValue !== undefined)
         {
             this.hasSerializedDefaultValue(propertyOptions.serializedDefaultValue);
         }
 
-        if (!isUndefined(propertyOptions.deserializedDefaultValue))
+        if (propertyOptions.deserializedDefaultValue !== undefined)
         {
             this.hasDeserializedDefaultValue(propertyOptions.deserializedDefaultValue);
         }
 
-        if (!isUndefined(propertyOptions.deserializable))
+        if (propertyOptions.deserializable !== undefined)
         {
             this.isDeserializable(propertyOptions.deserializable);
         }
 
-        if (!isUndefined(propertyOptions.genericArguments)) 
+        if (propertyOptions.genericArguments !== undefined) 
         {
             this.hasGenericArguments(propertyOptions.genericArguments);
         }
 
-        if (!isUndefined(propertyOptions.namingConvention))
+        if (propertyOptions.namingConvention !== undefined)
         {
             this.hasNamingConvention(propertyOptions.namingConvention);
         }
 
-        if (!isUndefined(propertyOptions.referenceHandler)) 
+        if (propertyOptions.referenceHandler !== undefined) 
         {
             this.hasReferenceHandler(propertyOptions.referenceHandler);
         }
 
-        if (!isUndefined(propertyOptions.serializable)) 
+        if (propertyOptions.serializable !== undefined) 
         {
             this.isSerializable(propertyOptions.serializable);
         }
 
-        if (!isUndefined(propertyOptions.serializer)) 
+        if (propertyOptions.serializer !== undefined) 
         {
             this.hasSerializer(propertyOptions.serializer);
         }
 
-        if (!isUndefined(propertyOptions.typeArgument)) 
+        if (propertyOptions.typeArgument !== undefined) 
         {
             this.hasTypeArgument(propertyOptions.typeArgument);
         }
 
-        if (!isUndefined(propertyOptions.preserveNull))
+        if (propertyOptions.preserveNull !== undefined)
         {
             this.shouldPreserveNull(propertyOptions.preserveNull);
         }
 
-        if (!isUndefined(propertyOptions.useDefaultValue))
+        if (propertyOptions.useDefaultValue !== undefined)
         {
             this.shouldUseDefaultValue(propertyOptions.useDefaultValue);
         }
 
-        if (!isUndefined(propertyOptions.useImplicitConversion)) 
+        if (propertyOptions.useImplicitConversion !== undefined) 
         {
             this.shouldUseImplicitConversion(propertyOptions.useImplicitConversion);
         }

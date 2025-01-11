@@ -1,27 +1,31 @@
-import { isUndefined } from 'lodash';
+import { Alias } from './alias';
+import { EMPTY_ARRAY } from './constants/empty-array';
 import { getOwnReflectMetadata } from './functions/get-own-reflect-metadata';
 import { InjectIndex } from './inject-index';
-import { InjectInternals } from './inject-internals';
 import { InjectOptions } from './inject-options';
+import { InjectState } from './inject-state';
+import { ResolvedInjectState } from './inject-states/resolved-inject-state';
+import { UnresolvedInjectState } from './inject-states/unresolved-inject-state';
 import { Metadata } from './metadata';
+import { Optional } from './optional';
+import { TypeArgument } from './type-argument';
 import { TypeFn } from './type-fn';
+import { TypeManager } from './type-manager';
 import { TypeMetadata } from './type-metadata';
-import { TypeMetadataResolver } from './type-metadata-resolver';
-import { Unknown } from './unknown';
 
 /**
  * Main class used to describe an injection.
  * 
- * @type {InjectMetadata<TDeclaringType, TType>}
+ * @type {InjectMetadata<TDeclaringObject, TObject>}
  */
-export class InjectMetadata<TDeclaringType, TType> extends Metadata
+export class InjectMetadata<TDeclaringObject, TObject> extends Metadata
 {
     /**
      * Type metadata to which inject metadata belongs to.
      * 
-     * @type {TypeMetadata<TDeclaringType>}
+     * @type {TypeMetadata<TDeclaringObject>}
      */
-    public readonly declaringTypeMetadata: TypeMetadata<TDeclaringType>;
+    public readonly declaringTypeMetadata: TypeMetadata<TDeclaringObject>;
 
     /**
      * Index of injection within a type constructor function.
@@ -33,46 +37,48 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
     /**
      * Inject options.
      * 
-     * @type {InjectOptions<TType>}
+     * @type {InjectOptions<TObject>}
      */
-    public readonly injectOptions: InjectOptions<TType>;
-
-    /**
-     * Inject internals.
-     * 
-     * @type {InjectInternals}
-     */
-    public readonly injectInternals: InjectInternals;
+    private readonly injectOptions: InjectOptions<TObject>;
 
     /**
      * Type function defined using reflect metadata.
      * 
-     * Used as a fallback when type function is not defined.
-     * 
-     * @type {TypeFn<TType>}
+     * @type {Optional<TypeFn<TObject>>}
      */
-    public readonly reflectTypeFn?: TypeFn<TType>;
+    private readonly reflectTypeFn: Optional<TypeFn<TObject>>;
+
+    /**
+     * Current inject state.
+     * 
+     * @type {InjectState<TDeclaringObject, TObject>}
+     */
+    private currentInjectState: InjectState<TDeclaringObject, TObject>;
 
     /**
      * Constructor.
      * 
-     * @param {TypeMetadata<TDeclaringType>} declaringTypeMetadata Type metadata to which inject metadata belongs to.
+     * @param {TypeManager} typeManager Type manager.
+     * @param {ReadonlyMap<Alias, TypeFn<any>>} typeFnMap Type function map for types with aliases.
+     * @param {TypeMetadata<TDeclaringObject>} declaringTypeMetadata Type metadata to which inject metadata belongs to.
      * @param {InjectIndex} injectIndex Index of injection within a type constructor function.
-     * @param {InjectOptions<TType>} injectOptions Inject options.
+     * @param {InjectOptions<TObject>} injectOptions Inject options.
      */
     public constructor(
-        declaringTypeMetadata: TypeMetadata<TDeclaringType>, 
-        injectIndex: InjectIndex, 
-        injectOptions: InjectOptions<TType>
+        typeManager: TypeManager, 
+        typeFnMap: ReadonlyMap<Alias, TypeFn<any>>,
+        declaringTypeMetadata: TypeMetadata<TDeclaringObject>, 
+        injectIndex: InjectIndex,
+        injectOptions: InjectOptions<TObject>
     )
     {
-        super(declaringTypeMetadata.typeManager);
+        super(typeManager, typeFnMap);
 
         this.declaringTypeMetadata = declaringTypeMetadata;
-        this.reflectTypeFn = (getOwnReflectMetadata('design:paramtypes', declaringTypeMetadata.typeFn) ?? new Array<TypeFn<TType>>())[injectIndex];
         this.injectIndex = injectIndex;
-        this.injectOptions = this.constructInjectOptions(injectOptions);
-        this.injectInternals = this.constructInjectInternals();
+        this.injectOptions = injectOptions;
+        this.reflectTypeFn = (getOwnReflectMetadata('design:paramtypes', declaringTypeMetadata.typeFn) ?? EMPTY_ARRAY)[injectIndex];
+        this.currentInjectState = new UnresolvedInjectState<TDeclaringObject, TObject>(this);
 
         this.configure(injectOptions);
 
@@ -80,127 +86,129 @@ export class InjectMetadata<TDeclaringType, TType> extends Metadata
     }
 
     /**
+     * Gets inject state.
+     * 
+     * @returns {InjectState<TDeclaringObject, TObject>} Inject state.
+     */
+    public get injectState(): InjectState<TDeclaringObject, TObject>
+    {
+        return this.currentInjectState;
+    }
+
+    /**
      * Gets key.
      * 
-     * @returns {string|undefined} Key or undefined.
+     * @returns {Optional<string>} Key or undefined.
      */
-    public get key(): string | undefined
+    public get key(): Optional<string>
     {
-        return this.injectOptions.key;
+        return this.currentInjectState.key;
     }
 
     /**
-     * Gets type function.
+     * Gets type argument.
      * 
-     * @returns {TypeFn<TType>|undefined} Type constructor or undefined.
+     * @returns {TypeArgument<TObject>} Type argument.
      */
-    public get typeFn(): TypeFn<TType> | undefined
+    public get typeArgument(): TypeArgument<TObject>
     {
-        return this.injectOptions.typeFn;
-    }
-
-    /**
-     * Gets type metadata resolver.
-     * 
-     * @returns {TypeMetadataResolver<TType>} Type metadata resolver.
-     */
-    public get typeMetadataResolver(): TypeMetadataResolver<TType>
-    {
-        return this.injectInternals.typeMetadataResolver;
+        return this.currentInjectState.typeArgument;
     }
 
     /**
      * Gets inject type metadata.
      * 
-     * @returns {TypeMetadata<TType>} Type metadata.
+     * @returns {TypeMetadata<TObject>} Type metadata.
      */
-    public get typeMetadata(): TypeMetadata<TType>
+    public get typeMetadata(): TypeMetadata<TObject>
     {
-        const typeMetadata = this.typeMetadataResolver(this.typeFn);
-        const unknownFn = Unknown as TypeFn<any>;
-
-        if (typeMetadata.typeFn === unknownFn)
-        {
-            throw new Error(`${this.declaringTypeMetadata.typeName}[${this.injectIndex}]: cannot resolve constructor injection type metadata. This is usually caused by invalid configuration.`);
-        }
-
-        return typeMetadata;
+        return this.currentInjectState.typeMetadata;
     }
 
     /**
-     * Constructs initial inject options by extending passed options 
-     * with default values if they are not overriden. All references are kept.
+     * Resolves inject state.
      * 
-     * @param {InjectOptions<TType>} injectOptions Inject options.
+     * Calling this method has side effects by recomputing injection state. If you need current
+     * inject state then use provided getter for that.
      * 
-     * @returns {InjectOptions<TType>} Constructed inject options.
+     * @returns {ResolvedInjectState<TDeclaringObject, TObject>} Resolved inject state.
      */
-    private constructInjectOptions(injectOptions: InjectOptions<TType>): InjectOptions<TType>
+    public resolveInjectState(): ResolvedInjectState<TDeclaringObject, TObject>
     {
-        injectOptions.typeFn = injectOptions.typeFn ?? this.reflectTypeFn;
+        const injectOptions = this.injectOptions;
+        const key = injectOptions.key;
+        const typeArgument = injectOptions.typeArgument === undefined ? this.reflectTypeFn : injectOptions.typeArgument;
+        const typeMetadata = this.resolveTypeMetadata(typeArgument);
+        const resolvedInjectState = new ResolvedInjectState<TDeclaringObject, TObject>(this, key, typeArgument, typeMetadata);
 
-        return injectOptions;
+        this.currentInjectState = resolvedInjectState;
+
+        return resolvedInjectState;
     }
 
     /**
-     * Constructs inject internals.
+     * Unresolves inject state.
      * 
-     * @returns {InjectInternals} Constructed inject internals.
+     * Calling this method has side effects by resetting inject state. 
+     * 
+     * @returns {UnresolvedInjectState<TDeclaringObject, TObject>} Unresolved inject state.
      */
-    private constructInjectInternals(): InjectInternals
+    public unresolveInjectState(): UnresolvedInjectState<TDeclaringObject, TObject>
     {
-        const typeMetadataResolver = this.defineTypeMetadataResolver(this.injectOptions.typeFn);
-        const injectInternals = { typeMetadataResolver: typeMetadataResolver };
+        const unresolvedInjectState = new UnresolvedInjectState<TDeclaringObject, TObject>(this);
 
-        return injectInternals;
+        this.currentInjectState = unresolvedInjectState;
+
+        return unresolvedInjectState;
     }
 
     /**
      * Configures key.
      * 
-     * @param {string|undefined} key Key.
+     * @param {Optional<string>} key Key or undefined.
      * 
      * @returns {this} Current instance of inject metadata.
      */
-    public hasKey(key: string | undefined): this
+    public hasKey(key: Optional<string>): this
     {
         this.injectOptions.key = key;
+        this.currentInjectState = new UnresolvedInjectState<TDeclaringObject, TObject>(this);
 
         return this;
     }
 
     /**
-     * Configures type function.
+     * Configures type argument.
      * 
-     * @param {TypeFn<TType>|undefined} typeFn Type function.
+     * @param {Optional<TypeArgument<TObject>>} typeArgument Type argument or undefined.
      * 
      * @returns {this} Current instance of inject metadata.
      */
-    public hasTypeFn(typeFn: TypeFn<TType> | undefined): this
+    public hasTypeArgument(typeArgument: Optional<TypeArgument<TObject>>): this
     {
-        this.injectOptions.typeFn = typeFn ?? this.reflectTypeFn;
-        this.injectInternals.typeMetadataResolver = this.defineTypeMetadataResolver(this.injectOptions.typeFn);
-        
+        this.injectOptions.typeArgument = typeArgument;
+        this.currentInjectState = new UnresolvedInjectState<TDeclaringObject, TObject>(this);
+
         return this;
     }
-    
+
     /**
      * Configures inject metadata based on provided options.
      * 
-     * @param {InjectOptions<TType>} injectOptions Inject options.
+     * @param {InjectOptions<TObject>} injectOptions Inject options.
      * 
      * @returns {this} Current instance of inject metadata.
      */
-    public configure(injectOptions: InjectOptions<TType>): this
+    public configure(injectOptions: InjectOptions<TObject>): this
     {
-        if (!isUndefined(injectOptions.key))
+        if (injectOptions.key !== undefined)
         {
             this.hasKey(injectOptions.key);
         }
-        
-        if (!isUndefined(injectOptions.typeFn))
+
+        if (injectOptions.typeArgument !== undefined)
         {
-            this.hasTypeFn(injectOptions.typeFn);
+            this.hasTypeArgument(injectOptions.typeArgument);
         }
 
         return this;

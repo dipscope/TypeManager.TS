@@ -1,12 +1,6 @@
 {
   "author": "DipScope authors and contributors",
   "description": "Transform JSON strings or plain objects into JS class instances.",
-  "dependencies": {
-    "tslib": "^2.0.1"
-  },
-  "peerDependencies": {
-    "lodash": "^4.17.0"
-  },
   "devDependencies": {
     "@types/jasmine": "^3.6.3",
     "@types/lodash": "^4.14.182",

@@ -1,4 +1,3 @@
-import { isBoolean, isNull, isNumber, isString, isUndefined } from 'lodash';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -20,17 +19,17 @@ export class NumberSerializer implements Serializer<number>
      */
     public serialize(x: TypeLike<number>, serializerContext: SerializerContext<number>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.serializedNullValue;
         }
 
-        if (isNumber(x))
+        if (typeof x === 'number')
         {
             return x;
         }
@@ -40,10 +39,7 @@ export class NumberSerializer implements Serializer<number>
             return this.convert(x, serializerContext);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as number.`, x);
-        }
+        serializerContext.logger.error('NumberSerializer', `${serializerContext.jsonPath}: cannot serialize value as number.`, x);
 
         return undefined;
     }
@@ -58,17 +54,17 @@ export class NumberSerializer implements Serializer<number>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<number>): TypeLike<number>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.deserializedNullValue;
         }
 
-        if (isNumber(x))
+        if (typeof x === 'number')
         {
             return x;
         }
@@ -78,10 +74,7 @@ export class NumberSerializer implements Serializer<number>
             return this.convert(x, serializerContext);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as number.`, x);
-        }
+        serializerContext.logger.error('NumberSerializer', `${serializerContext.jsonPath}: cannot deserialize value as number.`, x);
 
         return undefined;
     }
@@ -92,19 +85,16 @@ export class NumberSerializer implements Serializer<number>
      * @param {any} x Some value.
      * @param {SerializerContext<number>} serializerContext Serializer context.
      * 
-     * @returns {number|undefined} Converted value or undefined.
+     * @returns {TypeLike<number>} Converted value.
      */
-    private convert(x: any, serializerContext: SerializerContext<number>): number | undefined
+    private convert(x: any, serializerContext: SerializerContext<number>): TypeLike<number>
     {
-        if (isString(x) || isBoolean(x))
+        if (typeof x === 'string' || typeof x === 'boolean')
         {
             return Number(x);
         }
         
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot convert value to a number.`, x);
-        }
+        serializerContext.logger.error('NumberSerializer', `${serializerContext.jsonPath}: cannot convert value to a number.`, x);
 
         return undefined;
     }

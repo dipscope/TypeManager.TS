@@ -1,4 +1,3 @@
-import { isArray, isNull, isUndefined } from 'lodash';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -20,44 +19,40 @@ export class ArraySerializer implements Serializer<Array<any>>
      */
     public serialize(x: TypeLike<Array<any>>, serializerContext: SerializerContext<Array<any>>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.serializedNullValue;
         }
 
-        if (isArray(x))
+        if (Array.isArray(x))
         {
             return serializerContext.defineReference(x, () =>
             {
                 const arrayInput = x;
                 const arrayOutput = new Array<any>(x.length);
                 const genericSerializerContext = serializerContext.defineGenericSerializerContext(0);
-                
-                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({ 
-                    jsonPathKey: genericSerializerContext.jsonPathKey 
-                });
+                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext();
+                const serializer = valueSerializerContext.serializer;
+
+                valueSerializerContext.referenceValueSetter = (v, k) => arrayOutput[k] = v;
 
                 for (let i = 0; i < arrayInput.length; i++)
                 {
-                    valueSerializerContext.hasJsonPathKey(i);
-                    valueSerializerContext.hasReferenceValueSetter(v => arrayOutput[i] = v);
+                    valueSerializerContext.jsonPathKey = i;
 
-                    arrayOutput[i] = valueSerializerContext.serialize(arrayInput[i]);
+                    arrayOutput[i] = serializer.serialize(arrayInput[i], valueSerializerContext);
                 }
                 
                 return arrayOutput;
             });
         }
 
-        if (serializerContext.log.errorEnabled)
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as array.`, x);
-        }
+        serializerContext.logger.error('ArraySerializer', `${serializerContext.jsonPath}: cannot serialize value as array.`, x);
 
         return undefined;
     }
@@ -72,44 +67,40 @@ export class ArraySerializer implements Serializer<Array<any>>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Array<any>>): TypeLike<Array<any>>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.deserializedNullValue;
         }
 
-        if (isArray(x))
+        if (Array.isArray(x))
         {
             return serializerContext.restoreReference(x, () =>
             {
                 const arrayInput = x;
                 const arrayOutput = new Array<any>(x.length);
                 const genericSerializerContext = serializerContext.defineGenericSerializerContext(0);
+                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext();
+                const serializer = valueSerializerContext.serializer;
 
-                const valueSerializerContext = genericSerializerContext.defineChildSerializerContext({ 
-                    jsonPathKey: genericSerializerContext.jsonPathKey 
-                });
-                
+                valueSerializerContext.referenceValueSetter = (v, k) => arrayOutput[k] = v;
+
                 for (let i = 0; i < arrayInput.length; i++)
                 {
-                    valueSerializerContext.hasJsonPathKey(i);
-                    valueSerializerContext.hasReferenceValueSetter(v => arrayOutput[i] = v);
-                    
-                    arrayOutput[i] = valueSerializerContext.deserialize(arrayInput[i]);
+                    valueSerializerContext.jsonPathKey = i;
+
+                    arrayOutput[i] = serializer.deserialize(arrayInput[i], valueSerializerContext);
                 }
         
                 return arrayOutput;
             });
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as array.`, x);
-        }
+        serializerContext.logger.error('ArraySerializer', `${serializerContext.jsonPath}: cannot deserialize value as array.`, x);
 
         return undefined;
     }

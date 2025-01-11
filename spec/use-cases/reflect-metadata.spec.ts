@@ -70,7 +70,7 @@ describe('Reflect metadata', () =>
         expect(userMetadata.propertyMetadataMap.get('userPriorityTextual')!.typeMetadata!.typeFn).toBe(String);
         expect(userMetadata.propertyMetadataMap.get('userStatuses')!.typeMetadata!.typeFn).toBe(Array);
         expect(userMetadata.propertyMetadataMap.get('userStatuses')!.genericArguments![0] as any).toBe(UserStatus);
-        expect(userMetadata.injectMetadataMap.get(0)!.typeFn).toBe(UserService);
+        expect(userMetadata.injectMetadataMap.get(0)!.typeArgument).toBe(UserService);
 
         const userJson = { 
             name: 'Dmitry',

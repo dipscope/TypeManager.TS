@@ -3,6 +3,6 @@ import { TypeArgument } from './type-argument';
 /**
  * Generic argument represents a data which can be passed to define a generic type.
  * 
- * @type {GenericArgument<TType>}
+ * @type {GenericArgument<TObject>}
  */
-export type GenericArgument<TType> = TypeArgument<TType> | [TypeArgument<TType>, Array<GenericArgument<any>>];
+export type GenericArgument<TObject> = TypeArgument<TObject> | [TypeArgument<TObject>, ReadonlyArray<GenericArgument<any>>];

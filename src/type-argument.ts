@@ -3,8 +3,8 @@ import { TypeFn } from './type-fn';
 import { TypeResolver } from './type-resolver';
 
 /**
- * Type argument represents a data which can be passed to define a certain type.
+ * Type argument represents the data which can be passed to define a certain type.
  * 
- * @type {TypeArgument<TType>}
+ * @type {TypeArgument<TObject>}
  */
-export type TypeArgument<TType> = Alias | TypeFn<TType> | TypeResolver<TType> | undefined;
+export type TypeArgument<TObject> = TypeFn<TObject> | TypeResolver<TObject> | Alias | undefined;

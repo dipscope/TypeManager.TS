@@ -1,6 +1,6 @@
 /**
  * Type constructor.
  * 
- * @type {TypeCtor<TType>}
+ * @type {TypeCtor<TObject>}
  */
-export type TypeCtor<TType> = new (...args: Array<any>) => TType;
+export type TypeCtor<TObject> = new (...args: Array<any>) => TObject;

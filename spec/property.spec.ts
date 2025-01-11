@@ -1,14 +1,14 @@
-import { Property, Type, TypeManager, TypeSerializer } from '../src';
+import { CustomKey, NumberSerializer, Property, StringSerializer, Type, TypeManager, TypeSerializer, UnknownSerializer } from '../src';
 
 @Type()
 class User
 {
     @Property() public name?: string;
-    @Property({ typeArgument: 'String', alias: 'my@mail.ru' }) public email?: string;
+    @Property({ typeArgument: String, alias: 'my@mail.ru' }) public email?: string;
     @Property(() => String, { serializable: true }) public group?: string;
     @Property({ deserializable: true, preserveNull: false }) public rank?: number;
-    @Property('Number', { deserializedDefaultValue: 10 }) public priority?: number;
-    @Property(() => Number, { useDefaultValue: true, customOptions: [] }) public loginCount?: number;
+    @Property(Number, { deserializedDefaultValue: 10, useDefaultValue: true }) public priority?: number;
+    @Property(() => Number, { useDefaultValue: true, customValueMap: new Map([[new CustomKey('a'), 1]]) }) public loginCount?: number;
     @Property({ useImplicitConversion: true, serializer: new TypeSerializer() }) public active?: boolean;
 }
 
@@ -34,81 +34,81 @@ describe('Property decorator', () =>
 
         expect(userNameMetadata).toBeDefined();
         expect(userNameMetadata?.propertyName).toBe('name');
-        expect(userNameMetadata?.propertyOptions.alias).toBeUndefined();
-        expect(userNameMetadata?.propertyOptions.serializable).toBeUndefined();
-        expect(userNameMetadata?.propertyOptions.deserializable).toBeUndefined();
-        expect(userNameMetadata?.propertyOptions.deserializedDefaultValue).toBeUndefined();
-        expect(userNameMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
-        expect(userNameMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
-        expect(userNameMetadata?.propertyOptions.typeArgument).toBeUndefined();
-        expect(userNameMetadata?.propertyOptions.serializer).toBeUndefined();
+        expect(userNameMetadata?.alias).toBeUndefined();
+        expect(userNameMetadata?.serializable).toBeTrue();
+        expect(userNameMetadata?.deserializable).toBeTrue();
+        expect(userNameMetadata?.deserializedDefaultValue).toBeUndefined();
+        expect(userNameMetadata?.useDefaultValue).toBeFalse();
+        expect(userNameMetadata?.useImplicitConversion).toBeFalse();
+        expect(userNameMetadata?.typeArgument).toBeUndefined();
+        expect(userNameMetadata?.serializer).toBeInstanceOf(UnknownSerializer);
 
         expect(userEmailMetadata).toBeDefined();
         expect(userEmailMetadata?.propertyName).toBe('email');
-        expect(userEmailMetadata?.propertyOptions.alias).toBe('my@mail.ru');
-        expect(userEmailMetadata?.propertyOptions.serializable).toBeUndefined();
-        expect(userEmailMetadata?.propertyOptions.deserializable).toBeUndefined();
-        expect(userEmailMetadata?.propertyOptions.deserializedDefaultValue).toBeUndefined();
-        expect(userEmailMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
-        expect(userEmailMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
-        expect(userEmailMetadata?.propertyOptions.typeArgument).toBeDefined();
-        expect(userEmailMetadata?.propertyOptions.serializer).toBeUndefined();
+        expect(userEmailMetadata?.alias).toBe('my@mail.ru');
+        expect(userEmailMetadata?.serializable).toBeTrue();
+        expect(userEmailMetadata?.deserializable).toBeTrue();
+        expect(userEmailMetadata?.deserializedDefaultValue).toBeUndefined();
+        expect(userEmailMetadata?.useDefaultValue).toBeFalse();
+        expect(userEmailMetadata?.useImplicitConversion).toBeFalse();
+        expect(userEmailMetadata?.typeArgument).toBeDefined();
+        expect(userEmailMetadata?.serializer).toBeInstanceOf(StringSerializer);
 
         expect(userGroupMetadata).toBeDefined();
         expect(userGroupMetadata?.propertyName).toBe('group');
-        expect(userGroupMetadata?.propertyOptions.alias).toBeUndefined();
-        expect(userGroupMetadata?.propertyOptions.serializable).toBeTrue();
-        expect(userGroupMetadata?.propertyOptions.deserializable).toBeUndefined();
-        expect(userGroupMetadata?.propertyOptions.deserializedDefaultValue).toBeUndefined();
-        expect(userGroupMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
-        expect(userGroupMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
-        expect(userGroupMetadata?.propertyOptions.typeArgument).toBeDefined();
-        expect(userGroupMetadata?.propertyOptions.serializer).toBeUndefined();
+        expect(userGroupMetadata?.alias).toBeUndefined();
+        expect(userGroupMetadata?.serializable).toBeTrue();
+        expect(userGroupMetadata?.deserializable).toBeFalse();
+        expect(userGroupMetadata?.deserializedDefaultValue).toBeUndefined();
+        expect(userGroupMetadata?.useDefaultValue).toBeFalse();
+        expect(userGroupMetadata?.useImplicitConversion).toBeFalse();
+        expect(userGroupMetadata?.typeArgument).toBeDefined();
+        expect(userGroupMetadata?.serializer).toBeInstanceOf(StringSerializer);
 
         expect(userRankMetadata).toBeDefined();
         expect(userRankMetadata?.propertyName).toBe('rank');
-        expect(userRankMetadata?.propertyOptions.alias).toBeUndefined();
-        expect(userRankMetadata?.propertyOptions.serializable).toBeUndefined();
-        expect(userRankMetadata?.propertyOptions.deserializable).toBeTrue();
-        expect(userRankMetadata?.propertyOptions.deserializedDefaultValue).toBeUndefined();
-        expect(userRankMetadata?.propertyOptions.preserveNull).toBeFalse();
-        expect(userRankMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
-        expect(userRankMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
-        expect(userRankMetadata?.propertyOptions.typeArgument).toBeUndefined();
-        expect(userRankMetadata?.propertyOptions.serializer).toBeUndefined();
+        expect(userRankMetadata?.alias).toBeUndefined();
+        expect(userRankMetadata?.serializable).toBeFalse();
+        expect(userRankMetadata?.deserializable).toBeTrue();
+        expect(userRankMetadata?.deserializedDefaultValue).toBeUndefined();
+        expect(userRankMetadata?.preserveNull).toBeFalse();
+        expect(userRankMetadata?.useDefaultValue).toBeFalse();
+        expect(userRankMetadata?.useImplicitConversion).toBeFalse();
+        expect(userRankMetadata?.typeArgument).toBeUndefined();
+        expect(userRankMetadata?.serializer).toBeInstanceOf(UnknownSerializer);
 
         expect(userPriorityMetadata).toBeDefined();
         expect(userPriorityMetadata?.propertyName).toBe('priority');
-        expect(userPriorityMetadata?.propertyOptions.alias).toBeUndefined();
-        expect(userPriorityMetadata?.propertyOptions.serializable).toBeUndefined();
-        expect(userPriorityMetadata?.propertyOptions.deserializable).toBeUndefined();
-        expect(userPriorityMetadata?.propertyOptions.deserializedDefaultValue).toBe(10);
-        expect(userPriorityMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
-        expect(userPriorityMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
-        expect(userPriorityMetadata?.propertyOptions.typeArgument).toBeDefined();
-        expect(userPriorityMetadata?.propertyOptions.serializer).toBeUndefined();
+        expect(userPriorityMetadata?.alias).toBeUndefined();
+        expect(userPriorityMetadata?.serializable).toBeTrue();
+        expect(userPriorityMetadata?.deserializable).toBeTrue();
+        expect(userPriorityMetadata?.deserializedDefaultValue).toBe(10);
+        expect(userPriorityMetadata?.useDefaultValue).toBeTrue();
+        expect(userPriorityMetadata?.useImplicitConversion).toBeFalse();
+        expect(userPriorityMetadata?.typeArgument).toBeDefined();
+        expect(userPriorityMetadata?.serializer).toBeInstanceOf(NumberSerializer);
 
         expect(userLoginCountMetadata).toBeDefined();
         expect(userLoginCountMetadata?.propertyName).toBe('loginCount');
-        expect(userLoginCountMetadata?.propertyOptions.alias).toBeUndefined();
-        expect(userLoginCountMetadata?.propertyOptions.serializable).toBeUndefined();
-        expect(userLoginCountMetadata?.propertyOptions.deserializable).toBeUndefined();
-        expect(userLoginCountMetadata?.propertyOptions.deserializedDefaultValue).toBeUndefined();
-        expect(userLoginCountMetadata?.propertyOptions.useDefaultValue).toBeTrue();
-        expect(userLoginCountMetadata?.propertyOptions.useImplicitConversion).toBeUndefined();
-        expect(userLoginCountMetadata?.propertyOptions.typeArgument).toBeDefined();
-        expect(userLoginCountMetadata?.propertyOptions.serializer).toBeUndefined();
-        expect(userLoginCountMetadata?.propertyOptions.customOptions).toBeDefined();
+        expect(userLoginCountMetadata?.alias).toBeUndefined();
+        expect(userLoginCountMetadata?.serializable).toBeTrue();
+        expect(userLoginCountMetadata?.deserializable).toBeTrue();
+        expect(userLoginCountMetadata?.deserializedDefaultValue).toBe(0);
+        expect(userLoginCountMetadata?.useDefaultValue).toBeTrue();
+        expect(userLoginCountMetadata?.useImplicitConversion).toBeFalse();
+        expect(userLoginCountMetadata?.typeArgument).toBeDefined();
+        expect(userLoginCountMetadata?.serializer).toBeInstanceOf(NumberSerializer);
+        expect(userLoginCountMetadata?.customValueMap.size).toBe(1);
 
         expect(userActiveMetadata).toBeDefined();
         expect(userActiveMetadata?.propertyName).toBe('active');
-        expect(userActiveMetadata?.propertyOptions.alias).toBeUndefined();
-        expect(userActiveMetadata?.propertyOptions.serializable).toBeUndefined();
-        expect(userActiveMetadata?.propertyOptions.deserializable).toBeUndefined();
-        expect(userActiveMetadata?.propertyOptions.deserializedDefaultValue).toBeUndefined();
-        expect(userActiveMetadata?.propertyOptions.useDefaultValue).toBeUndefined();
-        expect(userActiveMetadata?.propertyOptions.useImplicitConversion).toBeTrue();
-        expect(userActiveMetadata?.propertyOptions.typeArgument).toBeUndefined();
-        expect(userActiveMetadata?.propertyOptions.serializer).toBeInstanceOf(TypeSerializer);
+        expect(userActiveMetadata?.alias).toBeUndefined();
+        expect(userActiveMetadata?.serializable).toBeTrue();
+        expect(userActiveMetadata?.deserializable).toBeTrue();
+        expect(userActiveMetadata?.deserializedDefaultValue).toBeUndefined();
+        expect(userActiveMetadata?.useDefaultValue).toBeFalse();
+        expect(userActiveMetadata?.useImplicitConversion).toBeTrue();
+        expect(userActiveMetadata?.typeArgument).toBeUndefined();
+        expect(userActiveMetadata?.serializer).toBeInstanceOf(TypeSerializer);
     });
 });

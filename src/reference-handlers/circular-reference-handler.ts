@@ -1,4 +1,3 @@
-import { isNil } from 'lodash';
 import { ReferenceHandler } from '../reference-handler';
 import { ReferenceKey } from '../reference-key';
 import { ReferenceValue } from '../reference-value';
@@ -26,7 +25,7 @@ export class CircularReferenceHandler implements ReferenceHandler
         const referenceMap = serializerContext.referenceMap;
         const referenceValue = referenceMap.get(referenceKey);
 
-        if (isNil(referenceValue))
+        if (referenceValue === undefined)
         {
             referenceMap.set(referenceKey, referenceKey);
 
@@ -63,7 +62,7 @@ export class CircularReferenceHandler implements ReferenceHandler
         const referenceMap = serializerContext.referenceMap;
         const referenceValue = referenceMap.get(referenceKey);
 
-        if (isNil(referenceValue))
+        if (referenceValue === undefined)
         {
             referenceMap.set(referenceKey, referenceKey);
 

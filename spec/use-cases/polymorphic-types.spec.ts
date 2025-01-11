@@ -13,7 +13,7 @@ class DefaultActiveUserStatus extends UserStatus
 }
 
 @Type({
-    parentTypeFns: [UserStatus]
+    parentTypeArguments: [UserStatus]
 })
 class DefaultInactiveUserStatus implements UserStatus
 {

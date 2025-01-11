@@ -5,13 +5,13 @@ import { TypeMetadata } from './type-metadata';
 /**
  * Type extension metadata constructor.
  * 
- * @type {TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TType>}
+ * @type {TypeExtensionMetadataCtor<TTypeExtensionMetadata, TTypeExtensionOptions, TObject>}
  */
 export type TypeExtensionMetadataCtor<
-    TTypeExtensionMetadata extends TypeExtensionMetadata<TType, TTypeExtensionOptions>, 
+    TTypeExtensionMetadata extends TypeExtensionMetadata<TObject, TTypeExtensionOptions>, 
     TTypeExtensionOptions extends TypeExtensionOptions,
-    TType
+    TObject
 > = new (
-    typeMetadata: TypeMetadata<TType>, 
+    typeMetadata: TypeMetadata<TObject>, 
     typeExtensionOptions: TTypeExtensionOptions
 ) => TTypeExtensionMetadata;

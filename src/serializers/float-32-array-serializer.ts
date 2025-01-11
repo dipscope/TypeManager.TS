@@ -1,5 +1,3 @@
-import { isArray, isNull, isUndefined } from 'lodash';
-import { isFloat32Array } from '../functions/is-float-32-array';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -21,25 +19,22 @@ export class Float32ArraySerializer implements Serializer<Float32Array>
      */
     public serialize(x: TypeLike<Float32Array>, serializerContext: SerializerContext<Float32Array>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.serializedNullValue;
         }
 
-        if (isFloat32Array(x))
+        if (x instanceof Float32Array)
         {
             return Array.from(x);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as float 32 array.`, x);
-        }
+        serializerContext.logger.error('Float32ArraySerializer', `${serializerContext.jsonPath}: cannot serialize value as float 32 array.`, x);
 
         return undefined;
     }
@@ -54,25 +49,22 @@ export class Float32ArraySerializer implements Serializer<Float32Array>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Float32Array>): TypeLike<Float32Array>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.deserializedNullValue;
         }
 
-        if (isArray(x))
+        if (Array.isArray(x))
         {
             return Float32Array.from(x);
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as float 32 array.`, x);
-        }
+        serializerContext.logger.error('Float32ArraySerializer', `${serializerContext.jsonPath}: cannot deserialize value as float 32 array.`, x);
 
         return undefined;
     }

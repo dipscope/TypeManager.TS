@@ -1,3 +1,4 @@
+import { Optional } from './optional';
 import { TypeMetadata } from './type-metadata';
 
 /**
@@ -10,9 +11,9 @@ export interface Injector
     /**
      * Method to get instance described by type metadata.
      * 
-     * @param {TypeMetadata<TType>} typeMetadata Type metadata.
+     * @param {TypeMetadata<TObject>} typeMetadata Type metadata.
      * 
-     * @returns {TType|undefined} Instance of type described by type metadata or undefined.
+     * @returns {Optional<TObject>} Instance of type described by type metadata or undefined.
      */
-    get<TType>(typeMetadata: TypeMetadata<TType>): TType | undefined;
+    get<TObject>(typeMetadata: TypeMetadata<TObject>): Optional<TObject>;
 }

@@ -1,4 +1,3 @@
-import { isNil } from 'lodash';
 import { InjectIndex } from './inject-index';
 import { InjectOptions } from './inject-options';
 import { PropertyName } from './property-name';
@@ -77,7 +76,7 @@ export class TypeScope
 
         let propertyOptionsArray = this.propertyOptionsArrayMap.get(propertyName);
 
-        if (isNil(propertyOptionsArray)) 
+        if (propertyOptionsArray === undefined) 
         {
             propertyOptionsArray = new Array<PropertyOptions<any>>();
 
@@ -106,7 +105,7 @@ export class TypeScope
 
         let injectOptionsArray = this.injectOptionsArrayMap.get(injectIndex);
 
-        if (isNil(injectOptionsArray)) 
+        if (injectOptionsArray === undefined) 
         {
             injectOptionsArray = new Array<InjectOptions<any>>();
 
@@ -134,17 +133,17 @@ export class TypeScope
 
         for (const [propertyName, propertyOptionsArray] of this.propertyOptionsArrayMap)
         {
-            for (const propertyOptions of propertyOptionsArray)
+            for (let i = 0; i < propertyOptionsArray.length; i++)
             {
-                typeMetadata.configurePropertyMetadata(propertyName, propertyOptions);
+                typeMetadata.configurePropertyMetadata(propertyName, propertyOptionsArray[i]);
             }
         }
 
         for (const [injectIndex, injectOptionsArray] of this.injectOptionsArrayMap)
         {
-            for (const injectOptions of injectOptionsArray)
+            for (let i = 0; i < injectOptionsArray.length; i++)
             {
-                typeMetadata.configureInjectMetadata(injectIndex, injectOptions);
+                typeMetadata.configureInjectMetadata(injectIndex, injectOptionsArray[i]);
             }
         }
 

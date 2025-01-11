@@ -1,4 +1,3 @@
-import { isDate, isNull, isString, isUndefined } from 'lodash';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeLike } from '../type-like';
@@ -20,25 +19,22 @@ export class DateSerializer implements Serializer<Date>
      */
     public serialize(x: TypeLike<Date>, serializerContext: SerializerContext<Date>): TypeLike<any>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.serializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.serializedNullValue;
         }
 
-        if (isDate(x))
+        if (x instanceof Date)
         {
             return x.toISOString();
         }
 
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot serialize value as date.`, x);
-        }
+        serializerContext.logger.error('DateSerializer', `${serializerContext.jsonPath}: cannot serialize value as date.`, x);
 
         return undefined;
     }
@@ -53,25 +49,22 @@ export class DateSerializer implements Serializer<Date>
      */
     public deserialize(x: TypeLike<any>, serializerContext: SerializerContext<Date>): TypeLike<Date>
     {
-        if (isUndefined(x))
+        if (x === undefined)
         {
             return serializerContext.deserializedDefaultValue;
         }
 
-        if (isNull(x))
+        if (x === null)
         {
             return serializerContext.deserializedNullValue;
         }
 
-        if (isString(x))
+        if (typeof x === 'string')
         {
             return new Date(x);
         }
-
-        if (serializerContext.log.errorEnabled) 
-        {
-            serializerContext.log.error(`${serializerContext.jsonPath}: cannot deserialize value as date.`, x);
-        }
+        
+        serializerContext.logger.error('DateSerializer', `${serializerContext.jsonPath}: cannot deserialize value as date.`, x);
 
         return undefined;
     }

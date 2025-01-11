@@ -5,14 +5,14 @@ import { PropertyMetadata } from './property-metadata';
 /**
  * Property extension metadata constructor.
  * 
- * @type {PropertyExtensionMetadataCtor<TPropertyExtensionMetadata, TPropertyExtensionOptions, TDeclaringType, TType>}
+ * @type {PropertyExtensionMetadataCtor<TPropertyExtensionMetadata, TPropertyExtensionOptions, TDeclaringObject, TObject>}
  */
 export type PropertyExtensionMetadataCtor<
-    TPropertyExtensionMetadata extends PropertyExtensionMetadata<TDeclaringType, TType, TPropertyExtensionOptions>, 
+    TPropertyExtensionMetadata extends PropertyExtensionMetadata<TDeclaringObject, TObject, TPropertyExtensionOptions>, 
     TPropertyExtensionOptions extends PropertyExtensionOptions, 
-    TDeclaringType, 
-    TType
+    TDeclaringObject, 
+    TObject
 > = new (
-    propertyMetadata: PropertyMetadata<TDeclaringType, TType>, 
+    propertyMetadata: PropertyMetadata<TDeclaringObject, TObject>, 
     propertyExtensionOptions: TPropertyExtensionOptions
 ) => TPropertyExtensionMetadata;

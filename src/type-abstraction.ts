@@ -1,6 +1,6 @@
 /**
  * Type abstraction.
  * 
- * @type {TypeAbstraction<TType>}
+ * @type {TypeAbstraction<TObject>}
  */
-export type TypeAbstraction<TType> = abstract new (...args: Array<any>) => TType;
+export type TypeAbstraction<TObject> = abstract new (...args: Array<any>) => TObject;
