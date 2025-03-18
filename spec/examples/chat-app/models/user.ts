@@ -7,14 +7,15 @@ import { Statusable } from './statusable';
 
 
 @Type({
+    alias: 'users',
     discriminant: 'User',
     parentTypeArguments: [() => Messageable, () => HasTitle]
 })
 export class User extends Statusable implements Messageable, HasTitle
 {
     @Property(String) title: string;
-    @Property(Array, [() => Message]) messages!: Message[];
-    @Property(Array, [() => Chat]) chats!: Chat[];
+    @Property(Array, ['messages']) messages!: Message[];
+    @Property(Array, ['chats']) chats!: Chat[];
 
     public constructor(title: string)
     {

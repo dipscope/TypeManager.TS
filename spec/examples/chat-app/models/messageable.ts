@@ -1,8 +1,8 @@
 import { Type, Property } from '../../../../src';
 import { Message } from './message';
 
-@Type()
+@Type({ alias: 'messageables' })
 export abstract class Messageable
 {
-    @Property(Array, [() => Message]) messages!: Message[];
+    @Property(Array, ['messages']) messages!: Message[];
 }
