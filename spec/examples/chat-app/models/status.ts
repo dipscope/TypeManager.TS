@@ -1,7 +1,7 @@
 import { Type, Property } from '../../../../src';
 
 
-@Type()
+@Type({ alias: 'statuses' })
 export class Status
 {
     @Property(String) status: string;

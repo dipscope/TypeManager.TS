@@ -2,8 +2,8 @@ import { Type, Property } from '../../../../src';
 import { Status } from './status';
 
 
-@Type()
+@Type({ alias: 'statusables' })
 export abstract class Statusable
 {
-    @Property(Array, [() => Status]) statuses!: Status[];
+    @Property(Array, ['statuses']) statuses!: Status[];
 }

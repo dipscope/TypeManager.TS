@@ -4,6 +4,7 @@ import { Messageable } from './messageable';
 
 
 @Type({
+    alias: 'chats',
     discriminant: 'Chat',
     parentTypeArguments: [() => HasTitle]
 })
