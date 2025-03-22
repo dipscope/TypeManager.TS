@@ -1,5 +1,5 @@
-import { Type, Property } from '../../../../src';
-import { Messageable } from './messageable'
+import { Property, Type } from '../../src';
+import { Messageable } from './messageable';
 
 @Type({ alias: 'messages' })
 export class Message

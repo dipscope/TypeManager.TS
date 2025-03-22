@@ -6,7 +6,7 @@ import { JsonPathReferenceHandler, Property, Type, TypeManager } from '../../src
 class User
 {
     @Property(() => Company) public company?: Company;
-    @Property(Array, [() => Company]) public companies?: Company[];
+    @Property(Array, [() => Company]) public companies?: Array<Company>;
 }
 
 @Type({

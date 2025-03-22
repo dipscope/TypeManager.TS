@@ -1,4 +1,4 @@
-import { PropertyName } from 'lodash';
+import { PropertyName } from '../property-name';
 import { Serializer } from '../serializer';
 import { SerializerContext } from '../serializer-context';
 import { TypeEntry } from '../type-entry';

@@ -57,8 +57,8 @@ class CustomBlokedUserStatus extends UserStatus
 @Type()
 class User
 {
-    @Property(Array, [UserStatus]) public defaultUserStatuses: UserStatus[] = [];
-    @Property(Array, [UserStatus]) public customUserStatuses: UserStatus[] = [];
+    @Property(Array, [UserStatus]) public defaultUserStatuses: Array<UserStatus> = [];
+    @Property(Array, [UserStatus]) public customUserStatuses: Array<UserStatus> = [];
 }
 
 describe('Polymorphic types', () =>

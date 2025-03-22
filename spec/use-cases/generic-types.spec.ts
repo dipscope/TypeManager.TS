@@ -6,14 +6,14 @@ import { Property, Type, TypeManager } from '../../src';
 class Group
 {
     @Property(String) public title?: string;
-    @Property(Array, [() => User]) public users?: User[];
+    @Property(Array, [() => User]) public users?: Array<User>;
 }
 
 @Type()
 class Message
 {
     @Property(String) public title?: string;
-    @Property(Array, ['Group:Generics']) public groups?: Group[];
+    @Property(Array, ['Group:Generics']) public groups?: Array<Group>;
     @Property(Map, [Number, [Map, [String, Boolean]]]) public map?: Map<number, Map<string, boolean>>;
 }
 
@@ -21,7 +21,7 @@ class Message
 class User
 {
     @Property(() => String) public name?: string;
-    @Property(() => Array, [Message]) public messages?: Message[];
+    @Property(() => Array, [Message]) public messages?: Array<Message>;
 }
 
 describe('Generic types', () =>

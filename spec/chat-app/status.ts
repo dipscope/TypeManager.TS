@@ -1,5 +1,4 @@
-import { Type, Property } from '../../../../src';
-
+import { Property, Type } from '../../src';
 
 @Type({ alias: 'statuses' })
 export class Status

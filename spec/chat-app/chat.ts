@@ -1,7 +1,6 @@
-import { Type, Property } from '../../../../src';
+import { Property, Type } from '../../src';
 import { HasTitle } from './has-title';
 import { Messageable } from './messageable';
-
 
 @Type({
     alias: 'chats',

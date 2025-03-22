@@ -1,10 +1,10 @@
-import { TypeManager } from '../../../src';
-import { Chat } from './models/chat';
-import { Message } from './models/message';
-import { Status } from './models/status';
-import { User } from './models/user';
+import { TypeManager } from '../../src';
+import { Chat } from './chat';
+import { Message } from './message';
+import { Status } from './status';
+import { User } from './user';
 
-describe('Polymorphic types', () =>
+describe('Chat app', () =>
 {
     afterEach(() =>
     {
@@ -73,8 +73,8 @@ describe('Polymorphic types', () =>
             return { $type: 'Status', status: i.toString() }
         });
 
-        const user = { $type: 'User', title: 'user-b', messages: [] as Record<string, any>[], statuses };
-        const chat = { $type: 'Chat', title: 'chat-b', messages: [] as Record<string, any>[] };
+        const user = { $type: 'User', title: 'user-b', messages: [] as Array<Record<string, any>>, statuses };
+        const chat = { $type: 'Chat', title: 'chat-b', messages: [] as Array<Record<string, any>> };
 
         const messages = [...Array(messageCount)].map((_, i) => 
         {

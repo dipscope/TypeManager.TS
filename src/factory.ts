@@ -1,5 +1,5 @@
-import { PropertyName } from 'lodash';
 import { Injector } from './injector';
+import { PropertyName } from './property-name';
 import { TypeEntry } from './type-entry';
 import { TypeMetadata } from './type-metadata';
 

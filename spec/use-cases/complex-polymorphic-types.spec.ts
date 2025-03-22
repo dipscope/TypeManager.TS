@@ -34,7 +34,7 @@ class Status
 @Type()
 abstract class Messageable
 {
-    @Property(Array, [Message]) messages!: Message[];
+    @Property(Array, [Message]) messages!: Array<Message>;
 }
 
 @Type()
@@ -46,7 +46,7 @@ abstract class HasTitle
 @Type()
 abstract class Statusable
 {
-    @Property(Array, [Status]) statuses!: Status[];
+    @Property(Array, [Status]) statuses!: Array<Status>;
 }
 
 @Type({
@@ -74,7 +74,7 @@ class Chat extends Messageable implements HasTitle
 class User extends Statusable implements Messageable, HasTitle
 {
     @Property(String) title: string;
-    @Property(Array, [Message]) messages!: Message[];
+    @Property(Array, [Message]) messages!: Array<Message>;
 
     public constructor(title: string) 
     {
@@ -155,8 +155,8 @@ describe('Polymorphic types', () =>
             return { $type: 'Status', status: i.toString() }
         });
 
-        const user = { $type: 'User', title: 'user-b', messages: [] as Record<string, any>[], statuses };
-        const chat = { $type: 'Chat', title: 'chat-b', messages: [] as Record<string, any>[] };
+        const user = { $type: 'User', title: 'user-b', messages: [] as Array<Record<string, any>>, statuses };
+        const chat = { $type: 'Chat', title: 'chat-b', messages: [] as Array<Record<string, any>> };
 
         const messages = [...Array(messageCount)].map((_, i) => 
         {
