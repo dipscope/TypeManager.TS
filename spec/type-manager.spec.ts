@@ -267,11 +267,7 @@ describe('Type manager', () =>
 
     it('should not override static configuration', () =>
     {
-        const groupManager = new TypeManager();
-
-        groupManager.applyTypeOptionsBase(TypeManager.typeOptionsBase);
-        groupManager.applyTypeOptionsMap(new Map(Array.from(TypeManager.typeOptionsMap)));
-
+        const groupManager = TypeManager.clone();
         const groupMetadata = TypeManager.extractTypeMetadata(Group);
         const instanceGroupMetadata = groupManager.extractTypeMetadata(Group);
 
@@ -295,5 +291,24 @@ describe('Type manager', () =>
         expect(TypeManager.typeOptionsBase.useImplicitConversion).toBeFalse();
         expect(TypeManager.typeOptionsBase.discriminator).toBe('$type');
         expect(groupMetadata.deserializedDefaultValue).toBeUndefined();
+    });
+
+    it('should clear prototype registrations', () =>
+    {
+        const groupManager = TypeManager.clone();
+        const groupMetadata = TypeManager.extractTypeMetadata(Group);
+
+        expect(groupMetadata.typeFn.prototype[TypeManager.symbol]).toBeDefined();
+        expect(groupMetadata.typeFn.prototype[groupManager.symbol]).toBeDefined();
+        expect(TypeManager.typeOptionsMap.size).toBeGreaterThan(0);
+        expect(groupManager.typeOptionsMap.size).toBeGreaterThan(0);
+        expect(groupManager.typeOptionsMap.size).toBe(TypeManager.typeOptionsMap.size);
+
+        groupManager.clear();
+
+        expect(groupMetadata.typeFn.prototype[TypeManager.symbol]).toBeDefined();
+        expect(groupMetadata.typeFn.prototype[groupManager.symbol]).toBeUndefined();
+        expect(TypeManager.typeOptionsMap.size).toBeGreaterThan(0);
+        expect(groupManager.typeOptionsMap.size).toBe(0);
     });
 });

@@ -411,12 +411,12 @@ export class TypeManager
         {
             Object.defineProperty(prototype, symbol, {
                 enumerable: false,
-                configurable: false,
+                configurable: true,
                 writable: false,
                 value: typeMetadata
             });
         }
-        
+
         if (typeMetadataDefined && typeOptions !== undefined)
         {
             typeMetadata.configure(typeOptions);
@@ -732,7 +732,87 @@ export class TypeManager
             undefined
         );
     }
-    
+
+    /**
+     * Create a new clone of the static type manager. This method returns a shallow 
+     * copy, preserving its current configuration and registered types.
+     * 
+     * @returns {TypeManager} A new instance that duplicates the static type manager.
+     */
+    public static clone(): TypeManager
+    {
+        return this.staticTypeManager.clone();
+    }
+
+    /**
+     * Create a new clone of this type manager instance. The clone will contain 
+     * copies of this instance base options and mappings, but will be completely 
+     * independent: subsequent changes on the clone or the original will not affect 
+     * each other.
+     * 
+     * @returns {TypeManager} A fresh type manager instance with the same configuration and registered types.
+     */
+    public clone(): TypeManager
+    {
+        const typeOptionsBase = Object.assign({}, this.typeOptionsBase);
+        const typeOptionsMap = new Map(Array.from(this.typeOptionsMap));
+        const typeManagerOptions = { typeOptionsBase: typeOptionsBase, typeOptionsMap: typeOptionsMap };
+        const typeManager = new TypeManager(typeManagerOptions);
+
+        return typeManager;
+    }
+
+    /**
+     * Clears all type registrations from the static type manager. After calling this 
+     * method, the static type manager will no longer hold any registered type metadata.
+     * 
+     * @returns {TypeManager} Static instance of type manager.
+     */
+    public static clear(): TypeManager
+    {
+        return this.staticTypeManager.clear();
+    }
+
+    /**
+     * Clears all type registrations from the type manager. After calling this 
+     * method, the type manager will no longer hold any registered type metadata.
+     * 
+     * @returns {this} Instance of type manager.
+     */
+    public clear(): this
+    {
+        const symbol = this.symbol;
+        const typeFnMap = this.typeFnMap;
+        const typeMetadataSet = this.typeMetadataSet;
+
+        for (const typeMetadata of typeMetadataSet)
+        {
+            const prototype = typeMetadata.typeFn.prototype ?? {};
+
+            delete prototype[symbol];
+        }
+
+        typeMetadataSet.clear();
+        typeFnMap.clear();
+
+        const typeManagerOptions = this.typeManagerOptions;
+        const typeOptionsMap = typeManagerOptions.typeOptionsMap;
+
+        if (typeOptionsMap !== undefined)
+        {
+            typeOptionsMap.clear();
+        }
+
+        const typeConfigurationMap = typeManagerOptions.typeConfigurationMap;
+
+        if (typeConfigurationMap !== undefined)
+        {
+            typeConfigurationMap.clear();
+        }
+        
+        return this;
+    }
+
     /**
      * Serializes provided value based on the type in static context.
      * 
