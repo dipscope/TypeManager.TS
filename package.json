@@ -52,5 +52,5 @@
     "test": "jasmine-ts --config=jasmine.json",
     "lint": "eslint . --ext .ts"
   },
-  "version": "8.0.1"
+  "version": "8.1.0"
 }
