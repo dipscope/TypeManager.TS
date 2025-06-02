@@ -884,9 +884,8 @@ export class TypeManager
     public clear(): this
     {
         const symbol = this.symbol;
-        const typeFnMap = this.typeFnMap;
         const typeMetadataSet = this.typeMetadataSet;
-
+        
         for (const typeMetadata of typeMetadataSet)
         {
             const prototype = typeMetadata.typeFn.prototype ?? {};
@@ -895,7 +894,6 @@ export class TypeManager
         }
 
         typeMetadataSet.clear();
-        typeFnMap.clear();
 
         return this;
     }
