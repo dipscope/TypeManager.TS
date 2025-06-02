@@ -7,9 +7,13 @@ import { TypeFactory } from './factories/type-factory';
 import { jsonParse } from './functions/json-parse';
 import { jsonStringify } from './functions/json-stringify';
 import { GenericArgument } from './generic-argument';
+import { InjectIndex } from './inject-index';
+import { InjectOptions } from './inject-options';
 import { SingletonInjector } from './injectors/singleton-injector';
 import { Logger } from './logger';
 import { LoggerLevel } from './logger-level';
+import { PropertyName } from './property-name';
+import { PropertyOptions } from './property-options';
 import { ReferenceCallback } from './reference-callback';
 import { CircularReferenceHandler } from './reference-handlers/circular-reference-handler';
 import { ReferenceKey } from './reference-key';
@@ -754,12 +758,110 @@ export class TypeManager
      */
     public clone(): TypeManager
     {
-        const typeOptionsBase = Object.assign({}, this.typeOptionsBase);
-        const typeOptionsMap = new Map(Array.from(this.typeOptionsMap));
+        const typeOptionsBase = this.cloneTypeOptionsBase();
+        const typeOptionsMap = this.cloneTypeOptionsMap();
         const typeManagerOptions = { typeOptionsBase: typeOptionsBase, typeOptionsMap: typeOptionsMap };
         const typeManager = new TypeManager(typeManagerOptions);
 
         return typeManager;
+    }
+
+    /**
+     * Creates a clone of type options base.
+     * 
+     * @returns {TypeOptionsBase<any>} Type options base clone.
+     */
+    private cloneTypeOptionsBase(): TypeOptionsBase<any>
+    {
+        const typeOptionsBase = this.typeOptionsBase;
+        const customValueMap = typeOptionsBase.customValueMap;
+        const customValueMapClone = new Map<CustomKey<any>, CustomValue>();
+        const typeOptionsBaseClone = Object.assign({}, typeOptionsBase, { customValueMap: customValueMapClone });
+
+        for (const [customKey, customValue] of customValueMap)
+        {
+            customValueMapClone.set(customKey, customValue);
+        }
+
+        return typeOptionsBaseClone;
+    }
+
+    /**
+     * Creates a clone of type options map.
+     * 
+     * @returns {Map<TypeFn<any>, TypeOptions<any>>} Type options map clone.
+     */
+    private cloneTypeOptionsMap(): Map<TypeFn<any>, TypeOptions<any>>
+    {
+        const typeOptionsMap = this.typeOptionsMap;
+        const typeOptionsMapClone = new Map<TypeFn<any>, TypeOptions<any>>();
+
+        for (const [typeFn, typeOptions] of typeOptionsMap)
+        {
+            const typeOptionsClone = Object.assign({}, typeOptions);
+            const typeCustomValueMap = typeOptions.customValueMap;
+
+            if (typeCustomValueMap !== undefined)
+            {
+                const typeCustomValueMapClone = new Map<CustomKey<any>, CustomValue>();
+
+                for (const [customKey, customValue] of typeCustomValueMap)
+                {
+                    typeCustomValueMapClone.set(customKey, customValue);
+                }
+
+                typeOptionsClone.customValueMap = typeCustomValueMapClone;
+            }
+
+            const propertyOptionsMap = typeOptions.propertyOptionsMap;
+
+            if (propertyOptionsMap !== undefined)
+            {
+                const propertyOptionsMapClone = new Map<PropertyName, PropertyOptions<any>>();
+
+                for (const [propertyName, propertyOptions] of propertyOptionsMap)
+                {
+                    const propertyOptionsClone = Object.assign({}, propertyOptions);
+                    const propertyCustomValueMap = propertyOptions.customValueMap;
+
+                    if (propertyCustomValueMap !== undefined)
+                    {
+                        const propertyCustomValueMapClone = new Map<CustomKey<any>, CustomValue>();
+
+                        for (const [customKey, customValue] of propertyCustomValueMap)
+                        {
+                            propertyCustomValueMapClone.set(customKey, customValue);
+                        }
+
+                        propertyOptionsClone.customValueMap = propertyCustomValueMapClone;
+                    }
+
+                    propertyOptionsMapClone.set(propertyName, propertyOptionsClone);
+                }
+
+                typeOptionsClone.propertyOptionsMap = propertyOptionsMapClone;
+            }
+
+            const injectOptionsMap = typeOptions.injectOptionsMap;
+
+            if (injectOptionsMap !== undefined)
+            {
+                const injectOptionsMapClone = new Map<InjectIndex, InjectOptions<any>>();
+
+                for (const [injectIndex, injectOptions] of injectOptionsMap)
+                {
+                    const injectOptionsClone = Object.assign({}, injectOptions);
+
+                    injectOptionsMapClone.set(injectIndex, injectOptionsClone);
+                }
+
+                typeOptionsClone.injectOptionsMap = injectOptionsMapClone;
+            }
+
+            typeOptionsMapClone.set(typeFn, typeOptionsClone);
+        }
+
+        return typeOptionsMapClone;
     }
 
     /**
@@ -795,21 +897,6 @@ export class TypeManager
         typeMetadataSet.clear();
         typeFnMap.clear();
 
-        const typeManagerOptions = this.typeManagerOptions;
-        const typeOptionsMap = typeManagerOptions.typeOptionsMap;
-
-        if (typeOptionsMap !== undefined)
-        {
-            typeOptionsMap.clear();
-        }
-
-        const typeConfigurationMap = typeManagerOptions.typeConfigurationMap;
-
-        if (typeConfigurationMap !== undefined)
-        {
-            typeConfigurationMap.clear();
-        }
-        
         return this;
     }
 

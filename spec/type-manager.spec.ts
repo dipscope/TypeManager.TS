@@ -55,11 +55,7 @@ describe('Type manager', () =>
 
     it('should deserialize type when object is provided and vice versa', () =>
     {
-        const messageManager = new TypeManager();
-
-        messageManager.applyTypeOptionsBase(TypeManager.typeOptionsBase);
-        messageManager.applyTypeOptionsMap(new Map(Array.from(TypeManager.typeOptionsMap)));
-
+        const messageManager = TypeManager.clone();
         const baseObject = { body: 'a', label: 'b', user: { username: 'a', email: 'b', description: null, about: 'g', device: 'h' }, groups: [{ title: 'a' }, { title: 'a' }] };
         const baseObjects = [baseObject, baseObject];
         const entity = messageManager.deserialize(Message, baseObject);
@@ -157,11 +153,7 @@ describe('Type manager', () =>
 
     it('should use base type default value when it is enabled', () =>
     {
-        const groupManager = new TypeManager();
-
-        groupManager.applyTypeOptionsBase(TypeManager.typeOptionsBase);
-        groupManager.applyTypeOptionsMap(new Map(Array.from(TypeManager.typeOptionsMap)));
-
+        const groupManager = TypeManager.clone();
         const baseObject = { title: 'a' };
         const entity = groupManager.deserialize(Group, baseObject);
 
@@ -180,11 +172,7 @@ describe('Type manager', () =>
 
     it('should produce the same result for serialization functions', () =>
     {
-        const groupManager = new TypeManager();
-
-        groupManager.applyTypeOptionsBase(TypeManager.typeOptionsBase);
-        groupManager.applyTypeOptionsMap(new Map(Array.from(TypeManager.typeOptionsMap)));
-
+        const groupManager = TypeManager.clone();
         const baseObject = { title: 'a' };
         const entityA = groupManager.deserialize(Group, baseObject);
         const entityB = groupManager.parse(Group, groupManager.stringify(Group, baseObject)) as Group;
@@ -229,10 +217,7 @@ describe('Type manager', () =>
 
     it('should preserve provided configuration', () =>
     {
-        const groupManager = new TypeManager();
-
-        groupManager.applyTypeOptionsBase(TypeManager.typeOptionsBase);
-        groupManager.applyTypeOptionsMap(new Map(Array.from(TypeManager.typeOptionsMap)));
+        const groupManager = TypeManager.clone();
 
         groupManager.applyTypeOptionsBase({
             preserveDiscriminator: true,
@@ -309,6 +294,7 @@ describe('Type manager', () =>
         expect(groupMetadata.typeFn.prototype[TypeManager.symbol]).toBeDefined();
         expect(groupMetadata.typeFn.prototype[groupManager.symbol]).toBeUndefined();
         expect(TypeManager.typeOptionsMap.size).toBeGreaterThan(0);
-        expect(groupManager.typeOptionsMap.size).toBe(0);
+        expect(groupManager.typeOptionsMap.size).toBeGreaterThan(0);
+        expect(groupManager.typeOptionsMap.size).toBe(TypeManager.typeOptionsMap.size);
     });
 });
