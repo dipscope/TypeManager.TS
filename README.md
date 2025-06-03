@@ -142,6 +142,8 @@ If you like or are using this project, please give it a star. Thanks!
     * [Custom data option](#custom-data-option)
     * [Default value option](#default-value-option)
     * [Deserializable option](#deserializable-option)
+    * [Before serialize callback option](#before-serialize-callback-option)
+    * [After deserialize callback option](#after-deserialize-callback-option)
     * [Discriminant option](#discriminant-option)
     * [Discriminator option](#discriminator-option)
     * [Factory option](#factory-option)
@@ -746,6 +748,54 @@ export class User
 ```
 
 By default all properties are deserializable.
+
+### Before serialize callback option
+
+This option can be used to specify the callback to invoke before serialization starts.
+
+```typescript
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type({
+    beforeSerializeCallback: 'prepareForSerialization'
+})
+export class User
+{
+    @Property(String) public name: string;
+
+    public prepareForSerialization(): void
+    {
+        // This method will be called before serialization begins.
+        console.log(`Preparing User object with name ${this.name} before serialization...`);
+    }
+}
+```
+
+The `prepareForSerialization` method will be automatically invoked by the type manager just before serialization of the `User` instance. Use this hook to perform any last-minute adjustments such as setting default values, trimming strings, or calculating derived properties before the data is emitted.
+
+### After deserialize callback option
+
+This option can be used to specify the callback to invoke when deserialization is completed.
+
+```typescript
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type({
+    afterDeserializeCallback: 'initializeAfterDeserialization'
+})
+export class User
+{
+    @Property(String) public name: string;
+
+    public initializeAfterDeserialization(): void
+    {
+        // This method will be called after deserialization is complete.
+        console.log(`User object with name ${this.name} has been successfully deserialized...`);
+    }
+}
+```
+
+After the `User` instance is reconstructed, the `initializeAfterDeserialization` method will run automatically. This hook is ideal for re-establishing transient state (for example, reconnecting object references, initializing runtime-only fields, or validating integrity of the newly created object).
 
 ### Discriminant option
 

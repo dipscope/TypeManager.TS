@@ -21,6 +21,7 @@ import { PropertyOptions } from '../property-options';
 import { PropertySorter } from '../property-sorter';
 import { ReferenceHandler } from '../reference-handler';
 import { Serializer } from '../serializer';
+import { SerializerCallback } from '../serializer-callback';
 import { TypeArgument } from '../type-argument';
 import { TypeFn } from '../type-fn';
 import { TypeMetadata } from '../type-metadata';
@@ -210,6 +211,44 @@ export class UnresolvedTypeState<TObject> implements TypeState<TObject>
         }
 
         return resolvedTypeState.deserializedDefaultValueResolver;
+    }
+
+    /**
+     * Gets before serialize callback.
+     * 
+     * @returns {Optional<SerializerCallback<TObject>>} Before serialize callback.
+     */
+    public get beforeSerializeCallback(): Optional<SerializerCallback<TObject>>
+    {
+        let resolvedTypeState = this.resolvedTypeState;
+
+        if (resolvedTypeState === undefined)
+        {
+            resolvedTypeState = this.typeMetadata.resolveTypeState();
+
+            this.resolvedTypeState = resolvedTypeState;
+        }
+
+        return resolvedTypeState.beforeSerializeCallback;
+    }
+
+    /**
+     * Gets after deserialize callback.
+     * 
+     * @returns {Optional<SerializerCallback<TObject>>} After deserialize callback.
+     */
+    public get afterDeserializeCallback(): Optional<SerializerCallback<TObject>>
+    {
+        let resolvedTypeState = this.resolvedTypeState;
+
+        if (resolvedTypeState === undefined)
+        {
+            resolvedTypeState = this.typeMetadata.resolveTypeState();
+
+            this.resolvedTypeState = resolvedTypeState;
+        }
+
+        return resolvedTypeState.afterDeserializeCallback;
     }
 
     /**

@@ -19,7 +19,9 @@ const rankKey = new CustomKey<number>('rank');
     discriminant: 'UserDiscriminant',
     preserveDiscriminator: true,
     propertySorter: new DescPropertySorter(),
-    injectSorter: new AscInjectSorter()
+    injectSorter: new AscInjectSorter(),
+    beforeSerializeCallback: 'BeforeSerialize',
+    afterDeserializeCallback: 'AfterDeserialize'
 })
 class User
 {
@@ -38,6 +40,8 @@ describe('Type decorator', () =>
         expect(userMetadata.serializedDefaultValue).toBeInstanceOf(User);
         expect(userMetadata.deserializedDefaultValue).toBeDefined();
         expect(userMetadata.deserializedDefaultValue).toBeInstanceOf(User);
+        expect(userMetadata.beforeSerializeCallback).toBe('BeforeSerialize');
+        expect(userMetadata.afterDeserializeCallback).toBe('AfterDeserialize');
         expect(userMetadata.preserveNull).toBeFalse();
         expect(userMetadata.useDefaultValue).toBeTrue();
         expect(userMetadata.useImplicitConversion).toBeFalse();

@@ -1,20 +1,48 @@
 import { Property, Type, TypeManager, TypeSerializer } from '../../src';
 
 @Type({
-    serializer: new TypeSerializer()
+    serializer: new TypeSerializer(),
+    beforeSerializeCallback: 'beforeSerialize',
+    afterDeserializeCallback: 'afterDeserialize'
 })
 class User
 {
     @Property(() => Company) public company?: Company;
+    @Property(String) public beforeSerialized?: string;
+    @Property(String) public afterDeserialized?: string;
+
+    public beforeSerialize(): void
+    {
+        this.beforeSerialized = 'I am inited!';
+
+        return;
+    }
+
+    public afterDeserialize(): void
+    {
+        this.afterDeserialized = 'I am inited!';
+
+        return;
+    }
 }
 
 @Type({
-    serializer: new TypeSerializer()
+    serializer: new TypeSerializer(),
+    beforeSerializeCallback: (company: Company) => 
+    {
+        company.beforeSerialized = 'I am inited!'
+    },
+    afterDeserializeCallback: (company: Company) => 
+    {
+        company.afterDeserialized = 'I am inited!'
+    }
 })
 class Company
 {
     @Property(() => User) public user?: User;
     @Property(() => Message) public message?: Message;
+    @Property(String) public beforeSerialized?: string;
+    @Property(String) public afterDeserialized?: string;
 }
 
 @Type({
@@ -128,5 +156,37 @@ describe('Type serializer', () =>
         expect(result[0]).toBeInstanceOf(User);
         expect(result[1]).toBeInstanceOf(Array);
         expect(result[1]).toBe(result);
+    });
+
+    it('should invoke before serialize callback', () =>
+    {
+        const user = new User();
+        const userResult = TypeManager.serialize(User, user);
+        
+        expect(userResult).toBeInstanceOf(Object);
+        expect(user.beforeSerialized).toBe('I am inited!');
+
+        const company = new Company();
+        const companyResult = TypeManager.serialize(Company, company);
+        
+        expect(companyResult).toBeInstanceOf(Object);
+        expect(company.beforeSerialized).toBe('I am inited!');
+    });
+
+    it('should invoke after deserialize callback', () =>
+    {
+        const user = { company: {} };
+        const userResult = TypeManager.deserialize(User, user);
+        
+        expect(userResult).toBeInstanceOf(User);
+        expect(userResult?.company).toBeInstanceOf(Company);
+        expect(userResult.afterDeserialized).toBe('I am inited!');
+
+        const company = { user: {} };
+        const companyResult = TypeManager.deserialize(Company, company);
+        
+        expect(companyResult).toBeInstanceOf(Company);
+        expect(companyResult?.user).toBeInstanceOf(User);
+        expect(companyResult.afterDeserialized).toBe('I am inited!');
     });
 });

@@ -21,6 +21,7 @@ import { PropertyOptions } from './property-options';
 import { PropertySorter } from './property-sorter';
 import { ReferenceHandler } from './reference-handler';
 import { Serializer } from './serializer';
+import { SerializerCallback } from './serializer-callback';
 import { TypeArgument } from './type-argument';
 import { TypeFn } from './type-fn';
 import { TypeMetadata } from './type-metadata';
@@ -94,6 +95,22 @@ export interface TypeState<TObject>
      * @type {DefaultValueResolver}
      */
     readonly deserializedDefaultValueResolver: DefaultValueResolver;
+
+    /**
+     * Serializer callback function to call before the serialization is started.
+     * Can be an instance method name or a handler for which instance is provided.
+     * 
+     * @type {Optional<SerializerCallback<TObject>>}
+     */
+    readonly beforeSerializeCallback: Optional<SerializerCallback<TObject>>;
+
+    /**
+     * Serializer callback function to call after the deserialization is completed.
+     * Can be an instance method name or a handler for which instance is provided.
+     * 
+     * @type {Optional<SerializerCallback<TObject>>}
+     */
+    readonly afterDeserializeCallback: Optional<SerializerCallback<TObject>>;
 
     /**
      * Discriminant.

@@ -5,6 +5,7 @@ import { InjectIndex } from './inject-index';
 import { InjectOptions } from './inject-options';
 import { PropertyName } from './property-name';
 import { PropertyOptions } from './property-options';
+import { SerializerCallback } from './serializer-callback';
 import { TypeArgument } from './type-argument';
 import { TypeOptionsBase } from './type-options-base';
 
@@ -51,6 +52,22 @@ export type TypeOptions<TObject> = Partial<TypeOptionsBase<TObject>> &
      * @type {DefaultValue}
      */
     deserializedDefaultValue?: DefaultValue;
+
+    /**
+     * Serializer callback function to call before the serialization is started.
+     * Can be an instance method name or a handler for which instance is provided.
+     * 
+     * @type {SerializerCallback<TObject>}
+     */
+    beforeSerializeCallback?: SerializerCallback<TObject>;
+
+    /**
+     * Serializer callback function to call after the deserialization is completed.
+     * Can be an instance method name or a handler for which instance is provided.
+     * 
+     * @type {SerializerCallback<TObject>}
+     */
+    afterDeserializeCallback?: SerializerCallback<TObject>;
 
     /**
      * Discriminant.

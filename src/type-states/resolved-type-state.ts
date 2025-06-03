@@ -21,6 +21,7 @@ import { PropertyOptions } from '../property-options';
 import { PropertySorter } from '../property-sorter';
 import { ReferenceHandler } from '../reference-handler';
 import { Serializer } from '../serializer';
+import { SerializerCallback } from '../serializer-callback';
 import { TypeArgument } from '../type-argument';
 import { TypeFn } from '../type-fn';
 import { TypeMetadata } from '../type-metadata';
@@ -96,6 +97,22 @@ export class ResolvedTypeState<TObject> implements TypeState<TObject>
      */
     public readonly deserializedDefaultValueResolver: DefaultValueResolver;
 
+    /**
+     * Serializer callback function to call before the serialization is started.
+     * Can be an instance method name or a handler for which instance is provided.
+     * 
+     * @type {Optional<SerializerCallback<TObject>>}
+     */
+    public readonly beforeSerializeCallback: Optional<SerializerCallback<TObject>>;
+    
+    /**
+     * Serializer callback function to call after the deserialization is completed.
+     * Can be an instance method name or a handler for which instance is provided.
+     * 
+     * @type {Optional<SerializerCallback<TObject>>}
+     */
+    public readonly afterDeserializeCallback: Optional<SerializerCallback<TObject>>;
+    
     /**
      * Discriminant.
      * 
@@ -313,6 +330,8 @@ export class ResolvedTypeState<TObject> implements TypeState<TObject>
      * @param {DefaultValueResolver} deserializedDefaultValueResolver Deserialized default value resolver.
      * @param {Discriminant} discriminant Discriminant.
      * @param {Discriminator} discriminator Discriminator.
+     * @param {Optional<SerializerCallback<TObject>>} beforeSerializeCallback Before serialize callback.
+     * @param {Optional<SerializerCallback<TObject>>} afterDeserializeCallback After deserialize callback.
      * @param {Factory} factory Factory.
      * @param {boolean} injectable Injectable value.
      * @param {Injector} injector Injector.
@@ -351,6 +370,8 @@ export class ResolvedTypeState<TObject> implements TypeState<TObject>
         deserializedNullValueResolver: NullValueResolver,
         deserializedDefaultValue: DefaultValue,
         deserializedDefaultValueResolver: DefaultValueResolver,
+        beforeSerializeCallback: Optional<SerializerCallback<TObject>>,
+        afterDeserializeCallback: Optional<SerializerCallback<TObject>>,
         discriminant: Discriminant,
         discriminator: Discriminator,
         factory: Factory,
@@ -391,6 +412,8 @@ export class ResolvedTypeState<TObject> implements TypeState<TObject>
         this.deserializedNullValueResolver = deserializedNullValueResolver;
         this.deserializedDefaultValue = deserializedDefaultValue;
         this.deserializedDefaultValueResolver = deserializedDefaultValueResolver;
+        this.beforeSerializeCallback = beforeSerializeCallback;
+        this.afterDeserializeCallback = afterDeserializeCallback;
         this.discriminant = discriminant;
         this.discriminator = discriminator;
         this.factory = factory;

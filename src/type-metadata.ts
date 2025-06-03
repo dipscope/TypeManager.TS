@@ -28,6 +28,7 @@ import { PropertyOptions } from './property-options';
 import { PropertySorter } from './property-sorter';
 import { ReferenceHandler } from './reference-handler';
 import { Serializer } from './serializer';
+import { SerializerCallback } from './serializer-callback';
 import { TypeArgument } from './type-argument';
 import { TypeExtensionMetadata } from './type-extension-metadata';
 import { TypeExtensionMetadataCtor } from './type-extension-metadata-ctor';
@@ -256,7 +257,27 @@ export class TypeMetadata<TObject> extends Metadata
     {
         return this.currentTypeState.deserializedDefaultValueResolver();
     }
-    
+
+    /**
+     * Gets before serialize callback.
+     * 
+     * @returns {Optional<SerializerCallback<TObject>>} Before serialize callback.
+     */
+    public get beforeSerializeCallback(): Optional<SerializerCallback<TObject>>
+    {
+        return this.currentTypeState.beforeSerializeCallback;
+    }
+
+    /**
+     * Gets after deserialize callback.
+     * 
+     * @returns {Optional<SerializerCallback<TObject>>} After deserialize callback.
+     */
+    public get afterDeserializeCallback(): Optional<SerializerCallback<TObject>>
+    {
+        return this.currentTypeState.afterDeserializeCallback;
+    }
+
     /**
      * Gets discriminant.
      * 
@@ -587,6 +608,8 @@ export class TypeMetadata<TObject> extends Metadata
         const typeOptions = this.typeOptions;
         const typeName = this.typeName;
         const alias = typeOptions.alias;
+        const beforeSerializeCallback = typeOptions.beforeSerializeCallback;
+        const afterDeserializeCallback = typeOptions.afterDeserializeCallback;
         const customValueMap = this.resolveCustomValueMap();
 
         const preserveNull = typeOptions.preserveNull === undefined 
@@ -624,7 +647,7 @@ export class TypeMetadata<TObject> extends Metadata
         const deserializedNullValueResolver = preserveNull 
             ? NULL_VALUE_RESOLVER
             : deserializedDefaultValueResolver;
-        
+
         const discriminant = typeOptions.discriminant === undefined
             ? typeName
             : typeOptions.discriminant;
@@ -723,6 +746,8 @@ export class TypeMetadata<TObject> extends Metadata
             deserializedNullValueResolver,
             deserializedDefaultValue,
             deserializedDefaultValueResolver,
+            beforeSerializeCallback,
+            afterDeserializeCallback,
             discriminant,
             discriminator,
             factory,
@@ -1238,6 +1263,36 @@ export class TypeMetadata<TObject> extends Metadata
     }
 
     /**
+     * Configures before serialize callback.
+     * 
+     * @param {Optional<SerializerCallback<TObject>>} beforeSerializeCallback Before serialize callback.
+     * 
+     * @returns {this} Current instance of type metadata.
+     */
+    public hasBeforeSerializeCallback(beforeSerializeCallback: Optional<SerializerCallback<TObject>>): this
+    {
+        this.typeOptions.beforeSerializeCallback = beforeSerializeCallback;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures after deserialize callback.
+     * 
+     * @param {Optional<SerializerCallback<TObject>>} afterDeserializeCallback After deserialize callback.
+     * 
+     * @returns {this} Current instance of type metadata.
+     */
+    public hasAfterDeserializeCallback(afterDeserializeCallback: Optional<SerializerCallback<TObject>>): this
+    {
+        this.typeOptions.afterDeserializeCallback = afterDeserializeCallback;
+        this.currentTypeState = new UnresolvedTypeState<TObject>(this);
+
+        return this;
+    }
+
+    /**
      * Configures discriminator.
      * 
      * @param {Optional<Discriminator>} discriminator Discriminator.
@@ -1705,6 +1760,16 @@ export class TypeMetadata<TObject> extends Metadata
         if (typeOptions.deserializedDefaultValue !== undefined) 
         {
             this.hasDeserializedDefaultValue(typeOptions.deserializedDefaultValue);
+        }
+
+        if (typeOptions.beforeSerializeCallback !== undefined) 
+        {
+            this.hasBeforeSerializeCallback(typeOptions.beforeSerializeCallback);
+        }
+
+        if (typeOptions.afterDeserializeCallback !== undefined) 
+        {
+            this.hasAfterDeserializeCallback(typeOptions.afterDeserializeCallback);
         }
 
         if (typeOptions.discriminator !== undefined) 

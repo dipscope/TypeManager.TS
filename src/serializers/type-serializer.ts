@@ -40,9 +40,20 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                 const typeSerializerContext = serializerContext.polymorphic 
                     ? serializerContext.definePolymorphicSerializerContext(x.constructor) 
                     : serializerContext;
+                
+                const typeState = typeSerializerContext.typeState;
+                const beforeSerializeCallback = typeState.beforeSerializeCallback;
+
+                if (typeof beforeSerializeCallback === 'string' && typeof type[beforeSerializeCallback] === 'function')
+                {
+                    type[beforeSerializeCallback]();
+                }
+                else if (typeof beforeSerializeCallback === 'function')
+                {
+                    beforeSerializeCallback(type);
+                }
 
                 const propertySerializerContext = typeSerializerContext.defineChildSerializerContext();
-                const typeState = typeSerializerContext.typeState;
                 const object = {} as Record<string, any>;
 
                 propertySerializerContext.referenceValueSetter = (v, k) => 
@@ -187,6 +198,17 @@ export class TypeSerializer implements Serializer<Record<string, any>>
                 else if (type.hasOwnProperty(typeState.discriminator))
                 {
                     delete type[typeState.discriminator];
+                }
+
+                const afterDeserializeCallback = typeState.afterDeserializeCallback;
+
+                if (typeof afterDeserializeCallback === 'string' && typeof type[afterDeserializeCallback] === 'function')
+                {
+                    type[afterDeserializeCallback]();
+                }
+                else if (typeof afterDeserializeCallback === 'function')
+                {
+                    afterDeserializeCallback(type);
                 }
 
                 return type;
