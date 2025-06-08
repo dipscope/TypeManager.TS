@@ -8,116 +8,106 @@
  * @returns {string} Consistent JSON string which can be used for hashing.
  */
 export function jsonStringify(
-    x: any, 
+    x: any,
     replacer?: (this: any, key: string, value: any) => any | Array<number> | Array<string> | null,
     space?: string | number
 ): string
 {
-	const spacing = typeof space === 'number' ? new Array(isFinite(space) ? space + 1 : 0).join(' ') : (space ?? '');
-	const separator = spacing ? ': ' : ':';
-	const seen = new Set<any>();
-	
-	const stringify = (parent: any, key: any, node: any, level: number): any =>
+    const spacing = typeof space === 'number' ? new Array(isFinite(space) ? space + 1 : 0).join(' ') : (space ?? '');
+    const separator = spacing ? ': ' : ':';
+    const seen = new Set<any>();
+    const indents = [''];
+
+    const indentify = (level: number): string =>
     {
-		if (node && node.toJSON && typeof node.toJSON === 'function')
+        while (indents.length <= level)
         {
-			node = node.toJSON();
-		}
+            indents.push(indents[indents.length - 1] + spacing);
+        }
 
-		if (replacer)
-		{
-			node = replacer.call(parent, key, node);
-		}
+        return indents[level];
+    };
 
-		if (node === undefined)
+    const stringify = (parent: any, key: string, node: any, level: number): string =>
+    {
+        if (node && node.toJSON && typeof node.toJSON === 'function')
         {
-			return;
-		}
+            node = node.toJSON();
+        }
 
-		if (typeof node === 'number')
-		{
-			return isFinite(node) ? '' + node : 'null';
-		}
-
-		if (typeof node !== 'object')
+        if (replacer) 
         {
-			return JSON.stringify(node);
-		}
+            node = replacer.call(parent, key, node);
+        }
 
-		let i = 0;
-		let indent = '';
-		let out = '';
-
-		if (spacing)
-		{
-			indent += '\n';
-
-			for (i = 0; i < level + 1; i++)
-			{
-				indent += spacing;
-			}
-		}
-
-		if (Array.isArray(node))
+        if (node === undefined) 
         {
-			out += '['; 
+            return '';
+        }
 
-			for (i = 0; i < node.length; i++)
+        if (node === null)
+        {
+            return 'null';
+        }
+
+        if (typeof node === 'number') 
+        {
+            return isFinite(node) ? String(node) : 'null';
+        }
+
+        if (typeof node !== 'object')
+        {
+            return JSON.stringify(node);
+        }
+
+        if (seen.has(node)) 
+        {
+            return 'null';
+        }
+
+        seen.add(node);
+
+        const indent = spacing ? '\n' + indentify(level + 1) : '';
+        const closingIndent = spacing ? '\n' + indentify(level) : '';
+        const parts = new Array<string>();
+
+        if (Array.isArray(node)) 
+        {
+            for (let i = 0; i < node.length; i++) 
             {
-				if (i) 
-				{
-					out += ',';
-				}
+                const value = stringify(node, String(i), node[i], level + 1) || 'null';
 
-				const value = stringify(node, i, node[i], level + 1) || 'null';
-
-				out += indent + spacing + value;
-			}
-
-			out += indent;
-			out += ']';
-
-			return out;
-		}
-
-		if (node === null)
-		{
-			return 'null';
-		}
-
-		if (seen.has(node))
-        {
-			seen.delete(node);
-
-			return 'null';
-		}
-
-		seen.add(node);
-
-		const keys = Object.keys(node).sort();
-
-		for (i = 0; i < keys.length; i++)
-        {
-			const key = keys[i];
-			const value = stringify(node, key, node[key], level + 1);
-
-			if (!value) 
-            {
-                continue; 
+                parts.push(`${indent}${value}`);
             }
 
-			if (out)
-			{
-				out += ',';
-			}
+            const result = `[${parts.join(',')}${closingIndent}]`;
 
-			out += indent + spacing + JSON.stringify(key) + separator + value;
-		}
+            seen.delete(node);
 
-		seen.delete(node);
+            return result;
+        }
 
-		return '{' + out + indent + '}';
-	};
-	
-	return stringify({ '': x }, '', x, 0);
+        const nodeKeys = Object.keys(node).sort();
+
+        for (let i = 0; i < nodeKeys.length; i++)
+        {
+            const nodeKey = nodeKeys[i];
+            const value = stringify(node, nodeKey, node[nodeKey], level + 1);
+
+            if (value === '')
+            {
+                continue;
+            }
+
+            parts.push(`${indent}${JSON.stringify(nodeKey)}${separator}${value}`);
+        }
+
+        const result = `{${parts.join(',')}${closingIndent}}`;
+
+        seen.delete(node);
+
+        return result;
+    };
+
+    return stringify({ '': x }, '', x, 0);
 }

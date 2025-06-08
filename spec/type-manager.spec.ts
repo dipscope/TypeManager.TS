@@ -297,4 +297,102 @@ describe('Type manager', () =>
         expect(groupManager.typeOptionsMap.size).toBeGreaterThan(0);
         expect(groupManager.typeOptionsMap.size).toBe(TypeManager.typeOptionsMap.size);
     });
+    
+    it('should correctly parse and stringify classes with nested objects and arrays', () => 
+    {
+        const groupManager = TypeManager.clone();
+
+        const baseMessage = {
+            body: 'H',
+            label: 'greeting',
+            user: {
+                username: 'alice',
+                email: 'alice@example.com',
+                status: 'active',
+                login: 'alice123',
+                description: 'Test user',
+                about: 'About Alice',
+                device: 'iPhone'
+            },
+            groups: [{
+                title: 'Group One',
+                user: {
+                    username: 'bob',
+                    email: 'bob@example.com',
+                    status: 'b',
+                    login: 'bob123'
+                }
+            },
+            {
+                title: 'Group Two',
+                user: {
+                    username: 'carol',
+                    email: 'carol@example.com'
+                }
+            }]
+        };
+
+        const msgA = groupManager.deserialize(Message, baseMessage);
+        const msgB = groupManager.parse(Message, groupManager.stringify(Message, baseMessage)) as Message;
+        const msgC = TypeManager.deserialize(Message, baseMessage);
+        const msgD = TypeManager.parse(Message, TypeManager.stringify(Message, baseMessage)) as Message;
+
+        [msgA, msgB, msgC, msgD].forEach(msg => 
+        {
+            expect(msg).toBeInstanceOf(Message);
+        });
+
+        [msgA, msgB, msgC, msgD].forEach(msg =>
+        { 
+            expect(msg.user).toBeInstanceOf(User); 
+            expect(msg.user!.email).toBe(baseMessage.user.email);
+        });
+
+        [msgA, msgB, msgC, msgD].forEach(msg => 
+        {
+            expect(Array.isArray(msg.groups)).toBe(true);
+            expect(msg.groups?.length).toBe(2);
+
+            msg.groups!.forEach((g, idx) => 
+            {
+                expect(g).toBeInstanceOf(Group);
+                expect(g.title).toBe(baseMessage.groups![idx].title);
+                expect(g.user).toBeInstanceOf(User);
+                expect(g.user!.email).toBe(baseMessage.groups![idx].user.email);
+            });
+        });
+
+        const objA = groupManager.serialize(Message, msgA);
+        const strB = groupManager.stringify(Message, msgB);
+        const objC = TypeManager.serialize(Message, msgC);
+        const strD = TypeManager.stringify(Message, msgD);
+
+        // Serialized objects shape
+        [objA, objC].forEach(obj => 
+        {
+            expect(obj).toBeInstanceOf(Object);
+            expect(obj.body).toBe(baseMessage.body);
+            expect(obj.label).toBe(baseMessage.label);
+            expect(obj.user).toBeInstanceOf(Object);
+            expect(Array.isArray(obj.groups)).toBe(true);
+            expect(obj.groups.length).toBe(2);
+
+            obj.groups.forEach((g: any, idx: number) => 
+            {
+                expect(g).toBeInstanceOf(Object);
+                expect(g.title).toBe(baseMessage.groups![idx].title);
+                expect(g.user).toBeInstanceOf(Object);
+            });
+        });
+
+        expect(typeof strB).toBe('string');
+        expect(typeof strD).toBe('string');
+        expect(strB).toBe(strD);
+
+        const reparsed = groupManager.parse(Message, strB) as Message;
+
+        expect(reparsed).toBeInstanceOf(Message);
+        expect(reparsed.groups?.length).toBe(2);
+        expect(reparsed.user).toBeInstanceOf(User);
+    });
 });
