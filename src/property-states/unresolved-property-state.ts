@@ -7,6 +7,7 @@ import { GenericMetadata } from '../generic-metadata';
 import { NamingConvention } from '../naming-convention';
 import { NullValueResolver } from '../null-value-resolver';
 import { Optional } from '../optional';
+import { PropertyInterceptor } from '../property-interceptor';
 import { PropertyMetadata } from '../property-metadata';
 import { PropertyName } from '../property-name';
 import { PropertyState } from '../property-state';
@@ -427,5 +428,43 @@ export class UnresolvedPropertyState<TDeclaringObject, TObject> implements Prope
         }
 
         return resolvedPropertyState.useImplicitConversion;
+    }
+
+    /**
+     * Gets interceptor invoked when the property is read.
+     * 
+     * @returns {PropertyInterceptor<TDeclaringObject, TObject>} Get interceptor.
+     */
+    public get getInterceptor(): PropertyInterceptor<TDeclaringObject, TObject>
+    {
+        let resolvedPropertyState = this.resolvedPropertyState;
+
+        if (resolvedPropertyState === undefined)
+        {
+            resolvedPropertyState = this.propertyMetadata.resolvePropertyState();
+
+            this.resolvedPropertyState = resolvedPropertyState;
+        }
+
+        return resolvedPropertyState.getInterceptor;
+    }
+
+    /**
+     * Gets interceptor invoked before the property value is assigned.
+     * 
+     * @returns {PropertyInterceptor<TDeclaringObject, TObject>} Set interceptor.
+     */
+    public get setInterceptor(): PropertyInterceptor<TDeclaringObject, TObject>
+    {
+        let resolvedPropertyState = this.resolvedPropertyState;
+
+        if (resolvedPropertyState === undefined)
+        {
+            resolvedPropertyState = this.propertyMetadata.resolvePropertyState();
+
+            this.resolvedPropertyState = resolvedPropertyState;
+        }
+
+        return resolvedPropertyState.setInterceptor;
     }
 }

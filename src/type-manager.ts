@@ -44,6 +44,7 @@ import { TypeConfiguration } from './type-configuration';
 import { TypeFn } from './type-fn';
 import { TypeLike } from './type-like';
 import { TypeManagerOptions } from './type-manager-options';
+import { TYPE_MANAGER_STATE } from './type-manager-state';
 import { TypeMetadata } from './type-metadata';
 import { TYPE_METADATA_SYMBOL } from './type-metadata-symbol';
 import { TypeOptions } from './type-options';
@@ -163,11 +164,12 @@ export class TypeManager
      */
     public constructor(typeManagerOptions: TypeManagerOptions = {})
     {
-        this.symbol = Symbol(TYPE_METADATA_SYMBOL.description);
+        this.symbol = Symbol();
         this.typeManagerOptions = this.constructTypeManagerOptions(typeManagerOptions);
         this.typeFnMap = new Map<Alias, TypeFn<any>>();
         this.typeMetadataSet = new Set<TypeMetadata<any>>();
 
+        this.register();
         this.configure(typeManagerOptions);
 
         return;
@@ -288,6 +290,41 @@ export class TypeManager
         }
 
         return typeConfigurationMap;
+    }
+
+    /**
+     * Registers a new instance of type manager. Basically sets the global state to the
+     * static type manager if not yet done.
+     * 
+     * @returns {void} Nothing.
+     */
+    private register(): void
+    {
+        if (TYPE_MANAGER_STATE.staticSymbol === TYPE_METADATA_SYMBOL)
+        {
+            TYPE_MANAGER_STATE.staticSymbol = this.symbol;
+            TYPE_MANAGER_STATE.activeSymbol = this.symbol;
+        }
+        
+        return;
+    }
+
+    /**
+     * Executes a function within a current type manager scope.
+     * 
+     * @param {Function} fn Function to execute within a scope.
+     * 
+     * @returns {TResult} Function result.
+     */
+    private scope<TResult>(fn: () => TResult): TResult
+    {
+        TYPE_MANAGER_STATE.activeSymbol = this.symbol;
+
+        const result = fn();
+        
+        TYPE_MANAGER_STATE.activeSymbol = TYPE_MANAGER_STATE.staticSymbol;
+
+        return result;
     }
 
     /**
@@ -932,13 +969,13 @@ export class TypeManager
     public serialize<TObject>(typeFn: TypeFn<TObject>, x: TypeLike<TObject | Array<TObject>>): TypeLike<any>
     {
         const arrayFn = Array as TypeFn<any>;
-
+        
         if (Array.isArray(x) && typeFn !== arrayFn)
         {
-            return this.defineSerializerContext(arrayFn, x, [typeFn]).serialize(x);
+            return this.scope(() => this.defineSerializerContext(arrayFn, x, [typeFn]).serialize(x));
         }
 
-        return this.defineSerializerContext(typeFn, x).serialize(x as any);
+        return this.scope(() => this.defineSerializerContext(typeFn, x).serialize(x as any));
     }
 
     /**
@@ -976,10 +1013,10 @@ export class TypeManager
 
         if (Array.isArray(x) && typeFn !== arrayFn)
         {
-            return this.defineSerializerContext(arrayFn, x, [typeFn]).deserialize(x);
+            return this.scope(() => this.defineSerializerContext(arrayFn, x, [typeFn]).deserialize(x));
         }
 
-        return this.defineSerializerContext(typeFn, x).deserialize(x as any);
+        return this.scope(() => this.defineSerializerContext(typeFn, x).deserialize(x as any));
     }
 
     /**

@@ -7,6 +7,7 @@ import { GenericMetadata } from '../generic-metadata';
 import { NamingConvention } from '../naming-convention';
 import { NullValueResolver } from '../null-value-resolver';
 import { Optional } from '../optional';
+import { PropertyInterceptor } from '../property-interceptor';
 import { PropertyMetadata } from '../property-metadata';
 import { PropertyName } from '../property-name';
 import { PropertyState } from '../property-state';
@@ -170,6 +171,20 @@ export class ResolvedPropertyState<TDeclaringObject, TObject> implements Propert
     public readonly useImplicitConversion: boolean;
 
     /**
+     * Interceptor invoked when the property is read.
+     * 
+     * @type {PropertyInterceptor<TDeclaringObject, TObject>}
+     */
+    public readonly getInterceptor: PropertyInterceptor<TDeclaringObject, TObject>;
+
+    /**
+     * Interceptor invoked before the property value is assigned.
+     * 
+     * @type {PropertyInterceptor<TDeclaringObject, TObject>}
+     */
+    public readonly setInterceptor: PropertyInterceptor<TDeclaringObject, TObject>;
+
+    /**
      * Constructor.
      * 
      * @param {PropertyMetadata<TDeclaringObject, TObject>} propertyMetadata Property metadata for which state is defined.
@@ -193,6 +208,8 @@ export class ResolvedPropertyState<TDeclaringObject, TObject> implements Propert
      * @param {boolean} preserveNull Indicator if null value should be preserved.
      * @param {boolean} useDefaultValue Indicator if default value should be used.
      * @param {boolean} useImplicitConversion Indicator if implicit conversion should be used.
+     * @param {PropertyInterceptor<TDeclaringObject, TObject>} getInterceptor Interceptor invoked when the property is read.
+     * @param {PropertyInterceptor<TDeclaringObject, TObject>} setInterceptor Interceptor invoked before the property value is assigned.
      */
     public constructor(
         propertyMetadata: PropertyMetadata<TDeclaringObject, TObject>,
@@ -215,7 +232,9 @@ export class ResolvedPropertyState<TDeclaringObject, TObject> implements Propert
         typeMetadata: TypeMetadata<TObject>,
         preserveNull: boolean,
         useDefaultValue: boolean,
-        useImplicitConversion: boolean
+        useImplicitConversion: boolean,
+        getInterceptor: PropertyInterceptor<TDeclaringObject, TObject>,
+        setInterceptor: PropertyInterceptor<TDeclaringObject, TObject>
     )
     {
         this.propertyMetadata = propertyMetadata;
@@ -239,6 +258,8 @@ export class ResolvedPropertyState<TDeclaringObject, TObject> implements Propert
         this.preserveNull = preserveNull;
         this.useDefaultValue = useDefaultValue;
         this.useImplicitConversion = useImplicitConversion;
+        this.getInterceptor = getInterceptor;
+        this.setInterceptor = setInterceptor;
 
         return;
     }

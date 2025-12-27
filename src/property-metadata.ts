@@ -3,10 +3,12 @@ import { DEFAULT_VALUE_RESOLVER } from './constants/default-value-resolver';
 import { EMPTY_ARRAY } from './constants/empty-array';
 import { EMPTY_MAP } from './constants/empty-map';
 import { NULL_VALUE_RESOLVER } from './constants/null-value-resolver';
+import { PROPERTY_INTERCEPTOR } from './constants/property-interceptor';
 import { CustomKey } from './custom-key';
 import { CustomOption } from './custom-option';
 import { CustomValue } from './custom-value';
 import { DefaultValue } from './default-value';
+import { getPropertyMetadata } from './functions/get-property-metadata';
 import { getReflectMetadata } from './functions/get-reflect-metadata';
 import { GenericArgument } from './generic-argument';
 import { GenericMetadata } from './generic-metadata';
@@ -18,6 +20,8 @@ import { PropertyExtensionMetadata } from './property-extension-metadata';
 import { PropertyExtensionMetadataCtor } from './property-extension-metadata-ctor';
 import { PROPERTY_EXTENSION_METADATA_CTOR_SET_KEY } from './property-extension-metadata-ctor-set-key';
 import { PropertyExtensionOptions } from './property-extension-options';
+import { PropertyInterceptor } from './property-interceptor';
+import { PROPERTY_INTERCEPTOR_SYMBOL } from './property-interceptor-symbol';
 import { PropertyName } from './property-name';
 import { PropertyOptions } from './property-options';
 import { PropertyState } from './property-state';
@@ -506,6 +510,14 @@ export class PropertyMetadata<TDeclaringObject, TObject> extends Metadata
         const serializer = propertyOptions.serializer === undefined
             ? typeState.serializer
             : propertyOptions.serializer;
+
+        const getInterceptor = propertyOptions.getInterceptor === undefined
+            ? PROPERTY_INTERCEPTOR
+            : propertyOptions.getInterceptor;
+            
+        const setInterceptor = propertyOptions.setInterceptor === undefined
+            ? PROPERTY_INTERCEPTOR
+            : propertyOptions.setInterceptor;
         
         const resolvedPropertyState = new ResolvedPropertyState<TDeclaringObject, TObject>(
             this,
@@ -528,7 +540,9 @@ export class PropertyMetadata<TDeclaringObject, TObject> extends Metadata
             typeMetadata,
             preserveNull,
             useDefaultValue,
-            useImplicitConversion
+            useImplicitConversion,
+            getInterceptor,
+            setInterceptor
         );
         
         this.currentPropertyState = resolvedPropertyState;
@@ -906,6 +920,163 @@ export class PropertyMetadata<TDeclaringObject, TObject> extends Metadata
     }
 
     /**
+     * Configures get interceptor.
+     * 
+     * @param {Optional<PropertyInterceptor<TDeclaringObject, TObject>>} getInterceptor Get interceptor or undefined.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public hasGetInterceptor(getInterceptor: Optional<PropertyInterceptor<TDeclaringObject, TObject>>): this
+    {
+        if (getInterceptor !== undefined)
+        {
+            this.definePropertyInterceptors();
+        }
+
+        this.propertyOptions.getInterceptor = getInterceptor;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Configures set interceptor.
+     * 
+     * @param {Optional<PropertyInterceptor<TDeclaringObject, TObject>>} setInterceptor Set interceptor or undefined.
+     * 
+     * @returns {this} Current instance of property metadata.
+     */
+    public hasSetInterceptor(setInterceptor: Optional<PropertyInterceptor<TDeclaringObject, TObject>>): this
+    {
+        if (setInterceptor !== undefined)
+        {
+            this.definePropertyInterceptors();
+        }
+
+        this.propertyOptions.setInterceptor = setInterceptor;
+        this.currentPropertyState = new UnresolvedPropertyState<TDeclaringObject, TObject>(this);
+
+        return this;
+    }
+
+    /**
+     * Defines property interceptors when get or set interceptors are declared for the property.
+     * 
+     * @returns {void} Nothing.
+     */
+    private definePropertyInterceptors(): void
+    {
+        const propertyName = this.propertyName;
+        const propertyInterceptorSet = this.definePropertyInterceptorSet();
+        const propertyInterceptorSymbolKey = Symbol.keyFor(PROPERTY_INTERCEPTOR_SYMBOL);
+        const propertyKey = `${propertyInterceptorSymbolKey}.${propertyName}`;
+
+        if (propertyInterceptorSet.has(propertyKey))
+        {
+            return;
+        }
+
+        propertyInterceptorSet.add(propertyKey);
+
+        const propertySymbol = Symbol.for(propertyKey);
+        const typeFn = this.typeMetadata.typeFn;
+        const prototype = typeFn.prototype;
+        const propertyDescriptor = Object.getOwnPropertyDescriptor(prototype, propertyName) ?? {};
+        const configurable = propertyDescriptor.configurable ?? true;
+        const enumerable = propertyDescriptor.enumerable ?? true;
+        const originalGet = propertyDescriptor.get;
+        const originalSet = propertyDescriptor.set;
+
+        if (propertyDescriptor.value !== undefined) 
+        {
+            prototype[propertySymbol] = propertyDescriptor.value;
+        }
+
+        Object.defineProperty(prototype, propertyName, {
+            enumerable: enumerable,
+            configurable: configurable,
+            get()
+            {
+                const propertyMetadata = getPropertyMetadata(typeFn, propertyName);
+
+                if (propertyMetadata === undefined)
+                {
+                    if (originalGet !== undefined && originalGet !== null)
+                    {
+                        return originalGet.call(this);
+                    }
+
+                    return this[propertySymbol];
+                }
+
+                if (originalGet !== undefined && originalGet !== null)
+                {
+                    return propertyMetadata.propertyState.getInterceptor(originalGet.call(this), this, propertyMetadata);
+                }
+
+                return propertyMetadata.propertyState.getInterceptor(this[propertySymbol], this, propertyMetadata);
+            },
+            set(value: any)
+            {
+                const propertyMetadata = getPropertyMetadata(typeFn, propertyName);
+
+                if (propertyMetadata === undefined)
+                {
+                    if (originalSet !== undefined && originalSet !== null)
+                    {
+                        originalSet.call(this, value);
+
+                        return;
+                    }
+
+                    this[propertySymbol] = value;
+
+                    return;
+                }
+
+                if (originalSet !== undefined && originalSet !== null)
+                {
+                    originalSet.call(this, propertyMetadata.propertyState.setInterceptor(value, this, propertyMetadata));
+
+                    return;
+                }
+
+                this[propertySymbol] = propertyMetadata.propertyState.setInterceptor(value, this, propertyMetadata);
+
+                return;
+            }
+        });
+
+        return;
+    }
+
+    /**
+     * Defines property interceptor set on the type.
+     * 
+     * @returns {Set<string>} Property interceptor set.
+     */
+    private definePropertyInterceptorSet(): Set<string>
+    {
+        const propertyInterceptorSymbol = PROPERTY_INTERCEPTOR_SYMBOL;
+        const typeFn = this.typeMetadata.typeFn;
+        const prototype = typeFn.prototype;
+        const propertyInterceptorSetDefined = prototype.hasOwnProperty(propertyInterceptorSymbol);
+        const propertyInterceptorSet = propertyInterceptorSetDefined ? prototype[propertyInterceptorSymbol] as Set<string> : new Set<string>();
+
+        if (!propertyInterceptorSetDefined)
+        {
+            Object.defineProperty(prototype, propertyInterceptorSymbol, {
+                enumerable: false,
+                configurable: true,
+                writable: false,
+                value: propertyInterceptorSet
+            });
+        }
+        
+        return propertyInterceptorSet;
+    }
+
+    /**
      * Configures property metadata based on provided options.
      * 
      * @param {PropertyOptions<TObject>} propertyOptions Property options.
@@ -984,9 +1155,19 @@ export class PropertyMetadata<TDeclaringObject, TObject> extends Metadata
             this.shouldUseDefaultValue(propertyOptions.useDefaultValue);
         }
 
-        if (propertyOptions.useImplicitConversion !== undefined) 
+        if (propertyOptions.useImplicitConversion !== undefined)
         {
             this.shouldUseImplicitConversion(propertyOptions.useImplicitConversion);
+        }
+
+        if (propertyOptions.getInterceptor !== undefined)
+        {
+            this.hasGetInterceptor(propertyOptions.getInterceptor);
+        }
+
+        if (propertyOptions.setInterceptor !== undefined) 
+        {
+            this.hasSetInterceptor(propertyOptions.setInterceptor);
         }
 
         return this;

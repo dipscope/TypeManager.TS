@@ -4,6 +4,7 @@ import { CustomValue } from './custom-value';
 import { DefaultValue } from './default-value';
 import { GenericArgument } from './generic-argument';
 import { NamingConvention } from './naming-convention';
+import { PropertyInterceptor } from './property-interceptor';
 import { ReferenceHandler } from './reference-handler';
 import { Serializer } from './serializer';
 import { TypeArgument } from './type-argument';
@@ -130,4 +131,18 @@ export type PropertyOptions<TObject> =
      * @type {boolean}
      */
     useImplicitConversion?: boolean;
+    
+    /**
+     * Interceptor invoked when the property is read.
+     * 
+     * @type {PropertyInterceptor<any, TObject>}
+     */
+    getInterceptor?: PropertyInterceptor<any, TObject>;
+    
+    /**
+     * Interceptor invoked before the property value is assigned.
+     * 
+     * @type {PropertyInterceptor<any, TObject>}
+     */
+    setInterceptor?: PropertyInterceptor<any, TObject>;
 };

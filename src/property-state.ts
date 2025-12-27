@@ -7,6 +7,7 @@ import { GenericMetadata } from './generic-metadata';
 import { NamingConvention } from './naming-convention';
 import { NullValueResolver } from './null-value-resolver';
 import { Optional } from './optional';
+import { PropertyInterceptor } from './property-interceptor';
 import { PropertyMetadata } from './property-metadata';
 import { PropertyName } from './property-name';
 import { ReferenceHandler } from './reference-handler';
@@ -167,4 +168,18 @@ export interface PropertyState<TDeclaringObject, TObject>
      * @type {boolean}
      */
     readonly useImplicitConversion: boolean;
+
+    /**
+     * Interceptor invoked when the property is read.
+     * 
+     * @type {PropertyInterceptor<TDeclaringObject, TObject>}
+     */
+    readonly getInterceptor: PropertyInterceptor<TDeclaringObject, TObject>;
+
+    /**
+     * Interceptor invoked before the property value is assigned.
+     * 
+     * @type {PropertyInterceptor<TDeclaringObject, TObject>}
+     */
+    readonly setInterceptor: PropertyInterceptor<TDeclaringObject, TObject>;
 }
