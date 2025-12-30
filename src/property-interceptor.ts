@@ -1,4 +1,5 @@
 import { PropertyMetadata } from './property-metadata';
+import { TypePrimitive } from './type-primitive';
 
 /**
  * A property interceptor allows injecting custom logic when a value is read or assigned. It 
@@ -8,7 +9,7 @@ import { PropertyMetadata } from './property-metadata';
  * @type {PropertyInterceptor<TDeclaringObject, TObject>}
  */
 export type PropertyInterceptor<TDeclaringObject, TObject> = (
-    propertyValue: TObject,
+    propertyValue: TypePrimitive<TObject>,
     declaringObject: TDeclaringObject,
     propertyMetadata: PropertyMetadata<TDeclaringObject, TObject>
 ) => TObject;

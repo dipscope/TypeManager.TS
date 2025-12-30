@@ -82,6 +82,7 @@ export * from './type-metadata';
 export * from './type-name';
 export * from './type-options-base';
 export * from './type-options';
+export * from './type-primitive';
 export * from './type-resolver';
 export * from './type-scope';
 export * from './type-state';

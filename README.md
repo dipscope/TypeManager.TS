@@ -1,6 +1,6 @@
 # TypeManager.TS
 
-![GitHub](https://img.shields.io/github/license/dipscope/TypeManager.TS) ![NPM]( https://img.shields.io/npm/v/@dipscope/type-manager) ![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)
+![GitHub](https://img.shields.io/github/license/dipscope/TypeManager.TS) ![NPM](https://img.shields.io/npm/v/@dipscope/type-manager) ![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)
 
 ## What is TypeManager?
 
@@ -139,25 +139,27 @@ If you like or are using this project, please give it a star. Thanks!
     * [Inject decorator](#inject-decorator)
 * [Defining decorator options](#defining-decorator-options)
     * [Alias option](#alias-option)
+    * [After deserialize callback option](#after-deserialize-callback-option)
+    * [Before serialize callback option](#before-serialize-callback-option)
     * [Custom data option](#custom-data-option)
     * [Default value option](#default-value-option)
     * [Deserializable option](#deserializable-option)
-    * [Before serialize callback option](#before-serialize-callback-option)
-    * [After deserialize callback option](#after-deserialize-callback-option)
     * [Discriminant option](#discriminant-option)
     * [Discriminator option](#discriminator-option)
     * [Factory option](#factory-option)
+    * [Get interceptor option](#get-interceptor-option)
     * [Injectable option](#injectable-option)
     * [Injector option](#injector-option)
     * [Naming convention option](#naming-convention-option)
+    * [Parent type arguments option](#parent-type-arguments-option)
     * [Preserve discriminator option](#preserve-discriminator-option)
     * [Preserve null option](#preserve-null-option)
     * [Reference handler option](#reference-handler-option)
     * [Serializable option](#serializable-option)
     * [Serializer option](#serializer-option)
+    * [Set interceptor option](#set-interceptor-option)
     * [Use default value option](#use-default-value-option)
     * [Use implicit conversion option](#use-implicit-conversion-option)
-    * [Parent type arguments option](#parent-type-arguments-option)
 * [Defining configuration manually](#defining-configuration-manually)
     * [Configuring global options](#configuring-global-options)
     * [Configuring options per type](#configuring-options-per-type)
@@ -676,6 +678,54 @@ Alias defined for a class can be used later for resolving property types. Note t
 
 Alias defined for a property declares that property name differs from one specified in JSON. In our case `username` will be used instead of `name` during JSON serialization and deserialization.
 
+### After deserialize callback option
+
+This option can be used to specify the callback to invoke when deserialization is completed.
+
+```typescript
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type({
+    afterDeserializeCallback: 'initializeAfterDeserialization'
+})
+export class User
+{
+    @Property(String) public name: string;
+
+    public initializeAfterDeserialization(): void
+    {
+        // This method will be called after deserialization is complete.
+        console.log(`User object with name ${this.name} has been successfully deserialized...`);
+    }
+}
+```
+
+After the `User` instance is reconstructed, the `initializeAfterDeserialization` method will run automatically. This hook is ideal for re-establishing transient state (for example, reconnecting object references, initializing runtime-only fields, or validating integrity of the newly created object).
+
+### Before serialize callback option
+
+This option can be used to specify the callback to invoke before serialization starts.
+
+```typescript
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type({
+    beforeSerializeCallback: 'prepareForSerialization'
+})
+export class User
+{
+    @Property(String) public name: string;
+
+    public prepareForSerialization(): void
+    {
+        // This method will be called before serialization begins.
+        console.log(`Preparing User object with name ${this.name} before serialization...`);
+    }
+}
+```
+
+The `prepareForSerialization` method will be automatically invoked by the type manager just before serialization of the `User` instance. Use this hook to perform any last-minute adjustments such as setting default values, trimming strings, or calculating derived properties before the data is emitted.
+
 ### Custom data option
 
 This option can be used to provide any custom data for type or property.
@@ -749,54 +799,6 @@ export class User
 
 By default all properties are deserializable.
 
-### Before serialize callback option
-
-This option can be used to specify the callback to invoke before serialization starts.
-
-```typescript
-import { Type, Property } from '@dipscope/type-manager';
-
-@Type({
-    beforeSerializeCallback: 'prepareForSerialization'
-})
-export class User
-{
-    @Property(String) public name: string;
-
-    public prepareForSerialization(): void
-    {
-        // This method will be called before serialization begins.
-        console.log(`Preparing User object with name ${this.name} before serialization...`);
-    }
-}
-```
-
-The `prepareForSerialization` method will be automatically invoked by the type manager just before serialization of the `User` instance. Use this hook to perform any last-minute adjustments such as setting default values, trimming strings, or calculating derived properties before the data is emitted.
-
-### After deserialize callback option
-
-This option can be used to specify the callback to invoke when deserialization is completed.
-
-```typescript
-import { Type, Property } from '@dipscope/type-manager';
-
-@Type({
-    afterDeserializeCallback: 'initializeAfterDeserialization'
-})
-export class User
-{
-    @Property(String) public name: string;
-
-    public initializeAfterDeserialization(): void
-    {
-        // This method will be called after deserialization is complete.
-        console.log(`User object with name ${this.name} has been successfully deserialized...`);
-    }
-}
-```
-
-After the `User` instance is reconstructed, the `initializeAfterDeserialization` method will run automatically. This hook is ideal for re-establishing transient state (for example, reconnecting object references, initializing runtime-only fields, or validating integrity of the newly created object).
-
 ### Discriminant option
 
 This option is used to define a custom discriminant for a type which is later used during serialization and deserialization of polymorphic types.
@@ -850,6 +852,32 @@ export class User
 ```
 
 This may be useful in cases when you want to init some special application specific properties. Read more about [defining custom factory](#defining-custom-factory) in a separate section.
+
+### Get interceptor option
+
+This option defines a callback that will be invoked whenever the decorated property is **read**. It can be used to transform or react to the returned value before it is exposed.
+
+```typescript
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type()
+export class User
+{
+    @Property(Number, {
+        getInterceptor: value => value + 1
+    })
+    public get score(): number
+    {
+        // Original getter result.
+        return 10; 
+    }
+}
+
+const user = new User();
+console.log(user.score); // 11 (transformed by getInterceptor)
+```
+
+The `getInterceptor` receives the **original value** and must return the **final value**. This is useful for applying computed transformations, formatting, or reacting to read access at runtime.
 
 ### Injectable option
 
@@ -923,6 +951,37 @@ export class User
 ```
 
 In most cases this is not required and the common use case is to specify naming strategy globally instead. You can read more about [configuring naming convention](#configuring-naming-convention) in a separate section.
+
+### Parent type arguments option
+
+When type implements interfaces which represent other classes this information got lost during `TypeScript` compilation process and there is no way to extract it. This option can be used to provide such information for a `TypeManager` to be used during serialization and deserialization.
+
+```typescript
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type()
+export abstract class Entity
+{
+    @Property(String) public id?: string;
+}
+
+@Type()
+export abstract class UserStatus extends Entity
+{
+    @Property(String) public title?: string;
+}
+
+@Type({
+    parentTypeArguments: [UserStatus]
+})
+export class ActiveUserStatus extends Entity implements UserStatus
+{
+    @Property(String) public title?: string;
+    @Property(Boolean) public active?: boolean;
+}
+```
+
+Note that usually only implemented classes should be specified as direct parents are already known to a `TypeManager`. However even if we specify both - it will work properly.
 
 ### Preserve discriminator option
 
@@ -1012,6 +1071,40 @@ export class User
 
 Custom serializer should be an implementation of `Serializer` interface. You can read more about [creating a custom serializer](#defining-custom-serializer) in a separate section.
 
+### Set interceptor option
+
+This option defines a callback that will be invoked whenever a value is **assigned** to the decorated property. It can be used to validate, transform, sanitize, or react to incoming values.
+
+```typescript
+import { Type, Property } from '@dipscope/type-manager';
+
+@Type()
+export class User
+{
+    private userScore = 0;
+
+    @Property(Number, {
+        setInterceptor: value => Math.max(0, value)
+    })
+    public set score(value: number)
+    {
+        // The intercepted value is forwarded here.
+        this.userScore = value;
+    }
+
+    public get score(): number
+    {
+        return this.userScore;
+    }
+}
+
+const user = new User();
+user.score = -5; // setInterceptor forces 0.
+console.log(user.score); // 0
+```
+
+The `setInterceptor` receives the **incoming value** and must return the **processed value** to be applied. This hook is ideal for ensuring data integrity, enforcing constraints, mapping input values, or triggering additional behavior at the moment of assignment.
+
 ### Use default value option
 
 This option enables or disables using default value per type or property.
@@ -1045,37 +1138,6 @@ export class User
 ```
 
 With this any value which can be converted to `String` will be converted properly. Such behaviour works for other built in serializers and supported for custom ones. By default implicit conversion is turned off. You can enable it using `useImplicitConversion` option per type and property or enable globally using `TypeManager` configure method.
-
-### Parent type arguments option
-
-When type implements interfaces which represent other classes this information got lost during `TypeScript` compilation process and there is no way to extract it. This option can be used to provide such information for a `TypeManager` to be used during serialization and deserialization.
-
-```typescript
-import { Type, Property } from '@dipscope/type-manager';
-
-@Type()
-export abstract class Entity
-{
-    @Property(String) public id?: string;
-}
-
-@Type()
-export abstract class UserStatus extends Entity
-{
-    @Property(String) public title?: string;
-}
-
-@Type({
-    parentTypeArguments: [UserStatus]
-})
-export class ActiveUserStatus extends Entity implements UserStatus
-{
-    @Property(String) public title?: string;
-    @Property(Boolean) public active?: boolean;
-}
-```
-
-Note that usually only implemented classes should be specified as direct parents are already known to a `TypeManager`. However even if we specify both - it will work properly.
 
 ## Defining configuration manually
 
