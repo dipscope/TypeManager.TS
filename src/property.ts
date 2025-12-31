@@ -53,7 +53,7 @@ export function Property<TObject>(
         propertyOptions.typeArgument = x as TypeArgument<TObject>;
     }
 
-    return function (target: any, context: any): any
+    return function (target: any, context: any, propertyDescriptor?: PropertyDescriptor): any
     {
         // Modern decorator has a dynamic target which is dependent from where decorator 
         // is applied (target), context as a second parameter (context) and optional 
@@ -110,11 +110,20 @@ export function Property<TObject>(
             {
                 throw new Error(`${nameOf(legacyTarget.constructor)}.${String(propertyName)}: property decorator cannot be applied to a method.`);
             }
-    
+            
             const typeFn = legacyTarget.constructor as TypeFn<any>;
+            const interceptProperties = propertyOptions.getInterceptor !== undefined || propertyOptions.setInterceptor !== undefined;
             
             TypeManager.configureTypeMetadata(typeFn).configurePropertyMetadata(propertyName as string, propertyOptions);
-    
+
+            if (interceptProperties && propertyDescriptor !== undefined && propertyDescriptor !== null)
+            {
+                const ownPropertyDescriptor = Object.getOwnPropertyDescriptor(typeFn.prototype, propertyName) ?? {};
+                
+                propertyDescriptor.get = ownPropertyDescriptor.get ?? propertyDescriptor.get;
+                propertyDescriptor.set = ownPropertyDescriptor.set ?? propertyDescriptor.set;
+            }
+
             return;
         }
 

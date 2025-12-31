@@ -164,7 +164,7 @@ export class TypeManager
      */
     public constructor(typeManagerOptions: TypeManagerOptions = {})
     {
-        this.symbol = Symbol();
+        this.symbol = Symbol(TYPE_METADATA_SYMBOL.description);
         this.typeManagerOptions = this.constructTypeManagerOptions(typeManagerOptions);
         this.typeFnMap = new Map<Alias, TypeFn<any>>();
         this.typeMetadataSet = new Set<TypeMetadata<any>>();

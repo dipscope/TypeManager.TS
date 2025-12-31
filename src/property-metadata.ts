@@ -981,76 +981,72 @@ export class PropertyMetadata<TDeclaringObject, TObject> extends Metadata
         const propertySymbol = Symbol.for(propertyKey);
         const typeFn = this.declaringTypeMetadata.typeFn;
         const prototype = typeFn.prototype;
+        const propertyDescriptor = Object.getOwnPropertyDescriptor(prototype, propertyName) ?? {};
+        const configurable = propertyDescriptor.configurable ?? true;
+        const enumerable = propertyDescriptor.enumerable ?? true;
+        const originalGet = propertyDescriptor.get;
+        const originalSet = propertyDescriptor.set;
 
-        queueMicrotask(() => 
+        if (propertyDescriptor.value !== undefined) 
         {
-            const propertyDescriptor = Object.getOwnPropertyDescriptor(prototype, propertyName) ?? {};
-            const configurable = propertyDescriptor.configurable ?? true;
-            const enumerable = propertyDescriptor.enumerable ?? true;
-            const originalGet = propertyDescriptor.get;
-            const originalSet = propertyDescriptor.set;
-            
-            if (propertyDescriptor.value !== undefined) 
+            prototype[propertySymbol] = propertyDescriptor.value;
+        }
+
+        Object.defineProperty(prototype, propertyName, {
+            enumerable: enumerable,
+            configurable: configurable,
+            get()
             {
-                prototype[propertySymbol] = propertyDescriptor.value;
-            }
+                const propertyMetadata = getPropertyMetadata(typeFn, propertyName);
 
-            Object.defineProperty(prototype, propertyName, {
-                enumerable: enumerable,
-                configurable: configurable,
-                get()
+                if (propertyMetadata === undefined)
                 {
-                    const propertyMetadata = getPropertyMetadata(typeFn, propertyName);
-
-                    if (propertyMetadata === undefined)
-                    {
-                        if (originalGet !== undefined && originalGet !== null)
-                        {
-                            return originalGet.call(this);
-                        }
-
-                        return this[propertySymbol];
-                    }
-
                     if (originalGet !== undefined && originalGet !== null)
                     {
-                        return propertyMetadata.propertyState.getInterceptor(originalGet.call(this), this, propertyMetadata);
+                        return originalGet.call(this);
                     }
 
-                    return propertyMetadata.propertyState.getInterceptor(this[propertySymbol], this, propertyMetadata);
-                },
-                set(value: any)
+                    return this[propertySymbol];
+                }
+
+                if (originalGet !== undefined && originalGet !== null)
                 {
-                    const propertyMetadata = getPropertyMetadata(typeFn, propertyName);
+                    return propertyMetadata.propertyState.getInterceptor(originalGet.call(this), this, propertyMetadata);
+                }
 
-                    if (propertyMetadata === undefined)
-                    {
-                        if (originalSet !== undefined && originalSet !== null)
-                        {
-                            originalSet.call(this, value);
+                return propertyMetadata.propertyState.getInterceptor(this[propertySymbol], this, propertyMetadata);
+            },
+            set(value: any)
+            {
+                const propertyMetadata = getPropertyMetadata(typeFn, propertyName);
 
-                            return;
-                        }
-
-                        this[propertySymbol] = value;
-
-                        return;
-                    }
-
+                if (propertyMetadata === undefined)
+                {
                     if (originalSet !== undefined && originalSet !== null)
                     {
-                        originalSet.call(this, propertyMetadata.propertyState.setInterceptor(value, this, propertyMetadata));
+                        originalSet.call(this, value);
 
                         return;
                     }
 
-                    this[propertySymbol] = propertyMetadata.propertyState.setInterceptor(value, this, propertyMetadata);
+                    this[propertySymbol] = value;
 
                     return;
                 }
-            });
-        });
 
+                if (originalSet !== undefined && originalSet !== null)
+                {
+                    originalSet.call(this, propertyMetadata.propertyState.setInterceptor(value, this, propertyMetadata));
+
+                    return;
+                }
+
+                this[propertySymbol] = propertyMetadata.propertyState.setInterceptor(value, this, propertyMetadata);
+
+                return;
+            }
+        });
+        
         return;
     }
 
